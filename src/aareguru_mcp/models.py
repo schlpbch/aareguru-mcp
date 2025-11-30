@@ -100,16 +100,40 @@ class CurrentResponse(BaseModel):
 class TodayResponse(BaseModel):
     """Minimal today response model."""
 
-    city: str = Field(..., description="City identifier")
-    aare: Optional[AareData] = Field(None, description="Aare river data")
-    text: Optional[str] = Field(None, description="Temperature text")
+    # Temperature fields (flat, not nested)
+    aare: Optional[float] = Field(None, description="Water temperature")
+    aare_prec: Optional[float] = Field(None, description="Precise water temperature")
+    text: Optional[str] = Field(None, description="Swiss German temperature text")
     text_short: Optional[str] = Field(None, description="Short temperature text")
+    
+    # Metadata
+    time: Optional[int] = Field(None, description="Timestamp")
+    name: Optional[str] = Field(None, description="City name")
+    longname: Optional[str] = Field(None, description="Full city name")
 
 
-class CitiesResponse(BaseModel):
-    """Cities list response model."""
+class CityListItem(BaseModel):
+    """City list item from cities endpoint."""
+    
+    city: str = Field(..., description="City identifier")
+    name: str = Field(..., description="Display name")
+    longname: str = Field(..., description="Full name")
+    coordinates: Optional[dict[str, float]] = Field(None, description="Lat/lon coordinates")
+    aare: Optional[float] = Field(None, description="Current temperature")
+    aare_prec: Optional[float] = Field(None, description="Precise temperature")
+    sy: Optional[int] = Field(None, description="Weather symbol")
+    tn: Optional[float] = Field(None, description="Min temperature")
+    tx: Optional[float] = Field(None, description="Max temperature")
+    forecast: Optional[bool] = Field(None, description="Has forecast")
+    time: Optional[int] = Field(None, description="Timestamp")
+    url: Optional[str] = Field(None, description="Current URL")
+    today: Optional[str] = Field(None, description="Today URL")
+    widget: Optional[str] = Field(None, description="Widget URL")
+    history: Optional[str] = Field(None, description="History URL")
 
-    cities: list[CityInfo] = Field(..., description="List of available cities")
+
+# Type alias for cities response (it's just an array)
+CitiesResponse = list[CityListItem]
 
 
 class HistoricalDataPoint(BaseModel):

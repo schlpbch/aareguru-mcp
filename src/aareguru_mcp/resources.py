@@ -75,9 +75,10 @@ async def read_resource(uri: str) -> str:
         try:
             # Handle different resource types
             if path == "cities":
-                # List all cities
+                # List all cities (returns array)
                 response = await client.get_cities()
-                return response.model_dump_json(indent=2)
+                import json
+                return json.dumps([city.model_dump() for city in response], indent=2)
             
             elif path == "widget":
                 # All cities overview

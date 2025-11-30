@@ -68,9 +68,9 @@ async def test_get_cities_real_api(api_client):
     """Test fetching cities from real API."""
     response = await api_client.get_cities()
     
-    assert isinstance(response, CitiesResponse)
-    assert len(response.cities) > 0
-    assert any(c.city == "bern" for c in response.cities)
+    assert isinstance(response, list)  # CitiesResponse is a list
+    assert len(response) > 0
+    assert any(c.city == "bern" for c in response)
 
 
 @pytest.mark.asyncio

@@ -189,7 +189,10 @@ class AareguruClient:
         """
         data = await self._request("/v2018/cities")
         try:
-            return CitiesResponse(**data)
+            # API returns array directly, not object with 'cities' key
+            from pydantic import TypeAdapter
+            adapter = TypeAdapter(CitiesResponse)
+            return adapter.validate_python(data)
         except ValidationError as e:
             logger.error(f"Validation error for cities response: {e}")
             raise

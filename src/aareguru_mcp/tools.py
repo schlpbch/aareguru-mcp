@@ -32,10 +32,13 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
         response = await client.get_today(city)
         
         return {
-            "city": response.city,
-            "temperature": response.aare.temperature if response.aare else None,
-            "temperature_text": response.aare.temperature_text if response.aare else None,
-            "temperature_text_short": response.aare.temperature_text_short if response.aare else None,
+            "city": city,
+            "temperature": response.aare,
+            "temperature_prec": response.aare_prec,
+            "temperature_text": response.text,
+            "temperature_text_short": response.text_short,
+            "name": response.name,
+            "longname": response.longname,
         }
 
 
@@ -138,14 +141,16 @@ async def list_cities() -> list[dict[str, Any]]:
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_cities()
         
+        # Response is already a list
         return [
             {
                 "city": city.city,
                 "name": city.name,
                 "longname": city.longname,
-                "url": city.url,
+                "coordinates": city.coordinates,
+                "temperature": city.aare,
             }
-            for city in response.cities
+            for city in response
         ]
 
 

@@ -64,3 +64,13 @@ addopts = [
     "--strict-config",
     "--cov=aareguru_mcp",
 ]
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "mypy>=1.19.0",
+    "pytest>=9.0.1",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.7",
+]
