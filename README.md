@@ -4,14 +4,17 @@ MCP server for Swiss Aare river data, enabling AI assistants to answer questions
 
 ## Status
 
-🚧 **Phase 1 Week 1 - In Progress**
+✅ **Phase 1 Week 2 - Complete**
 
 - ✅ Project structure
 - ✅ Configuration management
 - ✅ Pydantic models
 - ✅ Async API client with caching
-- ✅ Initial test suite
-- ⏳ MCP server implementation (Week 2)
+- ✅ MCP server (stdio)
+- ✅ 4 MCP resources
+- ✅ 5 MCP tools
+- ✅ Test suite (45+ tests)
+- ⏳ Integration testing (Week 3)
 
 ## Quick Start
 
