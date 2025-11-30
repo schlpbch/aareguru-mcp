@@ -1,0 +1,53 @@
+{
+  "current_bern": {
+    "city": "bern",
+    "name": "Bern",
+    "longname": "Bern - Schönau",
+    "url": "https://aare.guru/bern",
+    "aare": {
+      "temperature": 17.2,
+      "temperature_text": "geil aber chli chalt",
+      "temperature_text_short": "chli chalt",
+      "flow": 245.0,
+      "flow_text": "moderate",
+      "flow_gefahrenstufe": 2
+    },
+    "weather": {
+      "tt": 24.0,
+      "sy": 1,
+      "rr": 0.0
+    }
+  },
+  "cities": {
+    "cities": [
+      {
+        "city": "bern",
+        "name": "Bern",
+        "longname": "Bern - Schönau",
+        "url": "https://aare.guru/bern"
+      },
+      {
+        "city": "thun",
+        "name": "Thun",
+        "longname": "Thun",
+        "url": "https://aare.guru/thun"
+      },
+      {
+        "city": "basel",
+        "name": "Basel",
+        "longname": "Basel - Rhein",
+        "url": "https://aare.guru/basel"
+      }
+    ]
+  },
+  "today_bern": {
+    "city": "bern",
+    "aare": {
+      "temperature": 17.2,
+      "temperature_text": "geil aber chli chalt",
+      "temperature_text_short": "chli chalt"
+    },
+    "text": "geil aber chli chalt",
+    "text_short": "chli chalt"
+  }
+}
