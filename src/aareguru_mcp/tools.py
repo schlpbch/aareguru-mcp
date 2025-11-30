@@ -56,44 +56,33 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_current(city)
         
-        # Build comprehensive response
+        # Build comprehensive response from nested structure
         result: dict[str, Any] = {
-            "city": response.city,
-            "name": response.name,
-            "longname": response.longname,
+            "city": city,
         }
         
-        # Aare data
+        # Aare data (nested in response.aare)
         if response.aare:
             result["aare"] = {
+                "location": response.aare.location,
+                "location_long": response.aare.location_long,
                 "temperature": response.aare.temperature,
                 "temperature_text": response.aare.temperature_text,
                 "temperature_text_short": response.aare.temperature_text_short,
                 "flow": response.aare.flow,
                 "flow_text": response.aare.flow_text,
-                "flow_gefahrenstufe": response.aare.flow_gefahrenstufe,
                 "height": response.aare.height,
+                "forecast2h": response.aare.forecast2h,
+                "forecast2h_text": response.aare.forecast2h_text,
             }
         
         # Weather data
         if response.weather:
-            result["weather"] = {
-                "air_temperature": response.weather.tt,
-                "min_temperature": response.weather.tn,
-                "max_temperature": response.weather.tx,
-                "weather_symbol": response.weather.sy,
-                "precipitation": response.weather.rr,
-                "wind_speed": response.weather.v,
-                "cloud_coverage": response.weather.n,
-            }
+            result["weather"] = response.weather
         
         # Forecast
-        if response.forecast2h:
-            result["forecast_2h"] = {
-                "time": response.forecast2h.time,
-                "temperature": response.forecast2h.temperature,
-                "weather_symbol": response.forecast2h.sy,
-            }
+        if response.weatherprognosis:
+            result["forecast"] = response.weatherprognosis
         
         return result
 
@@ -165,8 +154,8 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         
     Example:
         >>> result = await get_flow_danger_level("bern")
-        >>> print(result["flow_gefahrenstufe"])
-        2  # Moderate danger level
+        >>> print(result["flow"])
+        65  # m³/s
     """
     logger.info(f"Getting flow danger level for {city}")
     
@@ -177,30 +166,31 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
             return {
                 "city": city,
                 "flow": None,
-                "flow_gefahrenstufe": None,
                 "flow_text": None,
                 "safety_assessment": "No data available",
             }
         
-        # Determine safety assessment based on danger level
-        danger_level = response.aare.flow_gefahrenstufe
-        if danger_level is None:
-            safety = "Unknown - no danger level data"
-        elif danger_level == 1:
-            safety = "Safe - low danger level"
-        elif danger_level == 2:
+        # Determine safety based on flow threshold
+        flow = response.aare.flow
+        threshold = response.aare.flow_scale_threshold or 220
+        
+        if flow is None:
+            safety = "Unknown - no flow data"
+        elif flow < 100:
+            safety = "Safe - low flow"
+        elif flow < threshold:
             safety = "Moderate - safe for experienced swimmers"
-        elif danger_level == 3:
+        elif flow < 300:
             safety = "Elevated - caution advised"
-        elif danger_level == 4:
+        elif flow < 430:
             safety = "High - dangerous conditions"
-        else:  # 5
+        else:
             safety = "Very high - extremely dangerous, avoid swimming"
         
         return {
             "city": city,
-            "flow": response.aare.flow,
-            "flow_gefahrenstufe": danger_level,
+            "flow": flow,
             "flow_text": response.aare.flow_text,
+            "flow_threshold": threshold,
             "safety_assessment": safety,
         }

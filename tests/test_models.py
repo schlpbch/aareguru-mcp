@@ -80,26 +80,31 @@ def test_city_info_required_fields():
 
 def test_current_response():
     """Test CurrentResponse model."""
+    from aareguru_mcp.models import AareCurrentData
+    
     response = CurrentResponse(
-        city="bern",
-        name="Bern",
-        aare=AareData(temperature=17.2),
-        weather=WeatherData(tt=24.0),
+        aare=AareCurrentData(
+            location="Bärn",
+            temperature=17.2,
+            flow=245.0,
+        ),
     )
-    assert response.city == "bern"
     assert response.aare.temperature == 17.2
-    assert response.weather.tt == 24.0
+    assert response.aare.flow == 245.0
 
 
 def test_today_response():
     """Test TodayResponse model."""
     response = TodayResponse(
-        city="bern",
-        aare=AareData(temperature=17.2, temperature_text="geil aber chli chalt"),
+        aare=17.2,
+        aare_prec=17.23,
         text="geil aber chli chalt",
+        text_short="chli chalt",
+        name="Bärn",
+        longname="Bern, Schönau",
     )
-    assert response.city == "bern"
-    assert response.aare.temperature == 17.2
+    assert response.aare == 17.2
+    assert response.text == "geil aber chli chalt"
 
 
 def test_model_json_schema():

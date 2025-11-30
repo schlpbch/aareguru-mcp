@@ -80,21 +80,38 @@ class CityInfo(BaseModel):
     position: Optional[Position] = Field(None, description="Geographic coordinates")
 
 
+class AareCurrentData(BaseModel):
+    """Current Aare data from /current endpoint (nested structure)."""
+    
+    location: Optional[str] = Field(None, description="Location name")
+    location_long: Optional[str] = Field(None, description="Full location name")
+    coordinates: Optional[dict[str, float]] = Field(None, description="Lat/lon")
+    forecast: Optional[bool] = Field(None, description="Has forecast")
+    timestamp: Optional[int] = Field(None, description="Unix timestamp")
+    timestring: Optional[str] = Field(None, description="Time string")
+    temperature: Optional[float] = Field(None, description="Water temperature")
+    temperature_prec: Optional[float] = Field(None, description="Precise temperature")
+    temperature_text: Optional[str] = Field(None, description="Swiss German text")
+    temperature_text_short: Optional[str] = Field(None, description="Short text")
+    flow: Optional[float] = Field(None, description="Flow rate m³/s")
+    flow_text: Optional[str] = Field(None, description="Flow description")
+    flow_scale_threshold: Optional[float] = Field(None, description="Flow threshold")
+    forecast2h: Optional[float] = Field(None, description="2h forecast temp")
+    forecast2h_text: Optional[str] = Field(None, description="2h forecast text")
+    height: Optional[float] = Field(None, description="Water height")
+    temperature_scale: Optional[list[dict[str, Any]]] = Field(None, description="Temp scale")
+    flow_scale: Optional[list[dict[str, Any]]] = Field(None, description="Flow scale")
+    historical_temp_max: Optional[dict[str, Any]] = Field(None, description="Historical max")
+
+
 class CurrentResponse(BaseModel):
     """Complete current conditions response model."""
 
-    city: str = Field(..., description="City identifier")
-    name: Optional[str] = Field(None, description="City name")
-    longname: Optional[str] = Field(None, description="Full city name")
-    url: Optional[str] = Field(None, description="City URL")
-    aare: Optional[AareData] = Field(None, description="Aare river data")
-    weather: Optional[WeatherData] = Field(None, description="Weather data")
-    sun: Optional[SunData] = Field(None, description="Sun and daylight data")
-    forecast: Optional[list[ForecastData]] = Field(None, description="Weather forecasts")
-    forecast2h: Optional[ForecastData] = Field(None, description="2-hour forecast")
-    today: Optional[dict[str, Any]] = Field(None, description="Today's summary")
-    time: Optional[str] = Field(None, description="Measurement timestamp")
-    historical_temp_max: Optional[float] = Field(None, description="Historical maximum temperature")
+    aare: Optional[AareCurrentData] = Field(None, description="Aare river data")
+    aarepast: Optional[list[dict[str, Any]]] = Field(None, description="Past data points")
+    weather: Optional[dict[str, Any]] = Field(None, description="Weather data")
+    weatherprognosis: Optional[list[dict[str, Any]]] = Field(None, description="Weather forecast")
+    sun: Optional[dict[str, Any]] = Field(None, description="Sun data")
 
 
 class TodayResponse(BaseModel):

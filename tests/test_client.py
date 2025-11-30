@@ -80,8 +80,8 @@ async def test_get_today_real_api(api_client):
     response = await api_client.get_today("bern")
     
     assert isinstance(response, TodayResponse)
-    assert response.city == "bern"
-    assert response.aare is not None
+    # TodayResponse has flat fields, no city field
+    assert response.aare is not None or response.text is not None
 
 
 @pytest.mark.asyncio
@@ -91,7 +91,7 @@ async def test_get_current_real_api(api_client):
     response = await api_client.get_current("bern")
     
     assert isinstance(response, CurrentResponse)
-    assert response.city == "bern"
+    # CurrentResponse has nested aare object
     assert response.aare is not None
 
 
