@@ -31,12 +31,22 @@ pytest --cov=aareguru_mcp
 ```
 
 ## Features
+ 
+ - **5 MCP Tools** for querying Aare data (Temperature, Current Conditions, History, Flow Safety, City List)
+ - **4 MCP Resources** for data access (Cities, Widget, Current, Today)
+ - **Async HTTP client** with caching and rate limiting
+ - **Comprehensive testing** (100% pass rate, 81% coverage)
+ - **Stdio transport** for local integration (HTTP/SSE planned for Phase 3)
+ 
+ ## Development
+ 
+ ### API Testing
+ 
+ A Postman collection is included for testing the Aareguru API endpoints directly:
+ - Import `aareguru_postman_collection.json` into Postman
+ - Includes requests for all core endpoints (cities, today, current, widget, history)
+ - Pre-configured with environment variables
 
-- **7 MCP Tools** for querying Aare data
-- **4 MCP Resources** for static data access
-- **Async HTTP client** with caching and rate limiting
-- **Comprehensive testing** (target: 85%+ coverage)
-- **Dual deployment**: stdio (local) and HTTP/SSE (remote)
 
 ## Documentation
 
