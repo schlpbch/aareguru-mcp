@@ -9,7 +9,7 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 
 ## 🎯 Features
 
-- **5 MCP Tools** for querying Aare river data
+- **7 MCP Tools** for querying Aare river data
 - **4 MCP Resources** for direct data access
 - **Swiss German Integration** - Authentic temperature descriptions
 - **BAFU Safety Assessments** - Official flow danger levels
@@ -24,7 +24,14 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 - **Seasonal Context:** Provides advice tailored to the current season (Winter vs Summer).
 - **Cultural Flair:** Explains Swiss German terms like "geil aber chli chalt".
 
-## 🛠️ Installation
+## � Screenshots
+
+<p align="center">
+  <img src="claude-desktop-1.png" alt="Claude Desktop Integration Example 1" width="45%">
+  <img src="claude-desktop-2.png" alt="Claude Desktop Integration Example 2" width="45%">
+</p>
+
+## �🛠️ Installation
 
 ### Installation
 
@@ -311,26 +318,20 @@ aareguru-mcp/
 
 ## 🎯 Project Status
 
-✅ **Phase 1 Week 3 Complete** - Production Ready!
+✅ **Phase 2 Complete** - Enhanced Features & UX
 
-- ✅ Project structure and configuration
-- ✅ Pydantic models (100% coverage)
-- ✅ Async API client with caching (77% coverage)
-- ✅ MCP server with stdio transport
-- ✅ 4 MCP resources (100% coverage)
-- ✅ 5 MCP tools (81% coverage)
-- ✅ 78 tests passing (100% pass rate)
-- ✅ 83% overall code coverage
-- ✅ Integration tests (20 tests)
-- ✅ E2E conversation tests (15 tests)
-- ✅ Comprehensive documentation
-- ✅ Claude Desktop setup guide
+- ✅ **Core Foundation**: Project structure, Pydantic models, Async API client
+- ✅ **MCP Protocol**: 7 Tools & 4 Resources implemented
+- ✅ **Advanced Features**: `compare_cities`, `get_forecast`, Swiss German integration
+- ✅ **Smart UX**: Proactive safety checks, alternative suggestions, seasonal context
+- ✅ **Quality Assurance**: 150+ tests passing with 80%+ coverage
+- ✅ **Documentation**: Comprehensive guides and 130+ user question coverage
 
-**Next Steps (Phase 2):**
-- [ ] Add `compare_cities` tool
-- [ ] Add `get_forecast` tool
-- [ ] Enhanced response formatting
-- [ ] HTTP/SSE server (Phase 3)
+**Next Steps (Phase 3 - HTTP Deployment):**
+- [ ] HTTP/SSE server implementation (Starlette/FastAPI)
+- [ ] API key authentication & Rate limiting
+- [ ] Docker containerization
+- [ ] Cloud deployment preparation
 
 See [MASTER_PLAN.md](MASTER_PLAN.md) for the complete roadmap.
 
