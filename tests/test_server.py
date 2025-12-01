@@ -23,10 +23,10 @@ from aareguru_mcp.server import (
 
 @pytest.mark.asyncio
 async def test_handle_list_tools_returns_all_tools():
-    """Test that handle_list_tools returns all 5 tools."""
+    """Test that handle_list_tools returns all 7 tools."""
     tools = await handle_list_tools()
     
-    assert len(tools) == 5
+    assert len(tools) == 7
     assert all(isinstance(tool, Tool) for tool in tools)
 
 
@@ -42,6 +42,8 @@ async def test_handle_list_tools_has_correct_names():
         "get_historical_data",
         "list_cities",
         "get_flow_danger_level",
+        "compare_cities",
+        "get_forecast",
     ]
     
     assert tool_names == expected_names
@@ -475,3 +477,112 @@ async def test_graceful_error_formatting():
         assert result[0].type == "text"
         assert "Error" in result[0].text
         assert "Network timeout" in result[0].text
+
+
+# New Tool Tests (4 tests)
+
+
+@pytest.mark.asyncio
+async def test_handle_call_tool_compare_cities():
+    """Test calling compare_cities tool."""
+    with patch("aareguru_mcp.server.tools") as mock_tools:
+        mock_tools.compare_cities = AsyncMock(
+            return_value={
+                "cities": [
+                    {"city": "bern", "name": "Bern", "temperature": 17.2},
+                    {"city": "thun", "name": "Thun", "temperature": 16.5},
+                ],
+                "warmest": {"city": "bern", "name": "Bern", "temperature": 17.2},
+                "coldest": {"city": "thun", "name": "Thun", "temperature": 16.5},
+                "safest": {"city": "thun", "name": "Thun", "flow": 65.0},
+                "comparison_summary": "Warmest: Bern (17.2°C) | Coldest: Thun (16.5°C)",
+            }
+        )
+        
+        result = await handle_call_tool(
+            name="compare_cities",
+            arguments={"cities": ["bern", "thun"]}
+        )
+        
+        assert isinstance(result, list)
+        data = json.loads(result[0].text)
+        assert "warmest" in data
+        assert data["warmest"]["name"] == "Bern"
+        
+        mock_tools.compare_cities.assert_called_once_with(["bern", "thun"])
+
+
+@pytest.mark.asyncio
+async def test_handle_call_tool_compare_cities_all():
+    """Test calling compare_cities without cities parameter (all cities)."""
+    with patch("aareguru_mcp.server.tools") as mock_tools:
+        mock_tools.compare_cities = AsyncMock(
+            return_value={
+                "cities": [],
+                "warmest": None,
+                "coldest": None,
+                "safest": None,
+                "comparison_summary": "Comparison complete",
+            }
+        )
+        
+        result = await handle_call_tool(
+            name="compare_cities",
+            arguments={}
+        )
+        
+        assert isinstance(result, list)
+        mock_tools.compare_cities.assert_called_once_with(None)
+
+
+@pytest.mark.asyncio
+async def test_handle_call_tool_get_forecast():
+    """Test calling get_forecast tool."""
+    with patch("aareguru_mcp.server.tools") as mock_tools:
+        mock_tools.get_forecast = AsyncMock(
+            return_value={
+                "city": "bern",
+                "current": {"temperature": 17.2, "flow": 92.0},
+                "forecast_2h": 17.8,
+                "forecast_text": "slightly warmer",
+                "trend": "rising",
+                "temperature_change": 0.6,
+                "recommendation": "Temperature rising by 0.6°C",
+            }
+        )
+        
+        result = await handle_call_tool(
+            name="get_forecast",
+            arguments={"city": "bern", "hours": 2}
+        )
+        
+        assert isinstance(result, list)
+        data = json.loads(result[0].text)
+        assert data["trend"] == "rising"
+        assert data["forecast_2h"] == 17.8
+        
+        mock_tools.get_forecast.assert_called_once_with("bern", 2)
+
+
+@pytest.mark.asyncio
+async def test_handle_call_tool_get_forecast_default_params():
+    """Test calling get_forecast with default parameters."""
+    with patch("aareguru_mcp.server.tools") as mock_tools:
+        mock_tools.get_forecast = AsyncMock(
+            return_value={
+                "city": "bern",
+                "current": {"temperature": 17.2},
+                "forecast_2h": 17.5,
+                "trend": "stable",
+                "recommendation": "Temperature stable",
+            }
+        )
+        
+        result = await handle_call_tool(
+            name="get_forecast",
+            arguments={}
+        )
+        
+        assert isinstance(result, list)
+        mock_tools.get_forecast.assert_called_once_with("bern", 2)
+

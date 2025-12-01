@@ -147,9 +147,35 @@ Get historical temperature and flow data.
 - `end` (required) - End date (e.g., "now", "2024-01-31")
 
 **Example queries:**
-- "How has the temperature changed this week?"
 - "Show me the last 7 days of data for Bern"
 - "What was the average temperature last month?"
+
+### 6. `compare_cities`
+Compare water conditions across multiple cities.
+
+**Parameters:**
+- `cities` (optional) - List of cities to compare (default: all cities)
+
+**Example queries:**
+- "Which city has the warmest water?"
+- "Compare Bern and Thun"
+- "Where is the safest place to swim?"
+
+**Response:** Comparison summary with warmest, coldest, and safest locations.
+
+### 7. `get_forecast`
+Get temperature and flow forecast.
+
+**Parameters:**
+- `city` (optional) - City name (default: "bern")
+- `hours` (optional) - Forecast horizon in hours (default: 2)
+
+**Example queries:**
+- "Will the water be warmer in 2 hours?"
+- "What's the forecast for this afternoon?"
+- "Is the temperature rising or falling?"
+
+**Response:** Current conditions, 2-hour forecast, trend analysis (rising/falling/stable), and recommendations.
 
 ## 📊 Available Resources
 

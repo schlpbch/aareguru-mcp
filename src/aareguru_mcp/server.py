@@ -119,6 +119,39 @@ async def handle_list_tools() -> list[Tool]:
                 },
             },
         ),
+        Tool(
+            name="compare_cities",
+            description="Compare water conditions across multiple cities. Use this for comparative questions like 'which city has the warmest water?', 'compare Bern and Thun', or 'where's the best place to swim today?'. Returns comparison data with warmest, coldest, and safest cities.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "cities": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of city identifiers to compare (e.g., ['bern', 'thun', 'basel']). If not provided, compares all available cities. Use list_cities to discover available locations.",
+                    }
+                },
+            },
+        ),
+        Tool(
+            name="get_forecast",
+            description="Get temperature and flow forecast for a city. Use this for forecast questions like 'will the water be warmer tomorrow?', 'what's the 2-hour forecast?', or 'when will it be warmest today?'. Returns current conditions, 2-hour forecast, trend analysis, and swimming timing recommendations.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "City identifier (e.g., 'bern', 'thun', 'basel', 'olten'). Use list_cities to discover available locations.",
+                        "default": "bern",
+                    },
+                    "hours": {
+                        "type": "integer",
+                        "description": "Forecast horizon in hours (typically 2). The API provides 2-hour forecasts.",
+                        "default": 2,
+                    }
+                },
+            },
+        ),
     ]
 
 
@@ -149,6 +182,15 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
         elif name == "get_flow_danger_level":
             city = arguments.get("city", "bern")
             result = await tools.get_flow_danger_level(city)
+            
+        elif name == "compare_cities":
+            cities = arguments.get("cities")
+            result = await tools.compare_cities(cities)
+            
+        elif name == "get_forecast":
+            city = arguments.get("city", "bern")
+            hours = arguments.get("hours", 2)
+            result = await tools.get_forecast(city, hours)
             
         else:
             raise ValueError(f"Unknown tool: {name}")

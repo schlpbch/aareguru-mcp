@@ -265,3 +265,200 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
             "flow_threshold": threshold,
             "safety_assessment": safety,
         }
+
+
+async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
+    """Compare water conditions across multiple cities.
+    
+    Use this for comparative questions like "which city has the warmest water?",
+    "compare Bern and Thun", or "where's the best place to swim today?".
+    
+    Args:
+        cities: List of city identifiers to compare (e.g., ["bern", "thun", "basel"]).
+                If None, compares all available cities.
+                Use list_cities() to discover available locations.
+    
+    Returns:
+        Dictionary with comparison data:
+        - cities: List of city data with temperature, flow, and safety
+        - warmest: City with highest temperature
+        - coldest: City with lowest temperature
+        - safest: City with lowest flow rate (safest swimming)
+        - comparison_summary: Human-readable summary
+    
+    Example:
+        >>> # Compare specific cities
+        >>> result = await compare_cities(["bern", "thun", "basel"])
+        >>> print(f"Warmest: {result['warmest']['name']} at {result['warmest']['temperature']}°C")
+        
+        >>> # Compare all cities
+        >>> result = await compare_cities()
+        >>> for city in result['cities']:
+        ...     print(f"{city['name']}: {city['temperature']}°C")
+    """
+    logger.info(f"Comparing cities: {cities or 'all'}")
+    
+    async with AareguruClient(settings=get_settings()) as client:
+        # Get all cities if none specified
+        if cities is None:
+            all_cities = await client.get_cities()
+            cities = [city.city for city in all_cities]
+        
+        # Fetch data for each city
+        city_data = []
+        for city in cities:
+            try:
+                response = await client.get_current(city)
+                
+                if response.aare:
+                    # Determine safety level
+                    flow = response.aare.flow
+                    threshold = response.aare.flow_scale_threshold or 220
+                    
+                    if flow is None:
+                        safety = "Unknown"
+                        danger_level = 0
+                    elif flow < 100:
+                        safety = "Safe"
+                        danger_level = 1
+                    elif flow < threshold:
+                        safety = "Moderate"
+                        danger_level = 2
+                    elif flow < 300:
+                        safety = "Elevated"
+                        danger_level = 3
+                    elif flow < 430:
+                        safety = "High"
+                        danger_level = 4
+                    else:
+                        safety = "Very High"
+                        danger_level = 5
+                    
+                    city_data.append({
+                        "city": city,
+                        "name": response.aare.location,
+                        "longname": response.aare.location_long,
+                        "temperature": response.aare.temperature,
+                        "temperature_text": response.aare.temperature_text,
+                        "flow": flow,
+                        "flow_text": response.aare.flow_text,
+                        "safety": safety,
+                        "danger_level": danger_level,
+                    })
+            except Exception as e:
+                logger.warning(f"Failed to get data for {city}: {e}")
+                continue
+        
+        if not city_data:
+            return {
+                "cities": [],
+                "warmest": None,
+                "coldest": None,
+                "safest": None,
+                "comparison_summary": "No data available for comparison",
+            }
+        
+        # Find warmest, coldest, and safest
+        cities_with_temp = [c for c in city_data if c["temperature"] is not None]
+        cities_with_flow = [c for c in city_data if c["flow"] is not None]
+        
+        warmest = max(cities_with_temp, key=lambda c: c["temperature"]) if cities_with_temp else None
+        coldest = min(cities_with_temp, key=lambda c: c["temperature"]) if cities_with_temp else None
+        safest = min(cities_with_flow, key=lambda c: c["flow"]) if cities_with_flow else None
+        
+        # Create summary
+        summary_parts = []
+        if warmest:
+            summary_parts.append(f"Warmest: {warmest['name']} ({warmest['temperature']}°C)")
+        if coldest:
+            summary_parts.append(f"Coldest: {coldest['name']} ({coldest['temperature']}°C)")
+        if safest:
+            summary_parts.append(f"Safest: {safest['name']} ({safest['flow']} m³/s)")
+        
+        return {
+            "cities": city_data,
+            "warmest": warmest,
+            "coldest": coldest,
+            "safest": safest,
+            "comparison_summary": " | ".join(summary_parts) if summary_parts else "Comparison complete",
+        }
+
+
+async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
+    """Get temperature and flow forecast for a city.
+    
+    Use this for forecast questions like "will the water be warmer tomorrow?",
+    "what's the 2-hour forecast?", or "when will it be warmest today?".
+    
+    Args:
+        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
+              Use list_cities() to discover available locations.
+        hours: Forecast horizon in hours (typically 2). The API provides 2-hour forecasts.
+    
+    Returns:
+        Dictionary with forecast data:
+        - current: Current temperature and conditions
+        - forecast_2h: Forecasted temperature in 2 hours
+        - forecast_text: Human-readable forecast description
+        - trend: Temperature trend ("rising", "falling", or "stable")
+        - recommendation: Swimming timing recommendation
+    
+    Example:
+        >>> result = await get_forecast("bern")
+        >>> print(f"Current: {result['current']['temperature']}°C")
+        >>> print(f"In 2h: {result['forecast_2h']}°C")
+        >>> print(f"Trend: {result['trend']}")
+        Current: 17.2°C
+        In 2h: 17.8°C
+        Trend: rising
+    """
+    logger.info(f"Getting forecast for {city} ({hours}h)")
+    
+    async with AareguruClient(settings=get_settings()) as client:
+        response = await client.get_current(city)
+        
+        if not response.aare:
+            return {
+                "city": city,
+                "current": None,
+                "forecast_2h": None,
+                "forecast_text": "No data available",
+                "trend": "unknown",
+                "recommendation": "Unable to provide forecast - no data available",
+            }
+        
+        current_temp = response.aare.temperature
+        forecast_temp = response.aare.forecast2h
+        forecast_text = response.aare.forecast2h_text
+        
+        # Determine trend
+        if forecast_temp is None or current_temp is None:
+            trend = "unknown"
+            recommendation = "Forecast data not available"
+        else:
+            temp_diff = forecast_temp - current_temp
+            
+            if abs(temp_diff) < 0.3:
+                trend = "stable"
+                recommendation = "Temperature will remain stable - good time to swim anytime"
+            elif temp_diff > 0:
+                trend = "rising"
+                recommendation = f"Temperature rising by {temp_diff:.1f}°C - water will be warmer in 2 hours"
+            else:
+                trend = "falling"
+                recommendation = f"Temperature falling by {abs(temp_diff):.1f}°C - swim sooner rather than later"
+        
+        return {
+            "city": city,
+            "current": {
+                "temperature": current_temp,
+                "temperature_text": response.aare.temperature_text,
+                "flow": response.aare.flow,
+            },
+            "forecast_2h": forecast_temp,
+            "forecast_text": forecast_text,
+            "trend": trend,
+            "temperature_change": forecast_temp - current_temp if (forecast_temp and current_temp) else None,
+            "recommendation": recommendation,
+        }
+

@@ -227,11 +227,11 @@ mypy = ">=1.8.0"
 **Goal**: Complete tool set + UX improvements
 
 #### Week 4: Advanced Tools
-- [ ] `compare_cities` tool implementation
-- [ ] `get_forecast` tool implementation
-- [ ] Response formatting with emojis and markdown
-- [ ] Swiss German translations in responses
-- [ ] Tool tests for new features (10 tests)
+- [x] `compare_cities` tool implementation
+- [x] `get_forecast` tool implementation
+- [x] Response formatting with emojis and markdown
+- [x] Swiss German translations in responses
+- [x] Tool tests for new features (10 tests)
 
 **Deliverable**: All 7 tools implemented
 
