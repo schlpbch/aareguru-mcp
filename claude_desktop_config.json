@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "aareguru": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "c:\\Users\\schlp\\code\\aareguru-mcp",
+        "run",
+        "aareguru-mcp"
+      ]
+    }
+  }
+}

@@ -28,7 +28,7 @@ dev = [
 ]
 
 [project.scripts]
-aareguru-mcp = "aareguru_mcp.server:main"
+aareguru-mcp = "aareguru_mcp.server:entry_point"
 
 [build-system]
 requires = ["hatchling"]

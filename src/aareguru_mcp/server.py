@@ -168,6 +168,7 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
         )]
 
 
+
 async def main():
     """Main entry point for the MCP server."""
     settings = get_settings()
@@ -183,5 +184,11 @@ async def main():
         )
 
 
-if __name__ == "__main__":
+def entry_point():
+    """Synchronous entry point for console script."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    entry_point()
+

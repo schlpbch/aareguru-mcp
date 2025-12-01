@@ -11,6 +11,6 @@ __email__ = "your.email@example.com"
 
 from .client import AareguruClient
 from .config import Settings, get_settings
-from .server import app, main
+from .server import app, main, entry_point
 
-__all__ = ["AareguruClient", "Settings", "get_settings", "app", "main", "__version__"]
+__all__ = ["AareguruClient", "Settings", "get_settings", "app", "main", "entry_point", "__version__"]
