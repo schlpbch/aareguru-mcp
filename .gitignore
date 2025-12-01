@@ -60,3 +60,6 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+# Presentations
+presentation/
