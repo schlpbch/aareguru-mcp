@@ -59,6 +59,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "integration: Integration tests (may hit real API)",
+    "e2e: End-to-end conversation tests",
+]
 addopts = [
     "--strict-markers",
     "--strict-config",
