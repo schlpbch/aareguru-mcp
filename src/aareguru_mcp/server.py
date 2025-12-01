@@ -49,13 +49,13 @@ async def handle_list_tools() -> list[Tool]:
     return [
         Tool(
             name="get_current_temperature",
-            description="Get current water temperature for a city. Returns temperature value and Swiss German description.",
+            description="Get current water temperature for a specific city. Use this for quick temperature checks and simple 'how warm is the water?' questions. Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'), and swimming suitability.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "city": {
                         "type": "string",
-                        "description": "City identifier (e.g., 'bern', 'thun', 'basel')",
+                        "description": "City identifier (e.g., 'bern', 'thun', 'basel', 'olten'). Use list_cities to discover available locations.",
                         "default": "bern",
                     }
                 },
@@ -63,13 +63,13 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_current_conditions",
-            description="Get complete current conditions including water temperature, flow rate, weather, and forecasts.",
+            description="Get comprehensive swimming conditions report including water temperature, flow rate, water height, weather conditions, and 2-hour forecast. Use this for safety assessments, 'is it safe to swim?' questions, and when users need a complete picture before swimming. This is the most detailed tool - use it for contextual and safety-critical queries.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "city": {
                         "type": "string",
-                        "description": "City identifier",
+                        "description": "City identifier (e.g., 'bern', 'thun', 'basel', 'olten'). Use list_cities to discover available locations.",
                         "default": "bern",
                     }
                 },
@@ -77,21 +77,21 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_historical_data",
-            description="Get historical time-series data for temperature and flow analysis.",
+            description="Get historical time-series data for trend analysis, comparisons with past conditions, and statistical queries. Returns hourly data points for temperature and flow. Use this for questions like 'how has temperature changed this week?' or 'what was the warmest day this month?'",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "city": {
                         "type": "string",
-                        "description": "City identifier",
+                        "description": "City identifier (e.g., 'bern', 'thun', 'basel', 'olten')",
                     },
                     "start": {
                         "type": "string",
-                        "description": "Start date/time (ISO format, timestamp, or relative like '-7 days')",
+                        "description": "Start date/time. Accepts ISO format (2024-11-01T00:00:00Z), Unix timestamp, or relative expressions like '-7 days', '-1 week', '-30 days'. Relative times are calculated from now.",
                     },
                     "end": {
                         "type": "string",
-                        "description": "End date/time (ISO format, timestamp, or 'now')",
+                        "description": "End date/time. Accepts ISO format, Unix timestamp, or 'now' for current time. Use 'now' for most recent data.",
                     },
                 },
                 "required": ["city", "start", "end"],
@@ -99,7 +99,7 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="list_cities",
-            description="Get all available cities with Aare data. Use this to discover which cities can be queried.",
+            description="Get all available cities with Aare monitoring stations. Returns city identifiers, full names, coordinates, and current temperature for each location. Use this for location discovery ('which cities are available?') and for comparing temperatures across all cities to find the warmest/coldest spot.",
             inputSchema={
                 "type": "object",
                 "properties": {},
@@ -107,13 +107,13 @@ async def handle_list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_flow_danger_level",
-            description="Get current flow rate and BAFU danger assessment (1-5 scale) with safety recommendations.",
+            description="Get current flow rate (m³/s) and safety assessment based on BAFU (Swiss Federal Office for the Environment) danger thresholds. Returns flow rate, danger level classification, and safety recommendations for swimmers. Use this for safety-critical questions about current strength and swimming danger. Flow thresholds: <100 (safe), 100-220 (moderate), 220-300 (elevated), 300-430 (high/dangerous), >430 (very high/extremely dangerous).",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "city": {
                         "type": "string",
-                        "description": "City identifier",
+                        "description": "City identifier (e.g., 'bern', 'thun', 'basel', 'olten'). Use list_cities to discover available locations.",
                         "default": "bern",
                     }
                 },
