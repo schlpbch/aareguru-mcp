@@ -13,6 +13,7 @@ MCP server for Swiss Aare river data, enabling AI assistants to answer questions
 - ✅ MCP server (stdio)
 - ✅ 4 MCP resources (100% coverage)
 - ✅ 5 MCP tools (81% coverage)
+- ✅ **Enhanced tool annotations** (optimized for 130 user questions)
 - ✅ **42/42 tests passing** (100% pass rate)
 - ✅ **81% overall code coverage**
 - 🎯 Ready for Claude Desktop integration!
