@@ -4,12 +4,95 @@ Tools allow Claude to dynamically query the Aareguru API based on user requests.
 """
 
 import logging
+from datetime import datetime
 from typing import Any, Optional
 
 from .client import AareguruClient
 from .config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _get_seasonal_advice() -> str:
+    """Get contextual advice based on the current season."""
+    month = datetime.now().month
+    
+    if month in [11, 12, 1, 2, 3]:  # Winter
+        return "❄️ Winter Season: Water is freezing. Only for experienced ice swimmers. Keep swims very short."
+    elif month in [4, 5]:  # Spring
+        return "🌱 Spring: Water is still very cold from snowmelt. Wetsuit recommended."
+    elif month in [6, 7, 8]:  # Summer
+        return "☀️ Summer: Perfect swimming season! Don't forget sunscreen."
+    else:  # Autumn (9, 10)
+        return "🍂 Autumn: Water is getting colder. Check daylight hours and bring warm clothes."
+
+
+def _check_safety_warning(flow: float | None, threshold: float | None = 220) -> str | None:
+    """Generate a warning if flow is dangerous."""
+    if flow is None:
+        return None
+        
+    threshold = threshold or 220
+    
+    if flow > 430:
+        return "⛔ EXTREME DANGER: Flow is very high (>430 m³/s). Swimming is life-threatening."
+    elif flow > 300:
+        return "⚠️ DANGER: High flow rate (>300 m³/s). Swimming NOT recommended."
+    elif flow > threshold:
+        return "⚠️ CAUTION: Elevated flow rate. Only for experienced swimmers."
+    
+    return None
+
+
+def _get_swiss_german_explanation(text: str | None) -> str | None:
+    """Provide context for Swiss German phrases."""
+    if not text:
+        return None
+        
+    phrases = {
+        "geil aber chli chalt": "Awesome but a bit cold (typical Bernese understatement)",
+        "schön warm": "Nice and warm",
+        "arschkalt": "Freezing cold",
+        "perfekt": "Perfect conditions",
+        "chli chalt": "A bit cold",
+        "brrr": "Very cold",
+    }
+    
+    # Simple partial match
+    for phrase, explanation in phrases.items():
+        if phrase.lower() in text.lower():
+            return explanation
+            
+    return None
+
+
+async def _get_suggestion(current_city: str, current_temp: float | None, client: AareguruClient) -> str | None:
+    """Suggest a better city if current one is cold."""
+    if current_temp is None or current_temp >= 18.0:
+        return None
+        
+    try:
+        all_cities = await client.get_cities()
+        
+        # Find warmest city
+        warmest = None
+        max_temp = -100.0
+        
+        for city in all_cities:
+            if city.city != current_city and city.aare is not None:
+                if city.aare > max_temp:
+                    max_temp = city.aare
+                    warmest = city
+        
+        # Suggest if significantly warmer (>1°C difference)
+        if warmest and max_temp > (current_temp + 1.0):
+            return f"💡 Tip: {warmest.name} is warmer right now ({warmest.aare}°C)"
+            
+    except Exception:
+        # Fail silently on suggestions
+        pass
+        
+    return None
 
 
 async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
@@ -40,17 +123,48 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
     logger.info(f"Getting current temperature for {city}")
     
     async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_today(city)
+        # Use get_current to get flow data for safety check
+        response = await client.get_current(city)
         
-        return {
+        if not response.aare:
+            # Fallback to get_today if no aare data (unlikely but safe)
+            response = await client.get_today(city)
+            temp = response.aare
+            text = response.text
+            flow = None
+        else:
+            temp = response.aare.temperature
+            text = response.aare.temperature_text
+            flow = response.aare.flow
+            
+        # UX Features
+        warning = _check_safety_warning(flow)
+        explanation = _get_swiss_german_explanation(text)
+        suggestion = await _get_suggestion(city, temp, client)
+        season_advice = _get_seasonal_advice()
+        
+        result = {
             "city": city,
-            "temperature": response.aare,
-            "temperature_prec": response.aare_prec,
-            "temperature_text": response.text,
-            "temperature_text_short": response.text_short,
-            "name": response.name,
-            "longname": response.longname,
+            "temperature": temp,
+            "temperature_text": text,
+            "swiss_german_explanation": explanation,
+            "name": response.aare.location if response.aare else response.name,
+            "warning": warning,
+            "suggestion": suggestion,
+            "seasonal_advice": season_advice,
         }
+        
+        # Add legacy fields for backward compatibility
+        if response.aare:
+            result["temperature_prec"] = response.aare.temperature  # Approximate
+            result["temperature_text_short"] = response.aare.temperature_text_short
+            result["longname"] = response.aare.location_long
+        else:
+            result["temperature_prec"] = response.aare_prec
+            result["temperature_text_short"] = response.text_short
+            result["longname"] = response.longname
+            
+        return result
 
 
 async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
@@ -88,18 +202,27 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
         
         # Aare data (nested in response.aare)
         if response.aare:
+            # UX Features
+            warning = _check_safety_warning(response.aare.flow)
+            explanation = _get_swiss_german_explanation(response.aare.temperature_text)
+            
             result["aare"] = {
                 "location": response.aare.location,
                 "location_long": response.aare.location_long,
                 "temperature": response.aare.temperature,
                 "temperature_text": response.aare.temperature_text,
+                "swiss_german_explanation": explanation,
                 "temperature_text_short": response.aare.temperature_text_short,
                 "flow": response.aare.flow,
                 "flow_text": response.aare.flow_text,
                 "height": response.aare.height,
                 "forecast2h": response.aare.forecast2h,
                 "forecast2h_text": response.aare.forecast2h_text,
+                "warning": warning,
             }
+            
+        # Add seasonal advice at top level
+        result["seasonal_advice"] = _get_seasonal_advice()
         
         # Weather data
         if response.weather:
@@ -247,16 +370,22 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         
         if flow is None:
             safety = "Unknown - no flow data"
+            danger_level = 0
         elif flow < 100:
             safety = "Safe - low flow"
+            danger_level = 1
         elif flow < threshold:
             safety = "Moderate - safe for experienced swimmers"
+            danger_level = 2
         elif flow < 300:
             safety = "Elevated - caution advised"
+            danger_level = 3
         elif flow < 430:
             safety = "High - dangerous conditions"
+            danger_level = 4
         else:
             safety = "Very high - extremely dangerous, avoid swimming"
+            danger_level = 5
         
         return {
             "city": city,
@@ -264,6 +393,7 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
             "flow_text": response.aare.flow_text,
             "flow_threshold": threshold,
             "safety_assessment": safety,
+            "danger_level": danger_level,
         }
 
 
@@ -374,6 +504,16 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
             summary_parts.append(f"Coldest: {coldest['name']} ({coldest['temperature']}°C)")
         if safest:
             summary_parts.append(f"Safest: {safest['name']} ({safest['flow']} m³/s)")
+            
+        # Smart Recommendation
+        recommendation = None
+        if warmest and safest:
+            if warmest == safest:
+                recommendation = f"🏆 Best Choice: {warmest['name']} is both the warmest and safest option!"
+            elif warmest['danger_level'] <= 2: # Warmest is safe enough
+                recommendation = f"🏆 Best Choice: {warmest['name']} is the warmest safe option ({warmest['temperature']}°C)."
+            else:
+                recommendation = f"⚠️ Trade-off: {warmest['name']} is warmest but has higher flow. {safest['name']} is safer."
         
         return {
             "cities": city_data,
@@ -381,6 +521,8 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
             "coldest": coldest,
             "safest": safest,
             "comparison_summary": " | ".join(summary_parts) if summary_parts else "Comparison complete",
+            "recommendation": recommendation,
+            "seasonal_advice": _get_seasonal_advice(),
         }
 
 
@@ -460,5 +602,6 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
             "trend": trend,
             "temperature_change": forecast_temp - current_temp if (forecast_temp and current_temp) else None,
             "recommendation": recommendation,
+            "seasonal_advice": _get_seasonal_advice(),
         }
 

@@ -18,7 +18,13 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 - **Async HTTP Client** - With caching and rate limiting
 - **Stdio Transport** - Ready for Claude Desktop integration
 
-## 🚀 Quick Start
+#### ✨ Smart Features (New!)
+- **Proactive Safety Checks:** Automatically warns about dangerous flow rates (>300 m³/s).
+- **Intelligent Suggestions:** Suggests warmer or safer locations if your choice is less than ideal.
+- **Seasonal Context:** Provides advice tailored to the current season (Winter vs Summer).
+- **Cultural Flair:** Explains Swiss German terms like "geil aber chli chalt".
+
+## 🛠️ Installation
 
 ### Installation
 
