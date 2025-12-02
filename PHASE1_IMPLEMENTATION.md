@@ -8,7 +8,8 @@
 
 ## What Was Implemented
 
-Phase 1 adds a feature flag to enable switching between the simplified SSE implementation (for testing) and the full MCP SSE transport (for production).
+Phase 1 adds a feature flag to enable switching between the simplified SSE
+implementation (for testing) and the full MCP SSE transport (for production).
 
 ### Changes Made
 
@@ -30,6 +31,7 @@ use_full_sse: bool = Field(
 #### 2. HTTP Server (`src/aareguru_mcp/http_server.py`)
 
 **Added Functions:**
+
 - `handle_sse_simplified()` - Basic SSE for testing (existing logic)
 - `handle_sse_full()` - Full MCP SSE using `SseServerTransport`
 - `handle_messages_simplified()` - Basic message handler
@@ -54,7 +56,7 @@ async def handle_sse_full(request: Request) -> Response:
                 write_stream,
                 mcp_server.create_initialization_options(),
             )
-    
+
     await sse_app(request.scope, request.receive, request._send)
     return Response(status_code=200)
 ```
@@ -72,6 +74,7 @@ Added documentation:
 #### 4. Tests (`tests/test_http_server.py`)
 
 Added 2 new tests:
+
 - `test_full_sse_mode_enabled()` - Verifies config flag works
 - `test_simplified_mode_default()` - Verifies default is simplified
 
@@ -92,6 +95,7 @@ USE_FULL_SSE=false uv run python -m aareguru_mcp.http_server
 ```
 
 **Behavior:**
+
 - Basic SSE event stream
 - Returns simple "initialized" message
 - Good for testing endpoint availability
@@ -106,6 +110,7 @@ USE_FULL_SSE=true uv run python -m aareguru_mcp.http_server
 ```
 
 **Behavior:**
+
 - Complete MCP protocol compliance
 - Session management with UUIDs
 - Bidirectional communication (GET /sse + POST /messages)
@@ -136,7 +141,7 @@ Update `docker-compose.yml` or `docker-compose.dev.yml`:
 services:
   aareguru-mcp:
     environment:
-      - USE_FULL_SSE=true  # Enable full SSE
+      - USE_FULL_SSE=true # Enable full SSE
 ```
 
 Or via `.env` file:
@@ -153,6 +158,7 @@ USE_FULL_SSE=true
 ### Claude Desktop Configuration
 
 **Simplified SSE (default):**
+
 ```json
 {
   "mcpServers": {
@@ -167,8 +173,7 @@ USE_FULL_SSE=true
 }
 ```
 
-**Full SSE:**
-Same configuration, but start server with `USE_FULL_SSE=true`:
+**Full SSE:** Same configuration, but start server with `USE_FULL_SSE=true`:
 
 ```bash
 USE_FULL_SSE=true API_KEY_REQUIRED=true API_KEYS=your-key-here \
@@ -178,6 +183,7 @@ USE_FULL_SSE=true API_KEY_REQUIRED=true API_KEYS=your-key-here \
 ### Manual Testing
 
 **Test Simplified SSE:**
+
 ```bash
 # Terminal 1: Start server
 uv run python -m aareguru_mcp.http_server
@@ -188,6 +194,7 @@ curl -N http://localhost:8000/sse
 ```
 
 **Test Full SSE:**
+
 ```bash
 # Terminal 1: Start server with full SSE
 USE_FULL_SSE=true uv run python -m aareguru_mcp.http_server
@@ -208,7 +215,7 @@ async def handle_sse(request: Request) -> Response:
     """Router between simplified and full implementation."""
     if not await verify_api_key(request):
         return JSONResponse({"error": "Invalid or missing API key"}, status_code=401)
-    
+
     current_settings = get_settings()
     if current_settings.use_full_sse:
         return await handle_sse_full(request)
@@ -226,6 +233,7 @@ async def handle_sse(request: Request) -> Response:
 ### Backward Compatibility
 
 ✅ **No Breaking Changes**
+
 - Default behavior unchanged (simplified SSE)
 - All existing tests pass
 - Existing deployments continue working
@@ -244,6 +252,7 @@ Coverage: 88% (654 statements, 77 missed)
 ```
 
 **HTTP Server Tests:**
+
 - ✅ 17/17 passed (including 2 new tests)
 - ✅ Health check
 - ✅ SSE endpoint
@@ -257,12 +266,14 @@ Coverage: 88% (654 statements, 77 missed)
 ## Known Limitations
 
 ### Simplified SSE Mode
+
 - No actual MCP message handling
 - No session management
 - No bidirectional communication
 - Only suitable for basic connectivity testing
 
 ### Full SSE Mode (Phase 1)
+
 - Basic implementation without extensive testing
 - Not yet tested with real MCP clients
 - Session timeout not implemented
@@ -276,22 +287,26 @@ Coverage: 88% (654 statements, 77 missed)
 ### Week 2: Testing & Validation
 
 1. **Real Client Testing**
+
    - Test with Claude Desktop
    - Test with custom MCP client
    - Verify tool calls work end-to-end
    - Test concurrent connections
 
 2. **Session Management Enhancement**
+
    - Add session timeout (1 hour default)
    - Implement background cleanup task
    - Add session metrics
 
 3. **Error Handling**
+
    - Better error messages in full SSE mode
    - Graceful connection failure handling
    - Logging improvements
 
 4. **Performance Testing**
+
    - Load test with 100 concurrent connections
    - Measure latency and throughput
    - Memory usage profiling
@@ -369,6 +384,7 @@ docker run -p 8000:8000 -e USE_FULL_SSE=true aareguru-mcp:phase1
 ✅ **Phase 1 Complete**
 
 **Implemented:**
+
 - Feature flag for SSE mode selection
 - Full SSE transport using `SseServerTransport`
 - Router logic based on config
@@ -376,11 +392,13 @@ docker run -p 8000:8000 -e USE_FULL_SSE=true aareguru-mcp:phase1
 - Documentation
 
 **Test Results:**
+
 - 152/152 tests passing
 - 88% code coverage
 - No breaking changes
 
 **Ready For:**
+
 - Phase 2: Testing & Validation
 - Real MCP client testing
 - Performance benchmarking

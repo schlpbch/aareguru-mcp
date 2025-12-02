@@ -18,6 +18,7 @@ dependencies = [
     "starlette>=0.37.0",        # ASGI framework for SSE
     "uvicorn[standard]>=0.29.0", # ASGI server
     "slowapi>=0.1.9",           # Rate limiting
+    "structlog>=24.1.0",        # Structured logging
 ]
 
 [project.optional-dependencies]

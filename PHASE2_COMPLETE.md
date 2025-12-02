@@ -8,7 +8,10 @@
 
 ## Overview
 
-Phase 2 completes the transition to a production-ready SSE implementation with session management, metrics tracking, error handling, and background cleanup tasks. The simplified SSE mode has been removed, leaving only the full MCP SSE transport.
+Phase 2 completes the transition to a production-ready SSE implementation with
+session management, metrics tracking, error handling, and background cleanup
+tasks. The simplified SSE mode has been removed, leaving only the full MCP SSE
+transport.
 
 ---
 
@@ -16,17 +19,20 @@ Phase 2 completes the transition to a production-ready SSE implementation with s
 
 ### 1. Removed Simplified Mode
 
-**Motivation**: Simplified mode was only for testing. Production requires full MCP compliance.
+**Motivation**: Simplified mode was only for testing. Production requires full
+MCP compliance.
 
 **Changes**:
+
 - ❌ Removed `use_full_sse` configuration flag
-- ❌ Removed `handle_sse_simplified()` and `handle_messages_simplified()` 
+- ❌ Removed `handle_sse_simplified()` and `handle_messages_simplified()`
 - ✅ Renamed `handle_sse_full()` → `handle_sse()`
 - ✅ Renamed `handle_messages_full()` → `handle_messages()`
 - ✅ Direct API key verification in handlers
 - ✅ Simplified routing logic
 
 **Files Modified**:
+
 - `src/aareguru_mcp/config.py` - Removed `use_full_sse` field
 - `src/aareguru_mcp/http_server.py` - Single SSE implementation
 - `tests/test_http_server.py` - Removed mode-specific tests
@@ -41,25 +47,27 @@ Phase 2 completes the transition to a production-ready SSE implementation with s
 ```python
 class SessionTracker:
     """Track active SSE sessions for cleanup."""
-    
+
     def __init__(self):
         self.sessions: Dict[str, float] = {}  # session_id -> last_activity_time
-    
+
     def register_activity(self, session_id: str):
         """Register activity for a session."""
         self.sessions[session_id] = time.time()
-    
+
     def cleanup_expired(self, timeout_seconds: int) -> int:
         """Remove expired sessions."""
         # ... cleanup logic
 ```
 
 **Features**:
+
 - Tracks session activity by session ID
 - Automatic cleanup of expired sessions
 - Configurable timeout (default: 3600s / 1 hour)
 
 **Configuration**:
+
 ```bash
 SSE_SESSION_TIMEOUT_SECONDS=3600  # 1 hour
 SSE_CLEANUP_INTERVAL_SECONDS=300  # 5 minutes
@@ -74,7 +82,7 @@ SSE_CLEANUP_INTERVAL_SECONDS=300  # 5 minutes
 ```python
 class ServerMetrics:
     """Track server metrics for monitoring and observability."""
-    
+
     def __init__(self):
         self.active_connections = 0
         self.total_connections = 0
@@ -85,6 +93,7 @@ class ServerMetrics:
 ```
 
 **Tracked Metrics**:
+
 - Active connections
 - Total connections/messages/errors
 - Per-endpoint call counts
@@ -94,6 +103,7 @@ class ServerMetrics:
 **Access**: `GET /metrics` endpoint
 
 **Response Example**:
+
 ```json
 {
   "metrics": {
@@ -137,6 +147,7 @@ async def session_cleanup_task():
 ```
 
 **Features**:
+
 - Runs continuously in background
 - Configurable cleanup interval
 - Logs cleanup activities
@@ -147,6 +158,7 @@ async def session_cleanup_task():
 ### 5. Enhanced Error Handling
 
 **Improvements**:
+
 - ✅ Try-except blocks around all ASGI calls
 - ✅ Detailed logging with client IP and session ID
 - ✅ Graceful error responses (JSON format)
@@ -154,6 +166,7 @@ async def session_cleanup_task():
 - ✅ Connection state cleanup on errors
 
 **Example**:
+
 ```python
 try:
     await sse_app(request.scope, request.receive, request._send)  # type: ignore[attr-defined]
@@ -172,6 +185,7 @@ except Exception as e:
 ### 6. Type Safety Improvements
 
 **Fixed Type Issues**:
+
 - ✅ Added `Dict[str, object]` return type to `get_stats()`
 - ✅ Type annotations for ASGI callables (`scope`, `receive`, `send`)
 - ✅ `type: ignore` comments for legitimate ASGI protocol usage
@@ -244,6 +258,7 @@ SSE_CLEANUP_INTERVAL_SECONDS=300      # 5 minutes (minimum: 60)
 ### Server Logging
 
 The server now logs:
+
 - Connection establishment with client IP
 - Session IDs for tracking
 - Session cleanup activities
@@ -251,6 +266,7 @@ The server now logs:
 - Startup configuration summary
 
 **Example Startup Log**:
+
 ```
 2025-12-02 - INFO - Starting Aareguru MCP HTTP Server v0.1.0
 2025-12-02 - INFO - Server: http://0.0.0.0:8000
@@ -268,10 +284,13 @@ The server now logs:
 ## API Endpoints
 
 ### Health Check
+
 ```http
 GET /health
 ```
+
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -281,24 +300,30 @@ Response:
 ```
 
 ### Metrics
+
 ```http
 GET /metrics
 ```
+
 Returns server metrics and configuration (see section 3 above).
 
 ### SSE Connection
+
 ```http
 GET /sse
 Headers: X-API-Key: <your-key>
 ```
+
 Establishes MCP SSE connection using `SseServerTransport`.
 
 ### Messages
+
 ```http
 POST /messages?session_id=<session_id>
 Headers: X-API-Key: <your-key>
 Content-Type: application/json
 ```
+
 Routes messages to the correct SSE session.
 
 ---
@@ -306,16 +331,19 @@ Routes messages to the correct SSE session.
 ## Testing
 
 ### Run All Tests
+
 ```bash
 uv run pytest -v
 ```
 
 ### Run SSE Integration Tests Only
+
 ```bash
 uv run pytest tests/test_sse_integration.py -v
 ```
 
 ### Check Test Coverage
+
 ```bash
 uv run pytest --cov=src/aareguru_mcp --cov-report=html
 ```
@@ -340,18 +368,22 @@ uv run pytest --cov=src/aareguru_mcp --cov-report=html
 ### Potential Enhancements
 
 1. **Prometheus Integration**
+
    - Export metrics in Prometheus format
    - Grafana dashboards
 
 2. **Rate Limiting per Session**
+
    - Current: Per IP
    - Future: Per session ID
 
 3. **Load Testing**
+
    - Test with 100+ concurrent connections
    - Identify bottlenecks
 
 4. **Session Persistence**
+
    - Store sessions in Redis
    - Enable multi-server deployment
 
@@ -373,6 +405,7 @@ uv run pytest --cov=src/aareguru_mcp --cov-report=html
 4. **Docker**: Rebuild container with new code
 
 **Optional**: Add new environment variables for session management:
+
 ```bash
 SSE_SESSION_TIMEOUT_SECONDS=3600
 SSE_CLEANUP_INTERVAL_SECONDS=300
@@ -389,6 +422,7 @@ SSE_CLEANUP_INTERVAL_SECONDS=300
 ✅ **Enhanced error handling** - Graceful failures  
 ✅ **Type safety** - All type issues resolved  
 ✅ **Comprehensive tests** - 18 new integration tests  
-✅ **Production ready** - Suitable for deployment  
+✅ **Production ready** - Suitable for deployment
 
-The Aareguru MCP server is now production-ready with full SSE support, comprehensive monitoring, and robust error handling.
+The Aareguru MCP server is now production-ready with full SSE support,
+comprehensive monitoring, and robust error handling.

@@ -5,9 +5,9 @@ Aareguru data to AI assistants via stdio transport.
 """
 
 import asyncio
-import logging
 from typing import Any
 
+import structlog
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent
@@ -15,12 +15,8 @@ from mcp.types import Tool, TextContent
 from . import resources, tools
 from .config import get_settings
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+# Get structured logger
+logger = structlog.get_logger(__name__)
 
 
 # Create MCP server instance
@@ -45,7 +41,7 @@ async def handle_read_resource(uri: str) -> str:
 async def handle_list_tools() -> list[Tool]:
     """Handle list_tools request."""
     logger.info("Listing tools")
-    
+
     return [
         Tool(
             name="get_current_temperature",
@@ -148,7 +144,7 @@ async def handle_list_tools() -> list[Tool]:
                         "type": "integer",
                         "description": "Forecast horizon in hours (typically 2). The API provides 2-hour forecasts.",
                         "default": 2,
-                    }
+                    },
                 },
             },
         ),
@@ -159,56 +155,60 @@ async def handle_list_tools() -> list[Tool]:
 async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle call_tool request."""
     logger.info(f"Calling tool: {name} with arguments: {arguments}")
-    
+
     try:
         # Route to appropriate tool
         if name == "get_current_temperature":
             city = arguments.get("city", "bern")
             result = await tools.get_current_temperature(city)
-            
+
         elif name == "get_current_conditions":
             city = arguments.get("city", "bern")
             result = await tools.get_current_conditions(city)
-            
+
         elif name == "get_historical_data":
             city = arguments["city"]
             start = arguments["start"]
             end = arguments["end"]
             result = await tools.get_historical_data(city, start, end)
-            
+
         elif name == "list_cities":
             result = await tools.list_cities()
-            
+
         elif name == "get_flow_danger_level":
             city = arguments.get("city", "bern")
             result = await tools.get_flow_danger_level(city)
-            
+
         elif name == "compare_cities":
             cities = arguments.get("cities")
             result = await tools.compare_cities(cities)
-            
+
         elif name == "get_forecast":
             city = arguments.get("city", "bern")
             hours = arguments.get("hours", 2)
             result = await tools.get_forecast(city, hours)
-            
+
         else:
             raise ValueError(f"Unknown tool: {name}")
-        
+
         # Format result as TextContent
         import json
-        return [TextContent(
-            type="text",
-            text=json.dumps(result, indent=2, ensure_ascii=False),
-        )]
-        
+
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(result, indent=2, ensure_ascii=False),
+            )
+        ]
+
     except Exception as e:
         logger.error(f"Error calling tool {name}: {e}", exc_info=True)
-        return [TextContent(
-            type="text",
-            text=f"Error: {str(e)}",
-        )]
-
+        return [
+            TextContent(
+                type="text",
+                text=f"Error: {str(e)}",
+            )
+        ]
 
 
 async def main():
@@ -216,7 +216,7 @@ async def main():
     settings = get_settings()
     logger.info(f"Starting Aareguru MCP Server v{settings.app_version}")
     logger.info(f"API base URL: {settings.aareguru_base_url}")
-    
+
     # Run the server using stdio transport
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
@@ -233,4 +233,3 @@ def entry_point():
 
 if __name__ == "__main__":
     entry_point()
-
