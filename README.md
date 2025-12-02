@@ -399,6 +399,9 @@ Use the `list_cities` tool to get the complete list with current data.
 - **[DOCKER.md](DOCKER.md)** - Docker setup and deployment guide
 - **[CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)** - Complete setup guide
 - **[MASTER_PLAN.md](MASTER_PLAN.md)** - Implementation roadmap
+- **[HTTP_STREAMING_PLAN.md](HTTP_STREAMING_PLAN.md)** - HTTP/SSE deployment strategy
+- **[FULL_SSE_IMPLEMENTATION.md](FULL_SSE_IMPLEMENTATION.md)** - Complete SSE technical design
+- **[SSE_DESIGN_SUMMARY.md](SSE_DESIGN_SUMMARY.md)** - SSE implementation summary
 - **[AAREGURU_API_ANALYSIS.md](AAREGURU_API_ANALYSIS.md)** - API documentation
 - **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Technical architecture
 - **[TESTING_PLAN.md](TESTING_PLAN.md)** - QA strategy
