@@ -222,76 +222,84 @@ async def metrics_endpoint(request: Request) -> JSONResponse:
     })
 
 
-async def handle_sse(request: Request) -> Response:
-    """Handle SSE connections for MCP protocol.
+class HybridSSEHandler:
+    """Hybrid SSE/message handler for compatibility with different MCP clients.
     
-    This uses the official SseServerTransport for complete MCP compliance.
+    This ASGI app handles:
+    - GET requests: Establishes SSE connection (standard MCP SSE)
+    - POST requests: Routes messages to session (MCP Inspector compatibility)
     
-    Args:
-        request: Starlette request object
-        
-    Returns:
-        SSE response stream
+    This makes it work with both standard MCP SSE clients and MCP Inspector's
+    StreamableHttp transport which expects POST to the same /sse endpoint.
     """
-    # Verify API key
-    if not await verify_api_key(request):
-        return JSONResponse(
-            {"error": "Invalid or missing API key"},
-            status_code=401,
-        )
     
-    client_ip = get_remote_address(request)
-    logger.info(f"SSE connection from {client_ip}")
-    
-    # Track connection metrics
-    metrics.connection_started()
-    metrics.endpoint_called("sse")
-    
-    # Create an ASGI app using SseServerTransport
-    async def sse_app(scope: dict, receive: object, send: object) -> None:  # type: ignore[type-arg]
-        session_id: str = "unknown"
-        try:
-            async with sse_transport.connect_sse(scope, receive, send) as streams:  # type: ignore[arg-type]
-                read_stream, write_stream = streams
-                
-                # Extract session ID if available
-                query_string = scope.get("query_string", b"")  # type: ignore[union-attr]
-                if isinstance(query_string, bytes):
-                    session_id = query_string.decode().split("session_id=")[-1].split("&")[0] or "unknown"
-                session_tracker.register_activity(session_id)
-                
-                logger.debug(f"SSE session established for {client_ip}, session: {session_id}")
-                
-                try:
-                    # Run the MCP server with these streams
-                    await mcp_server.run(
-                        read_stream,
-                        write_stream,
-                        mcp_server.create_initialization_options(),
-                    )
-                except Exception as e:
-                    logger.error(f"Error in MCP server for {client_ip}: {e}", exc_info=True)
-                    metrics.error_occurred("sse_full")
-                    raise
-                finally:
-                    logger.debug(f"SSE session closed for {client_ip}, session: {session_id}")
-                    metrics.connection_ended()
-        except Exception as e:
-            logger.error(f"SSE connection failed for {client_ip}: {e}", exc_info=True)
-            metrics.connection_ended()
-            metrics.error_occurred("sse_full")
-            raise
-    
-    # Call the ASGI app with Starlette's scope/receive/send
-    try:
-        await sse_app(request.scope, request.receive, request._send)  # type: ignore[attr-defined]
-        return Response(status_code=200)
-    except Exception as e:
-        logger.error(f"Failed to establish SSE connection: {e}")
-        return JSONResponse(
-            {"error": "SSE connection failed", "detail": str(e)},
-            status_code=500,
-        )
+    async def __call__(self, scope: dict, receive, send):  # type: ignore[no-untyped-def]
+        """Handle both GET (SSE) and POST (messages) requests."""
+        request = Request(scope, receive, send)
+        
+        # Verify API key
+        if not await verify_api_key(request):
+            response = JSONResponse(
+                {"error": "Invalid or missing API key"},
+                status_code=401,
+            )
+            await response(scope, receive, send)
+            return
+        
+        client_ip = scope.get("client", ["unknown"])[0] if scope.get("client") else "unknown"  # type: ignore[union-attr]
+        method = scope.get("method", "GET")  # type: ignore[union-attr]
+        
+        if method == "GET":
+            # Handle SSE connection
+            logger.info(f"SSE connection from {client_ip}")
+            metrics.connection_started()
+            metrics.endpoint_called("sse")
+            
+            session_id: str = "unknown"
+            try:
+                async with sse_transport.connect_sse(scope, receive, send) as streams:  # type: ignore[arg-type]
+                    read_stream, write_stream = streams
+                    
+                    # Extract session ID if available
+                    query_string = scope.get("query_string", b"")  # type: ignore[union-attr]
+                    if isinstance(query_string, bytes):
+                        session_id = query_string.decode().split("session_id=")[-1].split("&")[0] or "unknown"
+                    session_tracker.register_activity(session_id)
+                    
+                    logger.debug(f"SSE session established for {client_ip}, session: {session_id}")
+                    
+                    try:
+                        # Run the MCP server with these streams
+                        await mcp_server.run(
+                            read_stream,
+                            write_stream,
+                            mcp_server.create_initialization_options(),
+                        )
+                    except Exception as e:
+                        logger.error(f"Error in MCP server for {client_ip}: {e}", exc_info=True)
+                        metrics.error_occurred("sse")
+                        raise
+                    finally:
+                        logger.debug(f"SSE session closed for {client_ip}, session: {session_id}")
+                        metrics.connection_ended()
+            except Exception as e:
+                logger.error(f"SSE connection failed for {client_ip}: {e}", exc_info=True)
+                metrics.connection_ended()
+                metrics.error_occurred("sse")
+                raise
+        
+        elif method == "POST":
+            # Handle message posting (for MCP Inspector compatibility)
+            logger.info(f"Message POST from {client_ip}")
+            metrics.message_received()
+            metrics.endpoint_called("sse_post")
+            
+            # Route to the message handler
+            await sse_transport.handle_post_message(scope, receive, send)
+
+
+# Create hybrid handler instance
+handle_sse_hybrid = HybridSSEHandler()
 
 
 # Note: The /messages endpoint is handled directly by SseServerTransport.handle_post_message
@@ -306,8 +314,8 @@ async def handle_sse(request: Request) -> Response:
 routes = [
     Route("/health", health_check, methods=["GET"]),
     Route("/metrics", metrics_endpoint, methods=["GET"]),
-    Route("/sse", handle_sse, methods=["GET"]),
-    Mount("/messages", app=sse_transport.handle_post_message),  # MCP SSE message handler
+    Mount("/sse", app=handle_sse_hybrid),  # Hybrid endpoint: GET for SSE, POST for messages
+    Mount("/messages", app=sse_transport.handle_post_message),  # Standard MCP SSE message handler
 ]
 
 # Parse CORS origins
