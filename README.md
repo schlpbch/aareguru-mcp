@@ -1,9 +1,10 @@
 # Aareguru MCP Server
 
-[![Tests](https://img.shields.io/badge/tests-135%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-80%2B%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-168%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-83%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-1.0.0-purple)](https://modelcontextprotocol.io/)
+[![SSE](https://img.shields.io/badge/SSE-Full%20Transport-orange)](src/aareguru_mcp/http_server.py)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to answer questions about swimming conditions, water temperature, flow rates, and safety.
 
@@ -14,9 +15,12 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 - **Swiss German Integration** - Authentic temperature descriptions
 - **BAFU Safety Assessments** - Official flow danger levels
 - **Historical Data Analysis** - Temperature and flow trends
-- **Comprehensive Testing** - 135 tests, 80%+ coverage
+- **Production-Ready SSE** - Full MCP SSE transport with session management
+- **Metrics & Monitoring** - Built-in metrics endpoint for observability
+- **Session Management** - Automatic cleanup of expired connections
+- **Comprehensive Testing** - 168 tests, 83% coverage
 - **Async HTTP Client** - With caching and rate limiting
-- **Stdio Transport** - Ready for Claude Desktop integration
+- **Docker Support** - Ready for containerized deployment
 
 #### ✨ Smart Features (New!)
 - **Proactive Safety Checks:** Automatically warns about dangerous flow rates (>300 m³/s).
