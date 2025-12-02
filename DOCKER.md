@@ -21,9 +21,12 @@ This document describes how to build and run the Aareguru MCP server using Docke
    docker-compose up -d
    ```
 
-3. **View logs:**
+3. **View logs (JSON-formatted):**
    ```bash
    docker-compose logs -f
+   
+   # Pretty-print JSON logs (requires jq)
+   docker-compose logs -f | grep '"event":' | jq .
    ```
 
 4. **Stop the service:**
@@ -156,6 +159,39 @@ Ensure the build script is executable:
 ```bash
 chmod +x docker-build.sh
 ```
+
+## Structured Logging
+
+The server outputs **structured JSON logs** for better observability:
+
+```json
+{
+  "version": "0.1.0",
+  "host": "0.0.0.0",
+  "port": 8000,
+  "event": "starting_aareguru_mcp_http_server",
+  "level": "info",
+  "timestamp": "2025-12-02T21:50:04.708120Z"
+}
+```
+
+### Viewing Structured Logs
+
+```bash
+# View raw JSON logs
+docker logs aareguru-mcp-aareguru-mcp-1
+
+# Pretty-print with jq
+docker logs aareguru-mcp-aareguru-mcp-1 | grep '"event":' | jq .
+
+# Filter by event type
+docker logs aareguru-mcp-aareguru-mcp-1 | grep '"event":"sse_connection_started"'
+
+# Follow logs in real-time
+docker logs -f aareguru-mcp-aareguru-mcp-1 | jq .
+```
+
+📖 **See [STRUCTURED_LOGGING.md](STRUCTURED_LOGGING.md)** for complete documentation.
 
 ## Multi-Stage Build
 

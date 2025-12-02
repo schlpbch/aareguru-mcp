@@ -1,10 +1,11 @@
 # Aareguru MCP Server
 
-[![Tests](https://img.shields.io/badge/tests-168%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-83%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-172%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-84%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![MCP](https://img.shields.io/badge/MCP-1.0.0-purple)](https://modelcontextprotocol.io/)
 [![SSE](https://img.shields.io/badge/SSE-Full%20Transport-orange)](src/aareguru_mcp/http_server.py)
+[![Logging](https://img.shields.io/badge/logging-structured%20JSON-blue)](STRUCTURED_LOGGING.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to answer questions about swimming conditions, water temperature, flow rates, and safety.
 
@@ -16,9 +17,10 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 - **BAFU Safety Assessments** - Official flow danger levels
 - **Historical Data Analysis** - Temperature and flow trends
 - **Production-Ready SSE** - Full MCP SSE transport with session management
+- **Structured Logging** - JSON-formatted logs for observability (structlog)
 - **Metrics & Monitoring** - Built-in metrics endpoint for observability
 - **Session Management** - Automatic cleanup of expired connections
-- **Comprehensive Testing** - 168 tests, 83% coverage
+- **Comprehensive Testing** - 172 tests, 84% coverage
 - **Async HTTP Client** - With caching and rate limiting
 - **Docker Support** - Ready for containerized deployment
 
