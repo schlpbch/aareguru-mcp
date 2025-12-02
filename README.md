@@ -247,6 +247,35 @@ Claude: Current temperatures across all monitored cities:
 Basel has the warmest water today!
 ```
 
+## 🐳 Docker Deployment
+
+### Quick Start with Docker
+
+```bash
+# Using docker-compose (recommended)
+cp .env.example .env
+docker-compose up -d
+
+# Or build and run manually
+./docker-build.sh
+docker run -p 8000:8000 aareguru-mcp:latest
+```
+
+### Development with Docker
+
+```bash
+# Run with hot-reload and mounted volumes
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+### Health Check
+
+```bash
+curl http://localhost:8000/health
+```
+
+📖 **[Full Docker Guide](DOCKER.md)** - Complete Docker setup, configuration, security, and production deployment
+
 ## 🧪 Development
 
 ### Running Tests
@@ -299,6 +328,7 @@ A Postman collection is included for testing the Aareguru API directly:
 aareguru-mcp/
 ├── src/aareguru_mcp/
 │   ├── server.py          # MCP server (stdio)
+│   ├── http_server.py     # HTTP/SSE server
 │   ├── client.py          # Aareguru API client
 │   ├── models.py          # Pydantic models
 │   ├── resources.py       # MCP resources
@@ -309,8 +339,16 @@ aareguru-mcp/
 │   ├── test_models.py     # Model tests
 │   ├── test_tools.py      # Tool tests
 │   ├── test_resources.py  # Resource tests
+│   ├── test_http_server.py  # HTTP server tests
 │   ├── test_tool_integration.py  # Integration tests
 │   └── test_e2e_conversations.py # E2E tests
+├── Dockerfile               # Multi-stage Docker build
+├── docker-compose.yml       # Production deployment
+├── docker-compose.dev.yml   # Development setup
+├── docker-build.sh          # Build helper script
+├── .dockerignore            # Docker ignore rules
+├── .env.example             # Environment template
+├── DOCKER.md                # Docker documentation
 ├── CLAUDE_DESKTOP_SETUP.md  # Setup guide
 ├── MASTER_PLAN.md           # Implementation roadmap
 └── pyproject.toml           # Project configuration
@@ -335,10 +373,11 @@ aareguru-mcp/
 - 🔄 **Week 5**: User Experience enhancements in progress
 
 **Next Steps (Phase 3 - HTTP Deployment):**
-- [ ] HTTP/SSE server implementation (Starlette/FastAPI)
-- [ ] API key authentication & Rate limiting
-- [ ] Docker containerization
+- [x] HTTP/SSE server implementation (Starlette)
+- [x] API key authentication & Rate limiting
+- [x] Docker containerization
 - [ ] Cloud deployment preparation
+- [ ] Production monitoring & metrics
 
 See [MASTER_PLAN.md](MASTER_PLAN.md) for the complete roadmap.
 
@@ -357,6 +396,7 @@ Use the `list_cities` tool to get the complete list with current data.
 
 ## 📚 Documentation
 
+- **[DOCKER.md](DOCKER.md)** - Docker setup and deployment guide
 - **[CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)** - Complete setup guide
 - **[MASTER_PLAN.md](MASTER_PLAN.md)** - Implementation roadmap
 - **[AAREGURU_API_ANALYSIS.md](AAREGURU_API_ANALYSIS.md)** - API documentation
