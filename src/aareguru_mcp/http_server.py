@@ -23,7 +23,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
-from starlette.routing import Route
+from starlette.routing import Route, Mount
 from mcp.server.sse import SseServerTransport
 
 from .config import get_settings
@@ -43,7 +43,8 @@ settings = get_settings()
 limiter = Limiter(key_func=get_remote_address)
 
 # Initialize SSE transport (for full MCP SSE mode)
-sse_transport = SseServerTransport(endpoint="/messages")
+# Note: Must include trailing slash to match Mount path
+sse_transport = SseServerTransport(endpoint="/messages/")
 
 # Metrics tracking
 class ServerMetrics:
@@ -293,45 +294,9 @@ async def handle_sse(request: Request) -> Response:
         )
 
 
-class MessageHandler:
-    """ASGI app wrapper for MCP message handling with auth and metrics."""
-    
-    async def __call__(self, scope: dict, receive, send):  # type: ignore[no-untyped-def]
-        """Handle ASGI requests with auth and metrics tracking."""
-        # Create a Request object for auth checking
-        request = Request(scope, receive, send)
-        
-        # Verify API key
-        if not await verify_api_key(request):
-            response = JSONResponse(
-                {"error": "Invalid or missing API key"},
-                status_code=401,
-            )
-            await response(scope, receive, send)
-            return
-        
-        # Extract session info
-        query_string = scope.get("query_string", b"").decode()  # type: ignore[union-attr]
-        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
-        session_id = params.get("session_id", "unknown")
-        
-        client_ip = scope.get("client", ["unknown"])[0] if scope.get("client") else "unknown"
-        logger.info(f"Message received from {client_ip}, session: {session_id}")
-        
-        # Track message metrics
-        metrics.message_received()
-        metrics.endpoint_called("messages")
-        
-        # Update session activity
-        if session_id != "unknown":
-            session_tracker.register_activity(session_id)
-        
-        # Call the MCP transport handler - it manages its own response
-        await sse_transport.handle_post_message(scope, receive, send)
-
-
-# Create message handler instance
-handle_messages_asgi = MessageHandler()
+# Note: The /messages endpoint is handled directly by SseServerTransport.handle_post_message
+# which is mounted as an ASGI app. No custom wrapper needed as the SDK handles
+# auth, session routing, and response management internally.
 
 
 
@@ -342,7 +307,7 @@ routes = [
     Route("/health", health_check, methods=["GET"]),
     Route("/metrics", metrics_endpoint, methods=["GET"]),
     Route("/sse", handle_sse, methods=["GET"]),
-    Route("/messages", handle_messages_asgi, methods=["POST"]),  # Raw ASGI endpoint
+    Mount("/messages", app=sse_transport.handle_post_message),  # MCP SSE message handler
 ]
 
 # Parse CORS origins
