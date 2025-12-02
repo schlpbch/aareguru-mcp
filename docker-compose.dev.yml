@@ -1,0 +1,15 @@
+# Docker Compose override for development
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  aareguru-mcp:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    environment:
+      - LOG_LEVEL=debug
+      - API_KEY_REQUIRED=false
+    command: ["uvicorn", "aareguru_mcp.http_server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -1,0 +1,67 @@
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist/
+build/
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+
+# Testing
+.pytest_cache
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+nosetests.xml
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Logs
+*.log
+pip-log.txt
+
+# Other
+.mypy_cache/
+.ruff_cache/
+.hypothesize/
