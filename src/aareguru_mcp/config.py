@@ -89,6 +89,29 @@ class Settings(BaseSettings):
         ge=1,
     )
 
+    # HTTP Server Security
+    api_key_required: bool = Field(
+        default=False,
+        description="Require API key authentication for HTTP endpoints",
+    )
+    api_keys: str = Field(
+        default="",
+        description="Comma-separated list of valid API keys",
+    )
+
+    # CORS Configuration
+    cors_origins: str = Field(
+        default="*",
+        description="Comma-separated list of allowed CORS origins (* for all)",
+    )
+
+    # Rate Limiting
+    rate_limit_per_minute: int = Field(
+        default=60,
+        description="Maximum requests per minute per IP address",
+        ge=1,
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:

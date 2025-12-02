@@ -15,6 +15,9 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
+    "starlette>=0.37.0",        # ASGI framework for SSE
+    "uvicorn[standard]>=0.29.0", # ASGI server
+    "slowapi>=0.1.9",           # Rate limiting
 ]
 
 [project.optional-dependencies]
@@ -29,6 +32,7 @@ dev = [
 
 [project.scripts]
 aareguru-mcp = "aareguru_mcp.server:entry_point"
+aareguru-mcp-http = "aareguru_mcp.http_server:main"
 
 [build-system]
 requires = ["hatchling"]
