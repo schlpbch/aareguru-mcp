@@ -113,9 +113,15 @@ class Settings(BaseSettings):
     )
 
     # SSE Transport Configuration
-    use_full_sse: bool = Field(
-        default=False,
-        description="Use full MCP SSE transport (SseServerTransport) instead of simplified version",
+    sse_session_timeout_seconds: int = Field(
+        default=3600,
+        description="SSE session timeout in seconds (default: 1 hour)",
+        ge=60,
+    )
+    sse_cleanup_interval_seconds: int = Field(
+        default=300,
+        description="Interval for cleaning up stale SSE sessions (default: 5 minutes)",
+        ge=60,
     )
 
 
