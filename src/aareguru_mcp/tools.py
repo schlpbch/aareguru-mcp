@@ -148,14 +148,14 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
             "temperature": temp,
             "temperature_text": text,
             "swiss_german_explanation": explanation,
-            "name": response.aare.location if response.aare else response.name,
+            "name": response.aare.location if (response.aare and hasattr(response.aare, "location")) else response.name,
             "warning": warning,
             "suggestion": suggestion,
             "seasonal_advice": season_advice,
         }
         
         # Add legacy fields for backward compatibility
-        if response.aare:
+        if response.aare and hasattr(response.aare, "temperature"):
             result["temperature_prec"] = response.aare.temperature  # Approximate
             result["temperature_text_short"] = response.aare.temperature_text_short
             result["longname"] = response.aare.location_long

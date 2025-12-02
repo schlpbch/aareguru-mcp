@@ -6,8 +6,13 @@ from pydantic import ValidationError
 from aareguru_mcp.config import Settings, get_settings
 
 
-def test_settings_defaults():
+def test_settings_defaults(monkeypatch):
     """Test default settings values."""
+    # Unset env vars set by autouse fixture
+    monkeypatch.delenv("MIN_REQUEST_INTERVAL_SECONDS", raising=False)
+    monkeypatch.delenv("CACHE_TTL_SECONDS", raising=False)
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
+    
     settings = Settings()
     assert settings.aareguru_base_url == "https://aareguru.existenz.ch"
     assert settings.app_name == "aareguru-mcp"

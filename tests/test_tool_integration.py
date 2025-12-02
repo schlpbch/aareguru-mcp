@@ -127,9 +127,14 @@ async def test_api_timeout_recovery():
 async def test_malformed_response_handling():
     """Test handling of unexpected API responses."""
     # Mock a malformed response that fails Pydantic validation
-    with patch("aareguru_mcp.client.AareguruClient.get_today") as mock_get:
+    with patch("aareguru_mcp.client.AareguruClient.get_today") as mock_get_today, \
+         patch("aareguru_mcp.client.AareguruClient.get_current") as mock_get_current:
+        
+        # Make get_current return empty so it falls back to get_today
+        mock_get_current.return_value = Mock(aare=None)
+        
         from pydantic import ValidationError
-        mock_get.side_effect = ValidationError.from_exception_data(
+        mock_get_today.side_effect = ValidationError.from_exception_data(
             "TodayResponse",
             [{"type": "missing", "loc": ("aare",), "msg": "Field required"}]
         )
@@ -142,7 +147,12 @@ async def test_malformed_response_handling():
 async def test_missing_data_fields():
     """Test handling of partial data from API."""
     # Mock response with missing fields
-    with patch("aareguru_mcp.client.AareguruClient.get_today") as mock_get:
+    with patch("aareguru_mcp.client.AareguruClient.get_today") as mock_get_today, \
+         patch("aareguru_mcp.client.AareguruClient.get_current") as mock_get_current:
+        
+        # Make get_current return empty so it falls back to get_today
+        mock_get_current.return_value = Mock(aare=None)
+        
         mock_response = Mock()
         mock_response.aare = 17.2
         mock_response.aare_prec = None  # Missing precision
@@ -150,7 +160,7 @@ async def test_missing_data_fields():
         mock_response.text_short = None  # Missing short text
         mock_response.name = "Bern"
         mock_response.longname = "Bern, Schönau"
-        mock_get.return_value = mock_response
+        mock_get_today.return_value = mock_response
         
         result = await tools.get_current_temperature("bern")
         
