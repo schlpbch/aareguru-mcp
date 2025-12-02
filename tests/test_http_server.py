@@ -161,19 +161,27 @@ def test_cors_preflight(client):
 
 def test_messages_endpoint_post(client):
     """Test messages endpoint accepts POST."""
-    response = client.post("/messages")
-    assert response.status_code == 200
+    # Without session_id, should get 400 (bad request)
+    response = client.post("/messages/")
+    assert response.status_code == 400
 
 
 def test_messages_endpoint_with_auth(client_with_auth):
-    """Test messages endpoint requires auth when enabled."""
-    response = client_with_auth.post("/messages")
+    """Test SSE endpoint requires auth when enabled."""
+    # Test POST to /sse (which has auth checking in HybridSSEHandler)
+    response = client_with_auth.post(
+        "/sse",
+        headers={"Content-Type": "application/json"}
+    )
     assert response.status_code == 401
     
-    # With valid key
+    # With valid key - should still get 400 because no valid body/session_id
     response = client_with_auth.post(
-        "/messages",
-        headers={"X-API-Key": "test-key-1"}
+        "/sse",
+        headers={
+            "X-API-Key": "test-key-1",
+            "Content-Type": "application/json"
+        }
     )
-    assert response.status_code == 200
+    assert response.status_code == 400  # 400 because no valid body/session_id
 

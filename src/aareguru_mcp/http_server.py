@@ -210,6 +210,7 @@ async def metrics_endpoint(request: Request) -> JSONResponse:
     Returns:
         JSON response with server metrics
     """
+    metrics.endpoint_called("metrics")
     stats = metrics.get_stats()
     stats["active_sessions"] = session_tracker.get_session_count()
     
