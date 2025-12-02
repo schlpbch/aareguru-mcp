@@ -66,27 +66,29 @@ def _get_swiss_german_explanation(text: str | None) -> str | None:
     return None
 
 
-async def _get_suggestion(current_city: str, current_temp: float | None, client: AareguruClient) -> str | None:
+async def _get_suggestion(current_city: str, current_temp: float | None) -> str | None:
     """Suggest a better city if current one is cold."""
     if current_temp is None or current_temp >= 18.0:
         return None
         
     try:
-        all_cities = await client.get_cities()
-        
-        # Find warmest city
-        warmest = None
-        max_temp = -100.0
-        
-        for city in all_cities:
-            if city.city != current_city and city.aare is not None:
-                if city.aare > max_temp:
-                    max_temp = city.aare
-                    warmest = city
-        
-        # Suggest if significantly warmer (>1°C difference)
-        if warmest and max_temp > (current_temp + 1.0):
-            return f"💡 Tip: {warmest.name} is warmer right now ({warmest.aare}°C)"
+        # Use a new client instance to avoid connection pool issues
+        async with AareguruClient(settings=get_settings()) as suggestion_client:
+            all_cities = await suggestion_client.get_cities()
+            
+            # Find warmest city
+            warmest = None
+            max_temp = -100.0
+            
+            for city in all_cities:
+                if city.city != current_city and city.aare is not None:
+                    if city.aare > max_temp:
+                        max_temp = city.aare
+                        warmest = city
+            
+            # Suggest if significantly warmer (>1°C difference)
+            if warmest and max_temp > (current_temp + 1.0):
+                return f"💡 Tip: {warmest.name} is warmer right now ({warmest.aare}°C)"
             
     except Exception:
         # Fail silently on suggestions
@@ -140,7 +142,7 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
         # UX Features
         warning = _check_safety_warning(flow)
         explanation = _get_swiss_german_explanation(text)
-        suggestion = await _get_suggestion(city, temp, client)
+        suggestion = await _get_suggestion(city, temp)
         season_advice = _get_seasonal_advice()
         
         result = {
