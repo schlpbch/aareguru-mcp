@@ -293,57 +293,45 @@ async def handle_sse(request: Request) -> Response:
         )
 
 
-async def handle_messages(request: Request) -> Response:
-    """Handle incoming MCP messages.
+class MessageHandler:
+    """ASGI app wrapper for MCP message handling with auth and metrics."""
     
-    This uses SseServerTransport's handle_post_message to route messages
-    to the correct session.
-    
-    Args:
-        request: Starlette request object
+    async def __call__(self, scope: dict, receive, send):  # type: ignore[no-untyped-def]
+        """Handle ASGI requests with auth and metrics tracking."""
+        # Create a Request object for auth checking
+        request = Request(scope, receive, send)
         
-    Returns:
-        Response
-    """
-    # Verify API key
-    if not await verify_api_key(request):
-        return JSONResponse(
-            {"error": "Invalid or missing API key"},
-            status_code=401,
-        )
-    
-    client_ip = get_remote_address(request)
-    session_id = request.query_params.get("session_id", "unknown")
-    logger.info(f"Message received from {client_ip}, session: {session_id}")
-    
-    # Track message metrics
-    metrics.message_received()
-    metrics.endpoint_called("messages")
-    
-    # Update session activity
-    if session_id != "unknown":
-        session_tracker.register_activity(session_id)
-    
-    # Create an ASGI app using SseServerTransport's message handler
-    async def message_app(scope: dict, receive: object, send: object) -> None:  # type: ignore[type-arg]
-        try:
-            await sse_transport.handle_post_message()(scope, receive, send)  # type: ignore[arg-type]
-        except Exception as e:
-            logger.error(f"Message handling failed for {client_ip}, session {session_id}: {e}", exc_info=True)
-            metrics.error_occurred("messages_full")
-            raise
-    
-    # Call the ASGI app with Starlette's scope/receive/send
-    try:
-        await message_app(request.scope, request.receive, request._send)  # type: ignore[attr-defined]
-        return Response(status_code=200)
-    except Exception as e:
-        logger.error(f"Failed to process message: {e}")
-        metrics.error_occurred("messages_full")
-        return JSONResponse(
-            {"error": "Message processing failed", "detail": str(e)},
-            status_code=500,
-        )
+        # Verify API key
+        if not await verify_api_key(request):
+            response = JSONResponse(
+                {"error": "Invalid or missing API key"},
+                status_code=401,
+            )
+            await response(scope, receive, send)
+            return
+        
+        # Extract session info
+        query_string = scope.get("query_string", b"").decode()  # type: ignore[union-attr]
+        params = dict(param.split("=") for param in query_string.split("&") if "=" in param)
+        session_id = params.get("session_id", "unknown")
+        
+        client_ip = scope.get("client", ["unknown"])[0] if scope.get("client") else "unknown"
+        logger.info(f"Message received from {client_ip}, session: {session_id}")
+        
+        # Track message metrics
+        metrics.message_received()
+        metrics.endpoint_called("messages")
+        
+        # Update session activity
+        if session_id != "unknown":
+            session_tracker.register_activity(session_id)
+        
+        # Call the MCP transport handler - it manages its own response
+        await sse_transport.handle_post_message(scope, receive, send)
+
+
+# Create message handler instance
+handle_messages_asgi = MessageHandler()
 
 
 
@@ -354,7 +342,7 @@ routes = [
     Route("/health", health_check, methods=["GET"]),
     Route("/metrics", metrics_endpoint, methods=["GET"]),
     Route("/sse", handle_sse, methods=["GET"]),
-    Route("/messages", handle_messages, methods=["POST"]),
+    Route("/messages", handle_messages_asgi, methods=["POST"]),  # Raw ASGI endpoint
 ]
 
 # Parse CORS origins
