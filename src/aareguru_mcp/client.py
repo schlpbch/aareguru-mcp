@@ -50,12 +50,12 @@ class AareguruClient:
         self.app_version = self.settings.app_version
         self.cache_ttl = self.settings.cache_ttl_seconds
         
-        # HTTP client with connection pooling
+        # HTTP client with connection pooling (configured via settings)
         self.http_client = httpx.AsyncClient(
-            timeout=30.0,
+            timeout=self.settings.http_client_timeout,
             limits=httpx.Limits(
-                max_keepalive_connections=20,
-                max_connections=100,
+                max_keepalive_connections=self.settings.http_client_max_keepalive,
+                max_connections=self.settings.http_client_max_connections,
             ),
             follow_redirects=True,
         )

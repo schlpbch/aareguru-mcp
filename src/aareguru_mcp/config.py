@@ -55,6 +55,23 @@ class Settings(BaseSettings):
         description="Log output format",
     )
 
+    # HTTP Client Configuration
+    http_client_timeout: float = Field(
+        default=30.0,
+        description="HTTP client timeout in seconds",
+        ge=1.0,
+    )
+    http_client_max_keepalive: int = Field(
+        default=20,
+        description="Maximum number of keepalive connections",
+        ge=1,
+    )
+    http_client_max_connections: int = Field(
+        default=100,
+        description="Maximum number of total connections",
+        ge=1,
+    )
+
     # HTTP Server Configuration (Phase 3)
     http_host: str = Field(
         default="0.0.0.0",
