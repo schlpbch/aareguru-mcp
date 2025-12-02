@@ -61,13 +61,15 @@ async def read_resource(uri: str) -> str:
     Raises:
         ValueError: If URI is invalid or resource not found
     """
-    logger.info(f"Reading resource: {uri}")
+    # Convert AnyUrl to string if needed
+    uri_str = str(uri)
+    logger.info(f"Reading resource: {uri_str}")
     
     # Parse URI
-    if not uri.startswith("aareguru://"):
-        raise ValueError(f"Invalid URI scheme: {uri}")
+    if not uri_str.startswith("aareguru://"):
+        raise ValueError(f"Invalid URI scheme: {uri_str}")
     
-    path = uri.replace("aareguru://", "")
+    path = uri_str.replace("aareguru://", "")
     parts = path.split("/")
     
     async with AareguruClient(settings=get_settings()) as client:
@@ -101,5 +103,5 @@ async def read_resource(uri: str) -> str:
                 raise ValueError(f"Unknown resource path: {path}")
                 
         except Exception as e:
-            logger.error(f"Error reading resource {uri}: {e}")
-            raise ValueError(f"Failed to read resource {uri}: {str(e)}")
+            logger.error(f"Error reading resource {uri_str}: {e}")
+            raise ValueError(f"Failed to read resource {uri_str}: {str(e)}")
