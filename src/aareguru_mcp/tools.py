@@ -5,7 +5,7 @@ Tools allow Claude to dynamically query the Aareguru API based on user requests.
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .client import AareguruClient
 from .config import get_settings

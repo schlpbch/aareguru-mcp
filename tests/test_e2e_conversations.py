@@ -5,10 +5,8 @@ to verify tool selection, response quality, and data accuracy.
 """
 
 import pytest
-from unittest.mock import Mock, patch
 
 from aareguru_mcp import tools
-from aareguru_mcp.server import handle_call_tool
 
 
 # Basic Queries (3 tests)

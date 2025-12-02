@@ -3,7 +3,7 @@
 import pytest
 
 from aareguru_mcp.client import AareguruClient, CacheEntry
-from aareguru_mcp.models import CitiesResponse, CurrentResponse, TodayResponse
+from aareguru_mcp.models import CurrentResponse, TodayResponse
 
 
 def test_cache_entry_expiration():

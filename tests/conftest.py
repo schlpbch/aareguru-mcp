@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pydantic_settings import BaseSettings
 
 from aareguru_mcp.client import AareguruClient
 from aareguru_mcp.config import Settings

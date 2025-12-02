@@ -6,10 +6,9 @@ real-world usage patterns and data consistency.
 
 import asyncio
 import pytest
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 from aareguru_mcp import tools, resources
-from aareguru_mcp.config import get_settings
 
 
 # Multi-Tool Workflows (5 tests)
@@ -218,7 +217,6 @@ async def test_cache_expiration():
     """Test that cache TTL works correctly."""
     from aareguru_mcp.client import AareguruClient, CacheEntry
     from aareguru_mcp.config import Settings
-    import time
     
     # Create client with short TTL
     settings = Settings(cache_ttl_seconds=1, min_request_interval_seconds=0)

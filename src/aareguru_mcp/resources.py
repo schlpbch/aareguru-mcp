@@ -5,9 +5,8 @@ proactively read without explicit tool calls.
 """
 
 import logging
-from typing import Any
 
-from mcp.types import Resource, TextContent
+from mcp.types import Resource
 
 from .client import AareguruClient
 from .config import get_settings

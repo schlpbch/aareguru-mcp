@@ -10,7 +10,7 @@ import httpx
 from pydantic import ValidationError
 
 from .config import get_settings
-from .models import CitiesResponse, CurrentResponse, HistoricalResponse, TodayResponse
+from .models import CitiesResponse, CurrentResponse, TodayResponse
 
 logger = logging.getLogger(__name__)
 
