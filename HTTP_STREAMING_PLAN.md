@@ -86,8 +86,6 @@ This document outlines the strategy for exposing the Aareguru MCP server via str
 
 ## Implementation Approach
 
-### Option 1: MCP SDK Built-in SSE (Recommended)
-
 The MCP Python SDK provides built-in SSE transport support.
 
 **File**: `src/aareguru_mcp/http_server.py`
@@ -125,86 +123,6 @@ if __name__ == "__main__":
 
 ---
 
-### Option 2: Custom FastAPI Implementation
-
-For more control and additional REST endpoints.
-
-**File**: `src/aareguru_mcp/http_server.py`
-
-```python
-from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
-from sse_starlette.sse import EventSourceResponse
-import asyncio
-
-from .server import create_mcp_server
-from .client import AareguruClient
-
-app = FastAPI(title="Aareguru MCP Server")
-
-# Initialize MCP server
-mcp_server = create_mcp_server()
-
-@app.get("/")
-async def root():
-    """API information"""
-    return {
-        "name": "Aareguru MCP Server",
-        "version": "1.0.0",
-        "protocol": "MCP over HTTP/SSE",
-        "endpoints": {
-            "sse": "/sse",
-            "health": "/health",
-            "docs": "/docs"
-        }
-    }
-
-@app.get("/health")
-async def health():
-    """Health check endpoint"""
-    return {"status": "healthy", "service": "aareguru-mcp"}
-
-@app.get("/sse")
-async def sse_endpoint(request: Request):
-    """Server-Sent Events endpoint for MCP protocol"""
-    
-    async def event_generator():
-        try:
-            # MCP handshake and message streaming
-            async for message in mcp_server.stream_messages():
-                yield {
-                    "event": "message",
-                    "data": message.model_dump_json()
-                }
-        except asyncio.CancelledError:
-            # Client disconnected
-            pass
-    
-    return EventSourceResponse(event_generator())
-
-@app.post("/messages")
-async def handle_message(request: Request):
-    """Handle incoming MCP messages from client"""
-    data = await request.json()
-    response = await mcp_server.handle_message(data)
-    return response
-
-# Optional: Direct REST endpoints for convenience
-@app.get("/api/temperature/{city}")
-async def get_temperature(city: str):
-    """Direct REST endpoint for temperature (non-MCP)"""
-    client = AareguruClient()
-    data = await client.get_today(city)
-    return {
-        "city": city,
-        "temperature": data.get("aare", {}).get("temperature"),
-        "text": data.get("aare", {}).get("temperature_text")
-    }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-```
 
 ---
 
