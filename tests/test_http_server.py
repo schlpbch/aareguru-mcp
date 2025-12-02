@@ -182,3 +182,34 @@ def test_messages_endpoint_with_auth(client_with_auth):
         headers={"X-API-Key": "test-key-1"}
     )
     assert response.status_code == 200
+
+
+# Full SSE Implementation Tests
+
+@pytest.fixture
+def client_with_full_sse(monkeypatch):
+    """Create test client with full SSE transport enabled."""
+    monkeypatch.setenv("USE_FULL_SSE", "true")
+    
+    # Force settings reload
+    from aareguru_mcp.config import get_settings
+    get_settings.cache_clear()
+    
+    client = TestClient(http_app)
+    yield client
+    
+    # Cleanup
+    get_settings.cache_clear()
+
+
+def test_full_sse_mode_enabled(client_with_full_sse):
+    """Test that full SSE mode can be enabled via config."""
+    from aareguru_mcp.config import get_settings
+    settings = get_settings()
+    assert settings.use_full_sse is True
+
+def test_simplified_mode_default(client):
+    """Test that simplified SSE is the default mode."""
+    from aareguru_mcp.config import get_settings
+    settings = get_settings()
+    assert settings.use_full_sse is False

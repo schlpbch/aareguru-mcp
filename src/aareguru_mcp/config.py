@@ -112,6 +112,12 @@ class Settings(BaseSettings):
         ge=1,
     )
 
+    # SSE Transport Configuration
+    use_full_sse: bool = Field(
+        default=False,
+        description="Use full MCP SSE transport (SseServerTransport) instead of simplified version",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
