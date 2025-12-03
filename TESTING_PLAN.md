@@ -2,704 +2,358 @@
 
 ## Overview
 
-This testing plan uses the 130 user questions as the foundation for comprehensive test coverage, ensuring the MCP server handles all expected user interactions correctly.
+This testing plan describes the comprehensive test suite for the Aareguru MCP server, organized into logical categories for maintainability and clarity.
 
 ---
 
-## Testing Strategy
+## Test Suite Organization
+
+### Test File Structure
+
+```
+tests/
+├── conftest.py                    # Shared fixtures
+├── fixtures/
+│   └── sample_responses.json      # Mock API responses
+│
+├── test_unit_models.py            # Pydantic model validation (14 tests)
+├── test_unit_config.py            # Settings and configuration (13 tests)
+├── test_unit_client.py            # API client unit tests (14 tests)
+├── test_unit_server_helpers.py    # Server helper functions (32 tests)
+│
+├── test_tools_basic.py            # Basic tool functions (21 tests)
+├── test_tools_advanced.py         # Advanced tools: compare, forecast (18 tests)
+│
+├── test_integration_workflows.py  # Multi-tool workflows (16 tests)
+├── test_http_endpoints.py         # HTTP endpoints, performance (17 tests)
+└── test_resources.py              # Resource listing and reading (9 tests)
+```
 
 ### Test Pyramid
 
 ```
                     ┌─────────────┐
-                    │   E2E (10)  │  Full conversation flows
+                    │HTTP Endpoints│  17 tests
+                    │  & Resources │  26 tests
                     └─────────────┘
                   ┌───────────────────┐
-                  │ Integration (40)  │  Tool + API tests
+                  │    Integration    │  16 tests
+                  │    Workflows      │
                   └───────────────────┘
               ┌─────────────────────────────┐
-              │    Unit Tests (100+)        │  Individual components
+              │    Tool Tests (39 tests)    │  Basic + Advanced
               └─────────────────────────────┘
+          ┌─────────────────────────────────────┐
+          │      Unit Tests (73 tests)          │  Models, Config, Client, Helpers
+          └─────────────────────────────────────┘
 ```
 
-**Total Tests**: ~150+ automated tests
+**Total Tests**: 153 automated tests
 
 ---
 
 ## Test Categories
 
-### 1. Unit Tests (100+ tests)
+### 1. Unit Tests (73 tests)
 
-Test individual components in isolation.
+Test individual components in isolation without external dependencies.
 
-#### API Client Tests (`test_client.py`)
-**Coverage**: 25 tests
+#### Model Tests (`test_unit_models.py`) - 14 tests
 
 ```python
-import pytest
-from aareguru_mcp.client import AareguruClient
+class TestAareData:
+    """Test AareData model."""
+    def test_valid_data(self): ...
+    def test_null_values(self): ...
+    def test_danger_level_valid_range(self): ...
+    def test_danger_level_invalid_zero(self): ...
+    def test_danger_level_invalid_six(self): ...
 
-@pytest.mark.asyncio
-async def test_get_cities():
-    """Test fetching city list"""
-    client = AareguruClient()
-    cities = await client.get_cities()
-    assert isinstance(cities, dict)
-    assert "bern" in [c["city"] for c in cities.get("cities", [])]
+class TestWeatherData:
+    """Test WeatherData model."""
+    def test_valid_data(self): ...
 
-@pytest.mark.asyncio
-async def test_get_current_bern():
-    """Test current conditions for Bern"""
-    client = AareguruClient()
-    data = await client.get_current("bern")
-    assert data["city"] == "bern"
-    assert "aare" in data
-    assert "temperature" in data["aare"]
+class TestCityInfo:
+    """Test CityInfo model."""
+    def test_valid_city(self): ...
+    def test_missing_required_field(self): ...
 
-@pytest.mark.asyncio
-async def test_get_current_invalid_city():
-    """Test error handling for invalid city"""
-    client = AareguruClient()
-    with pytest.raises(ValueError):
-        await client.get_current("invalid_city_name")
-
-@pytest.mark.asyncio
-async def test_caching():
-    """Test response caching"""
-    client = AareguruClient()
-    # First call - cache miss
-    data1 = await client.get_current("bern")
-    # Second call - cache hit
-    data2 = await client.get_current("bern")
-    assert data1 == data2
-
-@pytest.mark.asyncio
-async def test_rate_limiting():
-    """Test rate limiting enforcement"""
-    client = AareguruClient()
-    # Make multiple rapid requests
-    for _ in range(5):
-        await client.get_current("bern")
-    # Should not exceed rate limit
+class TestModelSerialization:
+    """Test model serialization."""
+    def test_json_schema_generation(self): ...
+    def test_to_dict(self): ...
+    def test_to_json(self): ...
 ```
 
-#### Model Tests (`test_models.py`)
-**Coverage**: 20 tests
+#### Configuration Tests (`test_unit_config.py`) - 13 tests
 
 ```python
-from aareguru_mcp.models import AareData, WeatherData, CityInfo
+class TestSettingsDefaults:
+    """Test default settings values."""
+    def test_default_base_url(self): ...
+    def test_default_app_name(self): ...
+    def test_default_cache_ttl(self): ...
+    def test_default_request_interval(self): ...
+    def test_default_log_level(self): ...
 
-def test_aare_data_valid():
-    """Test AareData model with valid data"""
-    data = AareData(
-        temperature=17.2,
-        temperature_text="geil aber chli chalt",
-        flow=245.0,
-        flow_gefahrenstufe=2
-    )
-    assert data.temperature == 17.2
-    assert data.flow_gefahrenstufe == 2
+class TestSettingsValidation:
+    """Test settings validation."""
+    def test_valid_port(self): ...
+    def test_invalid_port_too_high(self): ...
+    def test_invalid_port_too_low(self): ...
+    def test_valid_log_levels(self): ...
 
-def test_aare_data_null_values():
-    """Test AareData handles null values"""
-    data = AareData(
-        temperature=None,
-        temperature_text=None,
-        flow=None,
-        flow_gefahrenstufe=None
-    )
-    assert data.temperature is None
-
-def test_city_info_validation():
-    """Test CityInfo validation"""
-    city = CityInfo(
-        city="bern",
-        name="Bern",
-        longname="Bern - Schönau",
-        url="https://aare.guru/bern"
-    )
-    assert city.city == "bern"
-
-def test_weather_data_schema():
-    """Test WeatherData JSON schema generation"""
-    schema = WeatherData.model_json_schema()
-    assert "tt" in schema["properties"]
-    assert "sy" in schema["properties"]
+class TestSettingsCaching:
+    """Test settings caching."""
+    def test_get_settings_returns_same_instance(self): ...
 ```
 
-#### Tool Tests (`test_tools.py`)
-**Coverage**: 35 tests
+#### Client Unit Tests (`test_unit_client.py`) - 14 tests
 
 ```python
-import pytest
-from aareguru_mcp.tools import (
-    get_current_temperature,
-    get_current_conditions,
-    get_historical_data,
-    list_cities,
-    get_flow_danger_level,
-    compare_cities,
-    get_forecast
-)
+class TestCacheEntry:
+    """Test CacheEntry class."""
+    def test_not_expired_immediately(self): ...
+    def test_expired_after_ttl(self): ...
+    def test_stores_data(self): ...
 
-@pytest.mark.asyncio
-async def test_get_current_temperature_bern():
-    """Test temperature tool for Bern"""
-    result = await get_current_temperature(city="bern")
-    assert "temperature" in result
-    assert "temperature_text" in result
-    assert isinstance(result["temperature"], (float, type(None)))
+class TestClientInitialization:
+    """Test client initialization."""
+    def test_default_initialization(self): ...
+    def test_custom_settings(self): ...
+    def test_rate_limiting_setting(self): ...
 
-@pytest.mark.asyncio
-async def test_get_current_temperature_default():
-    """Test temperature tool with default city"""
-    result = await get_current_temperature()
-    assert result["city"] == "bern"
+class TestCacheKeyGeneration:
+    """Test cache key generation."""
+    def test_basic_key_generation(self): ...
+    def test_same_params_same_key(self): ...
+    def test_different_params_different_key(self): ...
 
-@pytest.mark.asyncio
-async def test_get_current_conditions_complete():
-    """Test full conditions include all expected fields"""
-    result = await get_current_conditions(city="bern")
-    assert "aare" in result
-    assert "weather" in result
-    assert "forecast" in result
+class TestCacheOperations:
+    """Test cache get/set operations."""
+    def test_cache_miss_returns_none(self): ...
+    def test_cache_set_and_get(self): ...
+    def test_cache_clear(self): ...
 
-@pytest.mark.asyncio
-async def test_list_cities_returns_array():
-    """Test cities list returns array"""
-    result = await list_cities()
-    assert isinstance(result, list)
-    assert len(result) > 0
-    assert all("city" in c for c in result)
-
-@pytest.mark.asyncio
-async def test_compare_cities_two_cities():
-    """Test comparing two cities"""
-    result = await compare_cities(cities=["bern", "thun"])
-    assert len(result) == 2
-    assert result[0]["city"] == "bern"
-    assert result[1]["city"] == "thun"
-
-@pytest.mark.asyncio
-async def test_get_historical_data_date_range():
-    """Test historical data with date range"""
-    result = await get_historical_data(
-        city="bern",
-        start="-7 days",
-        end="now"
-    )
-    assert "timeseries" in result
-    assert len(result["timeseries"]) > 0
+class TestContextManager:
+    """Test async context manager."""
+    async def test_context_manager_opens_client(self): ...
+    async def test_context_manager_closes_client(self): ...
 ```
 
-#### Resource Tests (`test_resources.py`)
-**Coverage**: 20 tests
+#### Server Helper Tests (`test_unit_server_helpers.py`) - 32 tests
 
 ```python
-from aareguru_mcp.resources import (
-    list_resources,
-    read_resource
-)
+class TestSeasonalAdvice:
+    """Test _get_seasonal_advice for all seasons."""
+    # Tests for all 12 months
 
-@pytest.mark.asyncio
-async def test_list_resources():
-    """Test listing all resources"""
-    resources = await list_resources()
-    assert len(resources) == 4
-    uris = [r.uri for r in resources]
-    assert "aareguru://cities" in uris
-    assert "aareguru://widget" in uris
+class TestSafetyWarning:
+    """Test _check_safety_warning for all flow levels."""
+    def test_none_flow(self): ...
+    def test_safe_flow_no_warning(self): ...
+    def test_elevated_flow_caution(self): ...
+    def test_danger_flow(self): ...
+    def test_extreme_danger_flow(self): ...
+    def test_default_threshold(self): ...
 
-@pytest.mark.asyncio
-async def test_read_resource_cities():
-    """Test reading cities resource"""
-    content = await read_resource("aareguru://cities")
-    assert isinstance(content, str)
-    data = json.loads(content)
-    assert "cities" in data
+class TestSwissGermanExplanation:
+    """Test _get_swiss_german_explanation for all phrases."""
+    def test_geil_aber_chli_chalt(self): ...
+    def test_schoen_warm(self): ...
+    def test_arschkalt(self): ...
+    def test_perfekt(self): ...
+    def test_unknown_phrase_returns_none(self): ...
+    def test_case_insensitive(self): ...
 
-@pytest.mark.asyncio
-async def test_read_resource_current_bern():
-    """Test reading current resource for Bern"""
-    content = await read_resource("aareguru://current/bern")
-    data = json.loads(content)
-    assert data["city"] == "bern"
-
-@pytest.mark.asyncio
-async def test_read_resource_invalid_uri():
-    """Test error handling for invalid URI"""
-    with pytest.raises(ValueError):
-        await read_resource("aareguru://invalid")
+class TestSafetyAssessment:
+    """Test _get_safety_assessment for all flow levels."""
+    def test_safe_flow_under_100(self): ...
+    def test_moderate_flow(self): ...
+    def test_elevated_flow(self): ...
+    def test_high_flow(self): ...
+    def test_very_high_flow(self): ...
 ```
 
 ---
 
-### 2. Integration Tests (40 tests)
+### 2. Tool Tests (39 tests)
 
-Test tool interactions with real API and MCP protocol.
+Test MCP tool functions with mocked and real API calls.
 
-#### Tool Integration Tests (`test_tool_integration.py`)
-**Coverage**: 30 tests
-
-Based on the 130 user questions, we create representative integration tests:
+#### Basic Tool Tests (`test_tools_basic.py`) - 21 tests
 
 ```python
-import pytest
-from aareguru_mcp.server import create_mcp_server
+class TestGetCurrentTemperature:
+    """Test get_current_temperature tool."""
+    async def test_default_city(self): ...
+    async def test_specific_city(self): ...
+    async def test_with_mocked_client(self): ...
+    async def test_fallback_to_today(self): ...
 
-@pytest.fixture
-async def mcp_server():
-    """Create MCP server instance for testing"""
-    server = create_mcp_server()
-    yield server
-    await server.cleanup()
+class TestGetCurrentConditions:
+    """Test get_current_conditions tool."""
+    async def test_returns_comprehensive_data(self): ...
+    async def test_includes_aare_data(self): ...
+    async def test_with_weather_and_forecast(self): ...
+    async def test_without_aare_data(self): ...
 
-# Category 1: Basic Temperature Queries (Questions 1-10)
-@pytest.mark.asyncio
-async def test_question_1_whats_temperature(mcp_server):
-    """Q1: What's the Aare temperature right now?"""
-    result = await mcp_server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    assert result["temperature"] is not None
-    assert result["temperature_text"] is not None
+class TestListCities:
+    """Test list_cities tool."""
+    async def test_returns_array(self): ...
+    async def test_city_has_required_fields(self): ...
+    async def test_includes_bern(self): ...
 
-@pytest.mark.asyncio
-async def test_question_3_warm_enough_to_swim(mcp_server):
-    """Q3: Is the Aare warm enough to swim?"""
-    result = await mcp_server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    # Should include temperature and contextual text
-    assert "temperature" in result
-    assert "temperature_text" in result
+class TestGetFlowDangerLevel:
+    """Test get_flow_danger_level tool."""
+    async def test_returns_safety_assessment(self): ...
+    async def test_safety_text_is_readable(self): ...
+    async def test_no_aare_data(self): ...
 
-# Category 2: Safety & Flow Questions (Questions 11-20)
-@pytest.mark.asyncio
-async def test_question_11_is_it_safe(mcp_server):
-    """Q11: Is it safe to swim in the Aare today?"""
-    result = await mcp_server.call_tool(
-        "get_current_conditions",
-        {"city": "bern"}
-    )
-    assert "flow" in result["aare"]
-    assert "flow_gefahrenstufe" in result["aare"]
+class TestGetHistoricalData:
+    """Test get_historical_data tool."""
+    async def test_with_relative_dates(self): ...
+    async def test_with_mocked_client(self): ...
 
-@pytest.mark.asyncio
-async def test_question_12_danger_level(mcp_server):
-    """Q12: What's the current danger level?"""
-    result = await mcp_server.call_tool(
-        "get_flow_danger_level",
-        {"city": "bern"}
-    )
-    assert "flow_gefahrenstufe" in result
-    assert 1 <= result["flow_gefahrenstufe"] <= 5
-
-# Category 4: Comparative Questions (Questions 31-40)
-@pytest.mark.asyncio
-async def test_question_31_which_city_warmest(mcp_server):
-    """Q31: Which city has the warmest water?"""
-    result = await mcp_server.call_tool(
-        "compare_cities",
-        {"cities": ["bern", "thun", "basel"]}
-    )
-    assert len(result) == 3
-    # Should be able to determine warmest
-    temps = [c["temperature"] for c in result if c["temperature"]]
-    assert len(temps) > 0
-
-@pytest.mark.asyncio
-async def test_question_32_compare_bern_thun(mcp_server):
-    """Q32: Compare Bern and Thun temperatures"""
-    result = await mcp_server.call_tool(
-        "compare_cities",
-        {"cities": ["bern", "thun"]}
-    )
-    assert len(result) == 2
-    assert result[0]["city"] in ["bern", "thun"]
-
-# Category 5: Historical & Trend Questions (Questions 41-50)
-@pytest.mark.asyncio
-async def test_question_41_temperature_changed_this_week(mcp_server):
-    """Q41: How has the temperature changed this week?"""
-    result = await mcp_server.call_tool(
-        "get_historical_data",
-        {
-            "city": "bern",
-            "start": "-7 days",
-            "end": "now"
-        }
-    )
-    assert "timeseries" in result
-    assert len(result["timeseries"]) > 0
-
-@pytest.mark.asyncio
-async def test_question_43_last_7_days(mcp_server):
-    """Q43: Show me the last 7 days of data"""
-    result = await mcp_server.call_tool(
-        "get_historical_data",
-        {
-            "city": "bern",
-            "start": "-7 days",
-            "end": "now"
-        }
-    )
-    assert len(result["timeseries"]) > 0
-
-# Category 6: Forecast Questions (Questions 51-60)
-@pytest.mark.asyncio
-async def test_question_51_warmer_tomorrow(mcp_server):
-    """Q51: Will the water be warmer tomorrow?"""
-    result = await mcp_server.call_tool(
-        "get_forecast",
-        {"city": "bern", "hours": 24}
-    )
-    assert "forecast" in result
-
-# Category 7: Location Discovery (Questions 61-70)
-@pytest.mark.asyncio
-async def test_question_62_which_cities_available(mcp_server):
-    """Q62: Which cities have data available?"""
-    result = await mcp_server.call_tool("list_cities", {})
-    assert isinstance(result, list)
-    assert len(result) > 0
-    assert all("city" in c for c in result)
-
-# Category 12: Multi-Step Queries (Questions 111-120)
-@pytest.mark.asyncio
-async def test_question_111_check_bern_compare_thun(mcp_server):
-    """Q111: Check Bern temperature, then compare with Thun"""
-    # Step 1: Get Bern temp
-    bern_result = await mcp_server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    # Step 2: Compare with Thun
-    compare_result = await mcp_server.call_tool(
-        "compare_cities",
-        {"cities": ["bern", "thun"]}
-    )
-    assert len(compare_result) == 2
-
-# Category 13: Edge Cases (Questions 121-130)
-@pytest.mark.asyncio
-async def test_question_121_no_data_available(mcp_server):
-    """Q121: What if there's no data available?"""
-    # Should handle gracefully, not crash
-    result = await mcp_server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    # Even if temperature is None, should return structure
-    assert "temperature" in result
-
-@pytest.mark.asyncio
-async def test_question_130_swiss_german_meaning(mcp_server):
-    """Q130: What does 'geil aber chli chalt' mean?"""
-    result = await mcp_server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    # Should include Swiss German text
-    if result["temperature_text"]:
-        assert isinstance(result["temperature_text"], str)
+class TestErrorHandling:
+    """Test tools handle errors gracefully."""
+    async def test_invalid_city(self): ...
 ```
 
-#### MCP Protocol Tests (`test_mcp_protocol.py`)
-**Coverage**: 10 tests
+#### Advanced Tool Tests (`test_tools_advanced.py`) - 18 tests
 
 ```python
-@pytest.mark.asyncio
-async def test_mcp_list_resources():
-    """Test MCP list_resources protocol"""
-    server = create_mcp_server()
-    resources = await server.list_resources()
-    assert len(resources) > 0
-    assert all(hasattr(r, "uri") for r in resources)
+class TestCompareCitiesBasic:
+    """Test basic compare_cities functionality."""
+    async def test_specific_cities(self): ...
+    async def test_all_cities_none_param(self): ...
 
-@pytest.mark.asyncio
-async def test_mcp_list_tools():
-    """Test MCP list_tools protocol"""
-    server = create_mcp_server()
-    tools = await server.list_tools()
-    assert len(tools) == 7
-    tool_names = [t.name for t in tools]
-    assert "get_current_temperature" in tool_names
+class TestCompareCitiesSelection:
+    """Test warmest, coldest, safest selection."""
+    async def test_finds_warmest(self): ...
+    async def test_finds_safest(self): ...
 
-@pytest.mark.asyncio
-async def test_mcp_call_tool_with_schema():
-    """Test tool call respects JSON schema"""
-    server = create_mcp_server()
-    # Valid call
-    result = await server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    assert result is not None
-    
-    # Invalid call (missing required param for historical)
-    with pytest.raises(ValueError):
-        await server.call_tool(
-            "get_historical_data",
-            {"city": "bern"}  # Missing start/end
-        )
+class TestCompareCitiesEdgeCases:
+    """Test compare_cities edge cases."""
+    async def test_handles_missing_data(self): ...
+    async def test_all_cities_fail(self): ...
+    async def test_empty_list(self): ...
+    async def test_flow_none(self): ...
+    async def test_very_high_flow(self): ...
+
+class TestCompareCitiesRecommendations:
+    """Test compare_cities recommendation logic."""
+    async def test_warmest_is_safest(self): ...
+    async def test_warmest_safe_but_not_safest(self): ...
+    async def test_warmest_dangerous(self): ...
+
+class TestGetForecastTrends:
+    """Test forecast trend calculations."""
+    async def test_rising_trend(self): ...
+    async def test_falling_trend(self): ...
+    async def test_stable_trend(self): ...
+
+class TestGetForecastEdgeCases:
+    """Test get_forecast edge cases."""
+    async def test_missing_forecast_data(self): ...
+    async def test_no_aare_data(self): ...
 ```
 
 ---
 
-### 3. End-to-End Tests (10 tests)
+### 3. Integration Tests (16 tests)
 
-Test complete conversation flows simulating real user interactions.
+Test multi-tool workflows and API interactions.
 
-#### Conversation Flow Tests (`test_e2e_conversations.py`)
-**Coverage**: 10 tests
+#### Integration Workflow Tests (`test_integration_workflows.py`) - 16 tests
 
 ```python
-import pytest
-from aareguru_mcp.server import create_mcp_server
+class TestMultiToolWorkflows:
+    """Test workflows combining multiple tools."""
+    async def test_list_cities_then_get_temperature(self): ...
+    async def test_temperature_and_flow_correlation(self): ...
+    async def test_resource_and_tool_consistency(self): ...
+    async def test_multiple_cities_sequential(self): ...
 
-@pytest.mark.asyncio
-async def test_conversation_simple_temperature_check():
-    """
-    User: "What's the Aare temperature in Bern?"
-    Expected: Single tool call, formatted response
-    """
-    server = create_mcp_server()
-    
-    # Simulate Claude calling the tool
-    result = await server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    
-    # Verify response has all needed info
-    assert "temperature" in result
-    assert "temperature_text" in result
-    # Should be able to format a complete response
-    assert result["temperature"] is not None or result["temperature_text"] is not None
+class TestComplexScenarios:
+    """Test complex multi-step scenarios."""
+    async def test_cautious_swimmer_flow(self): ...
+    async def test_group_planner_flow(self): ...
 
-@pytest.mark.asyncio
-async def test_conversation_safety_assessment():
-    """
-    User: "Is it safe to swim in the Aare today?"
-    Expected: Full conditions check with safety assessment
-    """
-    server = create_mcp_server()
-    
-    result = await server.call_tool(
-        "get_current_conditions",
-        {"city": "bern"}
-    )
-    
-    # Should have all info needed for safety assessment
-    assert "aare" in result
-    assert "flow" in result["aare"]
-    assert "flow_gefahrenstufe" in result["aare"]
-    assert "weather" in result
+class TestCachingBehavior:
+    """Test caching functionality."""
+    async def test_cache_hit_performance(self): ...
+    async def test_cache_expiration(self): ...
+    async def test_different_params_different_cache(self): ...
 
-@pytest.mark.asyncio
-async def test_conversation_city_comparison():
-    """
-    User: "Compare Bern and Thun, which is better for swimming?"
-    Expected: Comparison + recommendation
-    """
-    server = create_mcp_server()
-    
-    result = await server.call_tool(
-        "compare_cities",
-        {"cities": ["bern", "thun"]}
-    )
-    
-    # Should have data to make recommendation
-    assert len(result) == 2
-    for city_data in result:
-        assert "temperature" in city_data
-        assert "flow" in city_data
+class TestErrorHandling:
+    """Test error handling in integrations."""
+    async def test_invalid_city_handling(self): ...
+    async def test_api_timeout_recovery(self): ...
+    async def test_missing_data_fields(self): ...
 
-@pytest.mark.asyncio
-async def test_conversation_with_forecast():
-    """
-    User: "Should I swim now or wait until later?"
-    Expected: Current conditions + forecast
-    """
-    server = create_mcp_server()
-    
-    # Get current
-    current = await server.call_tool(
-        "get_current_conditions",
-        {"city": "bern"}
-    )
-    
-    # Get forecast
-    forecast = await server.call_tool(
-        "get_forecast",
-        {"city": "bern", "hours": 6}
-    )
-    
-    # Should have data to make timing recommendation
-    assert current is not None
-    assert forecast is not None
-
-@pytest.mark.asyncio
-async def test_conversation_historical_analysis():
-    """
-    User: "How has the temperature changed this week? Is it warmer than usual?"
-    Expected: Historical data + analysis
-    """
-    server = create_mcp_server()
-    
-    result = await server.call_tool(
-        "get_historical_data",
-        {
-            "city": "bern",
-            "start": "-7 days",
-            "end": "now"
-        }
-    )
-    
-    # Should have time series for analysis
-    assert "timeseries" in result
-    assert len(result["timeseries"]) > 0
-
-@pytest.mark.asyncio
-async def test_conversation_tourist_recommendation():
-    """
-    User: "I'm a tourist, where should I swim today?"
-    Expected: List cities + compare + recommend best
-    """
-    server = create_mcp_server()
-    
-    # List available cities
-    cities = await server.call_tool("list_cities", {})
-    city_ids = [c["city"] for c in cities[:3]]  # Top 3
-    
-    # Compare them
-    comparison = await server.call_tool(
-        "compare_cities",
-        {"cities": city_ids}
-    )
-    
-    # Should have enough data to recommend
-    assert len(comparison) > 0
-
-@pytest.mark.asyncio
-async def test_conversation_implicit_context():
-    """
-    User: "What's the temperature in Bern?"
-    User: "What about Thun?"
-    Expected: Handle context switching
-    """
-    server = create_mcp_server()
-    
-    # First query
-    bern = await server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    
-    # Second query (different city)
-    thun = await server.call_tool(
-        "get_current_temperature",
-        {"city": "thun"}
-    )
-    
-    # Both should work independently
-    assert bern is not None
-    assert thun is not None
-
-@pytest.mark.asyncio
-async def test_conversation_error_recovery():
-    """
-    User: "What's the temperature in InvalidCity?"
-    Expected: Graceful error, suggest alternatives
-    """
-    server = create_mcp_server()
-    
-    # Should handle invalid city gracefully
-    try:
-        result = await server.call_tool(
-            "get_current_temperature",
-            {"city": "invalid_city_xyz"}
-        )
-        # If no error, should return None or empty
-        assert result.get("temperature") is None
-    except ValueError as e:
-        # Or raise informative error
-        assert "invalid" in str(e).lower() or "not found" in str(e).lower()
+class TestDataConsistency:
+    """Test data consistency and validation."""
+    async def test_swiss_german_text_present(self): ...
+    async def test_flow_threshold_accuracy(self): ...
+    async def test_temperature_precision(self): ...
 ```
 
 ---
 
-## Test Data & Fixtures
+### 4. HTTP & Resource Tests (26 tests)
 
-### Mock API Responses (`tests/fixtures/sample_responses.json`)
+Test HTTP endpoints, performance, and MCP resources.
 
-```json
-{
-  "current_bern": {
-    "city": "bern",
-    "aare": {
-      "temperature": 17.2,
-      "temperature_text": "geil aber chli chalt",
-      "temperature_text_short": "chli chalt",
-      "flow": 245.0,
-      "flow_text": "moderate",
-      "flow_gefahrenstufe": 2
-    },
-    "weather": {
-      "tt": 24.0,
-      "sy": 1,
-      "rr": 0.0
-    }
-  },
-  "cities": [
-    {"city": "bern", "name": "Bern", "longname": "Bern - Schönau"},
-    {"city": "thun", "name": "Thun", "longname": "Thun"},
-    {"city": "basel", "name": "Basel", "longname": "Basel - Rhein"}
-  ]
-}
-```
-
-### Pytest Fixtures (`tests/conftest.py`)
+#### HTTP Endpoint Tests (`test_http_endpoints.py`) - 17 tests
 
 ```python
-import pytest
-import json
-from pathlib import Path
+class TestHealthEndpoint:
+    """Test health check endpoint."""
+    def test_health_returns_200(self): ...
+    def test_health_response_format(self): ...
+    def test_health_with_origin_header(self): ...
+    def test_multiple_health_requests(self): ...
 
-@pytest.fixture
-def sample_responses():
-    """Load sample API responses"""
-    fixture_path = Path(__file__).parent / "fixtures" / "sample_responses.json"
-    with open(fixture_path) as f:
-        return json.load(f)
+class TestCoreEndpoints:
+    """Test core HTTP endpoints."""
+    def test_missing_endpoint_404(self): ...
 
-@pytest.fixture
-async def mock_api_client(monkeypatch, sample_responses):
-    """Mock API client with sample data"""
-    from aareguru_mcp.client import AareguruClient
-    
-    async def mock_get_current(self, city="bern"):
-        return sample_responses["current_bern"]
-    
-    async def mock_get_cities(self):
-        return {"cities": sample_responses["cities"]}
-    
-    monkeypatch.setattr(AareguruClient, "get_current", mock_get_current)
-    monkeypatch.setattr(AareguruClient, "get_cities", mock_get_cities)
-    
-    return AareguruClient()
+class TestSessionConfiguration:
+    """Test session timeout configuration."""
+    def test_default_session_config(self): ...
+    def test_custom_session_config(self): ...
+    def test_minimum_timeout_validation(self): ...
 
-@pytest.fixture
-def vcr_config():
-    """VCR configuration for recording API calls"""
-    return {
-        "filter_headers": ["authorization", "x-api-key"],
-        "record_mode": "once",
-        "match_on": ["uri", "method"]
-    }
+class TestConcurrency:
+    """Test concurrent request handling."""
+    async def test_concurrent_health_checks(self): ...
+
+class TestPerformance:
+    """Baseline performance tests."""
+    def test_health_check_performance(self): ...
+    def test_sequential_requests_performance(self): ...
+
+class TestServerConfiguration:
+    """Test FastMCP server configuration."""
+    def test_server_name(self): ...
+    def test_server_has_instructions(self): ...
+    def test_server_has_tools(self): ...
+    def test_server_has_resources(self): ...
+```
+
+#### Resource Tests (`test_resources.py`) - 9 tests
+
+```python
+async def test_list_resources(self): ...
+async def test_list_resources_metadata(self): ...
+async def test_read_resource_cities(self): ...
+async def test_read_resource_widget(self): ...
+async def test_read_resource_current_bern(self): ...
+async def test_read_resource_today_bern(self): ...
+async def test_read_resource_invalid_uri(self): ...
+async def test_read_resource_unknown_path(self): ...
+async def test_read_resource_malformed_uri(self): ...
 ```
 
 ---
@@ -708,189 +362,61 @@ def vcr_config():
 
 ### By Component
 
-| Component | Target Coverage | Priority |
-|-----------|----------------|----------|
-| API Client | 95% | High |
-| Models | 100% | High |
-| Tools | 90% | High |
-| Resources | 90% | High |
-| Server | 85% | Medium |
-| HTTP Server | 80% | Medium |
-
-### By Question Category
-
-| Category | Test Count | Coverage |
-|----------|-----------|----------|
-| Basic Temperature (1-10) | 10 | 100% |
-| Safety & Flow (11-20) | 10 | 100% |
-| Weather (21-30) | 5 | 50% |
-| Comparative (31-40) | 8 | 80% |
-| Historical (41-50) | 8 | 80% |
-| Forecast (51-60) | 5 | 50% |
-| Location Discovery (61-70) | 5 | 50% |
-| Contextual (71-80) | 5 | 50% |
-| Conversational (81-90) | 5 | 50% |
-| Data Analysis (91-100) | 3 | 30% |
-| Use Cases (101-110) | 3 | 30% |
-| Multi-Step (111-120) | 5 | 50% |
-| Edge Cases (121-130) | 8 | 80% |
-
-**Total Question Coverage**: ~80 of 130 questions (62%)
+| Component | Target | Actual |
+|-----------|--------|--------|
+| Models | 100% | 100% |
+| Config | 100% | 100% |
+| Client | 80% | 76% |
+| Resources | 90% | 100% |
+| Server | 85% | 80% |
+| Tools | 90% | 87% |
+| **Overall** | **85%** | **85%** |
 
 ---
 
-## Test Execution
+## Running Tests
 
-### Running Tests
+### Common Commands
 
 ```bash
-# All tests
+# Run all tests
 uv run pytest
 
-# With coverage
-uv run pytest --cov=aareguru_mcp --cov-report=html
+# Run with coverage
+uv run pytest --cov=aareguru_mcp
 
-# Specific category
-uv run pytest tests/test_tools.py
+# Run specific category
+uv run pytest tests/test_unit*.py       # Unit tests only
+uv run pytest tests/test_tools*.py      # Tool tests only
+uv run pytest tests/test_integration*   # Integration tests
+uv run pytest tests/test_http*          # HTTP tests
 
-# Integration tests only
-uv run pytest tests/test_tool_integration.py
-
-# E2E tests only
-uv run pytest tests/test_e2e_conversations.py
-
-# Parallel execution
-uv run pytest -n auto
-
-# Verbose output
+# Run with verbose output
 uv run pytest -v
 
 # Stop on first failure
 uv run pytest -x
+
+# Run in parallel
+uv run pytest -n auto
 ```
 
-### CI/CD Integration
+### Test Markers
 
-**GitHub Actions** (`.github/workflows/test.yml`):
-```yaml
-name: Tests
+```bash
+# Integration tests (require API)
+uv run pytest -m integration
 
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Install dependencies
-        run: uv sync
-      - name: Run tests
-        run: uv run pytest --cov=aareguru_mcp --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+# Skip slow tests
+uv run pytest -m "not slow"
 ```
-
----
-
-## Performance Testing
-
-### Load Tests (`tests/test_performance.py`)
-
-```python
-import pytest
-import asyncio
-import time
-
-@pytest.mark.asyncio
-async def test_concurrent_requests():
-    """Test handling 10 concurrent requests"""
-    server = create_mcp_server()
-    
-    async def make_request():
-        return await server.call_tool(
-            "get_current_temperature",
-            {"city": "bern"}
-        )
-    
-    start = time.time()
-    results = await asyncio.gather(*[make_request() for _ in range(10)])
-    duration = time.time() - start
-    
-    assert len(results) == 10
-    assert duration < 5.0  # Should complete in < 5 seconds
-
-@pytest.mark.asyncio
-async def test_response_time():
-    """Test single request response time"""
-    server = create_mcp_server()
-    
-    start = time.time()
-    result = await server.call_tool(
-        "get_current_temperature",
-        {"city": "bern"}
-    )
-    duration = time.time() - start
-    
-    assert duration < 1.0  # Should respond in < 1 second
-```
-
----
-
-## Test Maintenance
-
-### Adding Tests for New Questions
-
-When adding new user questions:
-
-1. **Categorize** the question
-2. **Identify** which tool(s) it uses
-3. **Create** integration test
-4. **Add** to E2E if complex
-5. **Update** coverage metrics
-
-### Test Review Checklist
-
-- [ ] All 7 tools have unit tests
-- [ ] Each question category has representative tests
-- [ ] Edge cases are covered
-- [ ] Error handling is tested
-- [ ] Performance benchmarks exist
-- [ ] CI/CD pipeline passes
-- [ ] Coverage meets targets (80%+)
 
 ---
 
 ## Success Metrics
 
-### Test Quality Indicators
-
-✅ **Coverage**: 80%+ code coverage
-✅ **Speed**: Test suite runs in < 2 minutes
-✅ **Reliability**: 0% flaky tests
-✅ **Maintainability**: Tests updated with code changes
-✅ **Documentation**: All tests have clear docstrings
-
-### Question Coverage
-
-✅ **Phase 1 (MVP)**: 70 questions covered (54%)
-✅ **Phase 2 (Enhanced)**: 100 questions covered (77%)
-✅ **Phase 3 (Complete)**: 130 questions covered (100%)
-
----
-
-## Conclusion
-
-This testing plan ensures comprehensive coverage of all 130 user questions through:
-
-- **100+ unit tests** for individual components
-- **40 integration tests** for tool interactions
-- **10 E2E tests** for conversation flows
-- **Performance tests** for scalability
-- **CI/CD integration** for continuous validation
-
-The test suite provides confidence that the MCP server handles all expected user interactions correctly and gracefully.
+✅ **153 tests passing**
+✅ **85% code coverage**
+✅ **0% flaky tests**
+✅ **< 10 seconds test execution**
+✅ **Well-organized test structure**

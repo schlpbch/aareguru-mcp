@@ -32,8 +32,8 @@ COPY src/ src/
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
-ENV HOST=0.0.0.0
-ENV PORT=8000
+ENV HTTP_HOST=0.0.0.0
+ENV HTTP_PORT=8000
 
 # Expose port
 EXPOSE 8000

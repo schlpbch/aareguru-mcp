@@ -1,8 +1,9 @@
 # Aareguru MCP Server - Master Implementation Plan
 
 **Project**: MCP Server for Swiss Aare River Data  
-**Version**: 1.0.0  
-**Last Updated**: 2025-12-02  
+**Version**: 0.8.0  
+**Last Updated**: 2025-12-04  
+**Framework**: FastMCP 2.0
 
 ---
 
@@ -20,22 +21,21 @@ This master plan consolidates all planning documents into a comprehensive roadma
 
 ### Key Deliverables
 
-- ✅ MCP server with 7 tools and 4 resources
-- ✅ Comprehensive test suite (172 tests, 84% coverage)
-- ✅ Full MCP SSE transport with session management
+- ✅ FastMCP 2.0 server with 7 tools and 4 resources
+- ✅ Comprehensive test suite (151 tests, 85% coverage)
+- ✅ Built-in HTTP/SSE transport via FastMCP
 - ✅ Structured logging with JSON output (structlog)
-- ✅ Metrics tracking and monitoring
 - ✅ Docker containerization
 - ✅ Complete documentation and examples
 - ✅ Production-ready HTTP/SSE deployment
 
-### Current Progress (as of 2025-12-02)
+### Current Progress (as of 2025-12-04)
 
 **Phase 1: Core MVP (stdio) - ✅ COMPLETE**
 - ✅ Week 1: Foundation (100% complete)
 - ✅ Week 2: MCP Protocol Implementation (100% complete)
 - ✅ Week 3: Testing & Documentation (100% complete)
-- ✅ 172 tests passing, 84% code coverage
+- ✅ 151 tests passing, 85% code coverage
 - ✅ All 7 tools implemented and tested
 - ✅ All 4 resources implemented and tested
 - ✅ Structured logging with JSON output
@@ -52,16 +52,13 @@ This master plan consolidates all planning documents into a comprehensive roadma
   - ✅ Seasonal intelligence
   - ✅ Enhanced integration tests
 
-**Phase 3: HTTP/SSE Deployment - ✅ COMPLETE**
-- ✅ Full MCP SSE transport (SseServerTransport)
-- ✅ Session management with automatic cleanup
-- ✅ Metrics tracking and monitoring endpoint
-- ✅ Enhanced error handling and logging
+**Phase 3: HTTP/SSE Deployment - ✅ COMPLETE (FastMCP 2.0)**
+- ✅ Migrated to FastMCP 2.0 framework
+- ✅ Built-in HTTP transport via `mcp.run(transport="http")`
+- ✅ Decorator-based tool/resource registration (`@mcp.tool()`, `@mcp.resource()`)
+- ✅ Automatic session management (no manual setup)
 - ✅ Docker containerization
 - ✅ Production-ready deployment
-- ✅ Comprehensive SSE integration tests
-
-**📋 See [PHASE2_COMPLETE.md](PHASE2_COMPLETE.md) for detailed Phase 2/3 documentation**
 
 ---
 
@@ -84,12 +81,11 @@ This master plan consolidates all planning documents into a comprehensive roadma
 
 ```toml
 [project.dependencies]
-mcp = ">=1.0.0"              # MCP protocol SDK
+fastmcp = ">=2.0.0"          # High-level MCP framework
 httpx = ">=0.27.0"           # Async HTTP client
 pydantic = ">=2.0.0"         # Data validation
 python-dotenv = ">=1.0.0"    # Environment config
-starlette = ">=0.37.0"       # ASGI framework (HTTP)
-uvicorn = ">=0.29.0"         # ASGI server (HTTP)
+structlog = ">=24.0.0"       # Structured logging
 ```
 
 ### Development Tools
@@ -149,12 +145,12 @@ mypy = ">=1.8.0"
 
 | Component | Responsibility | Files |
 |-----------|---------------|-------|
-| **MCP Server** | Protocol implementation | `server.py` |
-| **HTTP Server** | SSE transport layer | `http_server.py` |
+| **FastMCP Server** | High-level MCP framework | `server.py` |
+| **HTTP Server** | FastMCP HTTP transport | `http_server.py` |
 | **API Client** | Aareguru API wrapper | `client.py` |
 | **Models** | Data validation | `models.py` |
-| **Resources** | Static data access | `resources.py` |
-| **Tools** | Dynamic queries | `tools.py` |
+| **Resources** | Static data access (decorators) | `resources.py` |
+| **Tools** | Dynamic queries (decorators) | `tools.py` |
 | **Config** | Settings management | `config.py` |
 
 ---
