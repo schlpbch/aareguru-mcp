@@ -322,12 +322,6 @@ uv run ruff check src/ tests/
 uv run mypy src/
 ```
 
-### API Testing
-
-A Postman collection is included for testing the Aareguru API directly:
-- Import `aareguru_postman_collection.json` into Postman
-- Test all core endpoints (cities, today, current, widget, history)
-
 ## 📁 Project Structure
 
 ```
