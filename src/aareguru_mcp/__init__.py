@@ -11,7 +11,7 @@ import structlog
 
 __version__ = "0.7.0"
 __author__ = "Andreas Schlapbach"
-__email__ = "schlpbch@gmail  .com"
+__email__ = "schlpbch@gmail.com"
 
 # Configure structlog at package level
 structlog.configure(
