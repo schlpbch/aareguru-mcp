@@ -9,11 +9,9 @@ import logging
 
 import structlog
 
-from .client import AareguruClient
-from .config import Settings, get_settings
-from .server import app, entry_point, main
-
 __version__ = "0.7.0"
+__author__ = "Andreas Schlapbach"
+__email__ = "schlpbch@gmail  .com"
 
 # Configure structlog at package level
 structlog.configure(
@@ -30,8 +28,11 @@ structlog.configure(
     logger_factory=structlog.PrintLoggerFactory(),
     cache_logger_on_first_use=True,
 )
-__author__ = "Your Name"
-__email__ = "your.email@example.com"
+
+# Import after structlog is configured to avoid circular imports
+from .client import AareguruClient
+from .config import Settings, get_settings
+from .server import app, entry_point, main
 
 __all__ = [
     "AareguruClient",
