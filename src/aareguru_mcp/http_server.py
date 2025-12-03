@@ -3,18 +3,15 @@
 This module implements an HTTP server with Server-Sent Events (SSE) transport
 for the MCP protocol, enabling remote access to the Aareguru MCP server.
 
-Supports two modes:
-1. Simplified SSE (default): Basic SSE for testing
-2. Full MCP SSE (use_full_sse=true): Complete SseServerTransport implementation
 """
 
 import asyncio
 import time
 from collections import defaultdict
-from typing import Dict
 
 import structlog
 import uvicorn
+from mcp.server.sse import SseServerTransport
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -22,9 +19,8 @@ from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
-from starlette.routing import Route, Mount
-from mcp.server.sse import SseServerTransport
+from starlette.responses import JSONResponse
+from starlette.routing import Mount, Route
 
 from .config import get_settings
 from .server import app as mcp_server
@@ -57,8 +53,8 @@ class ServerMetrics:
         self.start_time = time.time()
 
         # Per-endpoint metrics
-        self.endpoint_calls: Dict[str, int] = defaultdict(int)
-        self.endpoint_errors: Dict[str, int] = defaultdict(int)
+        self.endpoint_calls: dict[str, int] = defaultdict(int)
+        self.endpoint_errors: dict[str, int] = defaultdict(int)
 
     def connection_started(self):
         """Record a new connection."""
@@ -82,7 +78,7 @@ class ServerMetrics:
         """Record an endpoint call."""
         self.endpoint_calls[endpoint] += 1
 
-    def get_stats(self) -> Dict[str, object]:
+    def get_stats(self) -> dict[str, object]:
         """Get current statistics."""
         uptime = time.time() - self.start_time
         return {
@@ -107,7 +103,7 @@ class SessionTracker:
     """Track active SSE sessions for cleanup."""
 
     def __init__(self):
-        self.sessions: Dict[str, float] = {}  # session_id -> last_activity_time
+        self.sessions: dict[str, float] = {}  # session_id -> last_activity_time
 
     def register_activity(self, session_id: str):
         """Register activity for a session."""

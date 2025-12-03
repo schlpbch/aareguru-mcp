@@ -19,7 +19,10 @@ def _get_seasonal_advice() -> str:
     month = datetime.now().month
 
     if month in [11, 12, 1, 2, 3]:  # Winter
-        return "❄️ Winter Season: Water is freezing. Only for experienced ice swimmers. Keep swims very short."
+        return (
+            "❄️ Winter Season: Water is freezing. "
+            "Only for experienced ice swimmers. Keep swims very short."
+        )
     elif month in [4, 5]:  # Spring
         return "🌱 Spring: Water is still very cold from snowmelt. Wetsuit recommended."
     elif month in [6, 7, 8]:  # Summer
@@ -526,9 +529,15 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
                     f"🏆 Best Choice: {warmest['name']} is both the warmest and safest option!"
                 )
             elif warmest["danger_level"] <= 2:  # Warmest is safe enough
-                recommendation = f"🏆 Best Choice: {warmest['name']} is the warmest safe option ({warmest['temperature']}°C)."
+                recommendation = (
+                    f"🏆 Best Choice: {warmest['name']} is the warmest safe option "
+                    f"({warmest['temperature']}°C)."
+                )
             else:
-                recommendation = f"⚠️ Trade-off: {warmest['name']} is warmest but has higher flow. {safest['name']} is safer."
+                recommendation = (
+                    f"⚠️ Trade-off: {warmest['name']} is warmest but has higher flow. "
+                    f"{safest['name']} is safer."
+                )
 
         return {
             "cities": city_data,

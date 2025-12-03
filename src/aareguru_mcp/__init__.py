@@ -9,7 +9,11 @@ import logging
 
 import structlog
 
-__version__ = "0.1.0"
+from .client import AareguruClient
+from .config import Settings, get_settings
+from .server import app, entry_point, main
+
+__version__ = "0.7.0"
 
 # Configure structlog at package level
 structlog.configure(
@@ -28,10 +32,6 @@ structlog.configure(
 )
 __author__ = "Your Name"
 __email__ = "your.email@example.com"
-
-from .client import AareguruClient
-from .config import Settings, get_settings
-from .server import app, main, entry_point
 
 __all__ = [
     "AareguruClient",

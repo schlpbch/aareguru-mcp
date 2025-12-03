@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -38,7 +38,7 @@ class AareguruClient:
     - Proper error handling
     """
 
-    def __init__(self, settings: Optional[Any] = None):
+    def __init__(self, settings: Any | None = None):
         """Initialize the Aareguru API client.
 
         Args:
@@ -64,7 +64,7 @@ class AareguruClient:
         self._cache: dict[str, CacheEntry] = {}
 
         # Rate limiting
-        self._last_request_time: Optional[datetime] = None
+        self._last_request_time: datetime | None = None
         self._request_lock = asyncio.Lock()
 
     async def close(self) -> None:
@@ -84,7 +84,7 @@ class AareguruClient:
         param_str = urlencode(sorted(params.items()))
         return f"{endpoint}?{param_str}"
 
-    def _get_cached(self, cache_key: str) -> Optional[Any]:
+    def _get_cached(self, cache_key: str) -> Any | None:
         """Get data from cache if not expired."""
         if cache_key in self._cache:
             entry = self._cache[cache_key]
@@ -119,7 +119,7 @@ class AareguruClient:
     async def _request(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         use_cache: bool = True,
     ) -> dict[str, Any]:
         """Make HTTP request to Aareguru API.
