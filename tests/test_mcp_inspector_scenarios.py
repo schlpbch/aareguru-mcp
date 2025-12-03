@@ -2,6 +2,9 @@
 
 These tests simulate the same workflows that would be performed manually
 in the MCP Inspector, but in an automated fashion.
+
+NOTE: These tests require the HTTP server to be running locally.
+Run with: uv run aareguru-mcp-http
 """
 
 import pytest
@@ -10,20 +13,24 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
+@pytest.mark.integration
 class TestInspectorScenarios:
     """Test scenarios that mirror MCP Inspector usage."""
-    
+
     @pytest.mark.asyncio
     async def test_sse_connection_flow(self):
         """Test the full SSE connection flow like Inspector does."""
         base_url = "http://localhost:8000"
-        
+
         async with httpx.AsyncClient() as client:
             # 1. Check health endpoint
-            response = await client.get(f"{base_url}/health")
+            try:
+                response = await client.get(f"{base_url}/health", timeout=2.0)
+            except httpx.ConnectError:
+                pytest.skip("HTTP server not running at localhost:8000")
             assert response.status_code == 200
             assert response.json()["status"] == "healthy"
-            
+
             # Note: SSE connection testing requires more complex setup
             # as it involves long-lived connections
     
