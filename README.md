@@ -6,13 +6,16 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
 
-MCP server for Swiss Aare river data, enabling AI assistants like Claude to answer questions about swimming conditions, water temperature, flow rates, and safety.
+MCP server for Swiss Aare river data, enabling AI assistants like Claude to
+answer questions about swimming conditions, water temperature, flow rates, and
+safety.
 
 ## 🚀 Quick Start
 
 **Use directly from FastMCP Cloud** (no installation needed):
 
-Add to Claude Desktop config (see [`claude_desktop_remote_config.json`](claude_desktop_remote_config.json)):
+Add to Claude Desktop config (see
+[`claude_desktop_remote_config.json`](claude_desktop_remote_config.json)):
 
 ```json
 {
@@ -33,54 +36,54 @@ Add to Claude Desktop config (see [`claude_desktop_remote_config.json`](claude_d
 
 ## 🎯 Features
 
-| Feature | Description |
-|---------|-------------|
-| **7 MCP Tools** | Temperature, flow, safety, forecasts, comparisons, history |
-| **4 MCP Resources** | Direct data access via `aareguru://` URIs |
-| **3 MCP Prompts** | Daily reports, spot comparisons, weekly trends |
-| **Swiss German** | Authentic temperature descriptions ("geil aber chli chalt") |
-| **BAFU Safety** | Official flow danger levels and thresholds |
-| **Smart UX** | Proactive safety warnings, alternative suggestions, seasonal context |
-| **200 Tests** | 87% coverage, comprehensive test suite |
+| Feature             | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| **7 MCP Tools**     | Temperature, flow, safety, forecasts, comparisons, history           |
+| **4 MCP Resources** | Direct data access via `aareguru://` URIs                            |
+| **3 MCP Prompts**   | Daily reports, spot comparisons, weekly trends                       |
+| **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")          |
+| **BAFU Safety**     | Official flow danger levels and thresholds                           |
+| **Smart UX**        | Proactive safety warnings, alternative suggestions, seasonal context |
+| **200 Tests**       | 87% coverage, comprehensive test suite                               |
 
 ## 🛠️ Tools
 
-| Tool | Description | Example Query |
-|------|-------------|---------------|
-| `get_current_temperature` | Water temperature with Swiss German text | "What's the Aare temperature?" |
-| `get_current_conditions` | Full conditions (temp, flow, weather) | "How's the Aare looking today?" |
-| `get_flow_danger_level` | Flow rate + BAFU safety assessment | "Is it safe to swim?" |
-| `list_cities` | All monitored cities | "Which cities have data?" |
-| `get_historical_data` | Temperature/flow history | "Show last 7 days" |
-| `compare_cities` | Multi-city comparison | "Which city is warmest?" |
-| `get_forecast` | Temperature/flow forecast | "Will it be warmer later?" |
+| Tool                      | Description                              | Example Query                   |
+| ------------------------- | ---------------------------------------- | ------------------------------- |
+| `get_current_temperature` | Water temperature with Swiss German text | "What's the Aare temperature?"  |
+| `get_current_conditions`  | Full conditions (temp, flow, weather)    | "How's the Aare looking today?" |
+| `get_flow_danger_level`   | Flow rate + BAFU safety assessment       | "Is it safe to swim?"           |
+| `list_cities`             | All monitored cities                     | "Which cities have data?"       |
+| `get_historical_data`     | Temperature/flow history                 | "Show last 7 days"              |
+| `compare_cities`          | Multi-city comparison                    | "Which city is warmest?"        |
+| `get_forecast`            | Temperature/flow forecast                | "Will it be warmer later?"      |
 
 ### BAFU Safety Thresholds
 
-| Flow Rate | Level | Status |
-|-----------|-------|--------|
-| < 100 m³/s | Safe | Swimming OK |
-| 100-220 m³/s | Moderate | Experienced swimmers only |
-| 220-300 m³/s | Elevated | Caution advised |
-| 300-430 m³/s | High | Dangerous |
-| > 430 m³/s | Very High | Extremely dangerous |
+| Flow Rate    | Level     | Status                    |
+| ------------ | --------- | ------------------------- |
+| < 100 m³/s   | Safe      | Swimming OK               |
+| 100-220 m³/s | Moderate  | Experienced swimmers only |
+| 220-300 m³/s | Elevated  | Caution advised           |
+| 300-430 m³/s | High      | Dangerous                 |
+| > 430 m³/s   | Very High | Extremely dangerous       |
 
 ## 📊 Resources
 
-| URI | Description |
-|-----|-------------|
-| `aareguru://cities` | List of all monitored cities |
+| URI                         | Description                  |
+| --------------------------- | ---------------------------- |
+| `aareguru://cities`         | List of all monitored cities |
 | `aareguru://current/{city}` | Full current data for a city |
-| `aareguru://today/{city}` | Minimal current data |
-| `aareguru://widget` | Overview of all cities |
+| `aareguru://today/{city}`   | Minimal current data         |
+| `aareguru://widget`         | Overview of all cities       |
 
 ## 💬 Prompts
 
-| Prompt | Description |
-|--------|-------------|
-| `daily_swimming_report` | Comprehensive daily report with conditions, safety, forecast, and recommendation |
-| `compare_swimming_spots` | Compare all cities to find the best swimming spot today |
-| `weekly_trend_analysis` | Analyze temperature and flow trends over the past week |
+| Prompt                   | Description                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `daily_swimming_report`  | Comprehensive daily report with conditions, safety, forecast, and recommendation |
+| `compare_swimming_spots` | Compare all cities to find the best swimming spot today                          |
+| `weekly_trend_analysis`  | Analyze temperature and flow trends over the past week                           |
 
 ## 💻 Local Installation
 
@@ -139,7 +142,8 @@ aareguru-mcp/
 
 ## 🔒 Data Attribution
 
-Data from [BAFU](https://www.hydrodaten.admin.ch), [Aare.guru](https://aare.guru), MeteoSchweiz, Meteotest.
+Data from [BAFU](https://www.hydrodaten.admin.ch),
+[Aare.guru](https://aare.guru), MeteoSchweiz, Meteotest.
 
 > **Non-commercial use only** - Contact: aaregurus@existenz.ch
 
