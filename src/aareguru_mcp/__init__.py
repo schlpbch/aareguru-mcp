@@ -9,7 +9,7 @@ import logging
 
 import structlog
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 __author__ = "Andreas Schlapbach"
 __email__ = "schlpbch@gmail.com"
 
@@ -30,16 +30,17 @@ structlog.configure(
 )
 
 # Import after structlog is configured to avoid circular imports
-from .client import AareguruClient
-from .config import Settings, get_settings
-from .server import app, entry_point, main
+from .client import AareguruClient  # noqa: E402
+from .config import Settings, get_settings  # noqa: E402
+from .server import app, entry_point, mcp, run_http  # noqa: E402
 
 __all__ = [
     "AareguruClient",
     "Settings",
     "get_settings",
     "app",
-    "main",
+    "mcp",
+    "run_http",
     "entry_point",
     "__version__",
 ]

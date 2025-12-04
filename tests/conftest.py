@@ -45,16 +45,16 @@ async def api_client(test_settings: Settings) -> AareguruClient:
 def override_settings(monkeypatch):
     """Override global settings for all tests."""
     from aareguru_mcp.config import get_settings
-    
+
     # Set environment variables for testing
     monkeypatch.setenv("MIN_REQUEST_INTERVAL_SECONDS", "0")
     monkeypatch.setenv("CACHE_TTL_SECONDS", "60")
     monkeypatch.setenv("LOG_LEVEL", "DEBUG")
-    
+
     # Clear cache to force reload with new env vars
     get_settings.cache_clear()
-    
+
     yield
-    
+
     # Clear cache again
     get_settings.cache_clear()

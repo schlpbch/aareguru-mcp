@@ -11,11 +11,12 @@ This document proposes a Python-based MCP (Model Context Protocol) server that e
 ### Core Dependencies
 
 | Package | Version | Purpose |
-|---------|---------|---------|
-| **mcp** | `^1.0.0` | Official MCP SDK for Python |
+|---------|---------|----------|
+| **fastmcp** | `^2.0.0` | High-level MCP framework with decorators |
 | **httpx** | `^0.27.0` | Modern async HTTP client for API calls |
 | **pydantic** | `^2.0.0` | Data validation and settings management |
 | **python-dotenv** | `^1.0.0` | Environment variable management |
+| **structlog** | `^24.0.0` | Structured JSON logging |
 
 ### Development Dependencies
 
@@ -430,39 +431,27 @@ class CurrentResponse(BaseModel):
 ### 3. MCP Server (`server.py`)
 
 ```python
-from mcp.server import Server
-from mcp.types import Resource, Tool, TextContent
+from fastmcp import FastMCP
 
-app = Server("aareguru-mcp")
+mcp = FastMCP(
+    name="aareguru-mcp",
+    instructions="""You are an assistant that helps users with Swiss Aare river conditions."""
+)
 
-@app.list_resources()
-async def list_resources() -> list[Resource]:
-    """List available Aareguru resources"""
-    return [
-        Resource(
-            uri="aareguru://cities",
-            name="Available Cities",
-            mimeType="application/json",
-            description="List of all cities with Aare data"
-        ),
-        # ... more resources
-    ]
+@mcp.resource("aareguru://cities")
+async def get_cities() -> str:
+    """List all available cities with Aare data."""
+    # Return formatted city data
 
-@app.read_resource()
-async def read_resource(uri: str) -> str:
-    """Read a specific Aareguru resource"""
-    # Parse URI and fetch data
-    # Return formatted response
+@mcp.tool()
+async def get_current_temperature(city: str = "bern") -> str:
+    """Get current water temperature for a city."""
+    # Fetch and return temperature
 
-@app.list_tools()
-async def list_tools() -> list[Tool]:
-    """List available Aareguru tools"""
-    # Return tool definitions
-
-@app.call_tool()
-async def call_tool(name: str, arguments: dict) -> list[TextContent]:
-    """Execute a tool"""
-    # Route to appropriate handler
+@mcp.tool()
+async def get_current_conditions(city: str = "bern") -> str:
+    """Get complete current conditions including water, weather, and safety data."""
+    # Fetch and return conditions
 ```
 
 ---

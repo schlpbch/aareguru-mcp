@@ -1,10 +1,10 @@
 # Aareguru MCP Server
 
-[![Tests](https://img.shields.io/badge/tests-172%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-84%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-153%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-[![MCP](https://img.shields.io/badge/MCP-1.0.0-purple)](https://modelcontextprotocol.io/)
-[![SSE](https://img.shields.io/badge/SSE-Full%20Transport-orange)](src/aareguru_mcp/http_server.py)
+[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
+[![HTTP/SSE](https://img.shields.io/badge/HTTP%2FSSE-Built--in-orange)](src/aareguru_mcp/server.py)
 [![Logging](https://img.shields.io/badge/logging-structured%20JSON-blue)](STRUCTURED_LOGGING.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to answer questions about swimming conditions, water temperature, flow rates, and safety.
@@ -16,11 +16,11 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to answ
 - **Swiss German Integration** - Authentic temperature descriptions
 - **BAFU Safety Assessments** - Official flow danger levels
 - **Historical Data Analysis** - Temperature and flow trends
-- **Production-Ready SSE** - Full MCP SSE transport with session management
+- **FastMCP 2.0** - Modern MCP framework with decorator-based tools
+- **HTTP/SSE Built-in** - Native transport support via FastMCP
 - **Structured Logging** - JSON-formatted logs for observability (structlog)
-- **Metrics & Monitoring** - Built-in metrics endpoint for observability
-- **Session Management** - Automatic cleanup of expired connections
-- **Comprehensive Testing** - 172 tests, 84% coverage
+- **FastMCP Cloud Ready** - Deploy via `fastmcp deploy`
+- **Comprehensive Testing** - 153 tests, 85% coverage
 - **Async HTTP Client** - With caching and rate limiting
 - **Docker Support** - Ready for containerized deployment
 
@@ -303,11 +303,13 @@ uv run pytest -v
 
 ### Test Coverage
 
-- **135 tests** across 10 test files
-- **80%+ overall coverage**
-- Unit tests (67 tests) - Client, Config, Models, Tools, Resources
-- Integration tests (48 tests) - Advanced Tools, Complex Flows, E2E Conversations
-- E2E conversation tests covering all 13 question categories
+- **153 tests** across 9 test files (well-organized by category)
+- **85%+ overall coverage**
+- **Unit tests** - Models, Config, Client, Server Helpers
+- **Tool tests** - Basic and Advanced tools
+- **Integration tests** - Multi-tool workflows, caching, error handling
+- **HTTP tests** - Endpoints, performance, concurrency
+- **Resource tests** - Listing and reading resources
 
 ### Code Quality
 
@@ -327,21 +329,26 @@ uv run mypy src/
 ```
 aareguru-mcp/
 ├── src/aareguru_mcp/
-│   ├── server.py          # MCP server (stdio)
-│   ├── http_server.py     # HTTP/SSE server
+│   ├── server.py          # FastMCP server (tools, resources, routes)
+│   ├── http_server.py     # HTTP/SSE transport wrapper
 │   ├── client.py          # Aareguru API client
 │   ├── models.py          # Pydantic models
-│   ├── resources.py       # MCP resources
-│   ├── tools.py           # MCP tools
+│   ├── resources.py       # Legacy resource helpers
+│   ├── tools.py           # Legacy tool helpers
 │   └── config.py          # Configuration
 ├── tests/
-│   ├── test_client.py     # Client tests
-│   ├── test_models.py     # Model tests
-│   ├── test_tools.py      # Tool tests
-│   ├── test_resources.py  # Resource tests
-│   ├── test_http_server.py  # HTTP server tests
-│   ├── test_tool_integration.py  # Integration tests
-│   └── test_e2e_conversations.py # E2E tests
+│   ├── test_unit_models.py        # Pydantic model tests
+│   ├── test_unit_config.py        # Configuration tests
+│   ├── test_unit_client.py        # Client unit tests
+│   ├── test_unit_server_helpers.py # Server helper function tests
+│   ├── test_tools_basic.py        # Basic tool tests
+│   ├── test_tools_advanced.py     # Advanced tool tests (compare, forecast)
+│   ├── test_integration_workflows.py # Multi-tool workflow tests
+│   ├── test_http_endpoints.py     # HTTP endpoint tests
+│   └── test_resources.py          # Resource tests
+├── scripts/
+│   └── test_mcp_http.py   # HTTP integration test script
+├── fastmcp.json             # FastMCP CLI configuration
 ├── Dockerfile               # Multi-stage Docker build
 ├── docker-compose.yml       # Production deployment
 ├── docker-compose.dev.yml   # Development setup
@@ -356,27 +363,25 @@ aareguru-mcp/
 
 ## 🎯 Project Status
 
-✅ **Phase 1 Complete** - Core MVP (stdio)
+✅ **Phase 1-2 Complete** - Core MVP + FastMCP Refactor
 
 **Completed:**
 - ✅ **Week 1**: Foundation - Project structure, Pydantic models, Async API client
 - ✅ **Week 2**: MCP Protocol - 7 Tools & 4 Resources implemented
-- ✅ **Week 3**: Testing & Documentation - 135 tests, 80%+ coverage
+- ✅ **Week 3**: Testing & Documentation - 153 tests, 85%+ coverage
 - ✅ **Advanced Features**: `compare_cities`, `get_forecast`, Swiss German integration
 - ✅ **Smart UX**: Proactive safety checks, alternative suggestions, seasonal context
-- ✅ **Quality Assurance**: All 135 tests passing, comprehensive coverage
+- ✅ **FastMCP 2.0 Refactor**: Migrated from MCP SDK to FastMCP framework
+- ✅ **Test Refactoring**: Organized tests into logical categories (unit, tools, integration, HTTP)
+- ✅ **Quality Assurance**: All 153 tests passing, comprehensive coverage
 - ✅ **Documentation**: Complete guides covering 130+ user questions
-- ✅ **Production Ready**: Fully functional stdio MCP server for Claude Desktop
+- ✅ **Production Ready**: Fully functional MCP server for Claude Desktop
 
-🔄 **Phase 2 In Progress** - Enhanced Features
-- ✅ **Week 4**: Advanced Tools complete
-- 🔄 **Week 5**: User Experience enhancements in progress
-
-**Next Steps (Phase 3 - HTTP Deployment):**
-- [x] HTTP/SSE server implementation (Starlette)
-- [x] API key authentication & Rate limiting
+🚀 **Phase 3 Ready** - Cloud Deployment
+- [x] FastMCP 2.0 framework with decorator-based tools
+- [x] Built-in HTTP/SSE transport via FastMCP
 - [x] Docker containerization
-- [ ] Cloud deployment preparation
+- [ ] FastMCP Cloud deployment (`fastmcp deploy`)
 - [ ] Production monitoring & metrics
 
 See [MASTER_PLAN.md](MASTER_PLAN.md) for the complete roadmap.
