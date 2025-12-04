@@ -357,28 +357,18 @@ aareguru-mcp/
 │   ├── resources.py       # Legacy resource helpers
 │   ├── tools.py           # Legacy tool helpers
 │   └── config.py          # Configuration
-├── tests/
-│   ├── test_unit_models.py        # Pydantic model tests
-│   ├── test_unit_config.py        # Configuration tests
-│   ├── test_unit_client.py        # Client unit tests
-│   ├── test_unit_server_helpers.py # Server helper function tests
-│   ├── test_tools_basic.py        # Basic tool tests
-│   ├── test_tools_advanced.py     # Advanced tool tests (compare, forecast)
-│   ├── test_integration_workflows.py # Multi-tool workflow tests
-│   ├── test_http_endpoints.py     # HTTP endpoint tests
-│   └── test_resources.py          # Resource tests
-├── scripts/
-│   └── test_mcp_http.py   # HTTP integration test script
+├── tests/                   # 153 tests, 85% coverage
+├── docs/                    # Development documentation
+│   ├── MASTER_PLAN.md       # Implementation roadmap
+│   ├── DOCKER.md            # Docker deployment guide
+│   ├── AAREGURU_API_ANALYSIS.md  # API reference
+│   └── ...                  # Other dev docs
+├── mcp_server.py            # FastMCP CLI entry point
 ├── fastmcp.json             # FastMCP CLI configuration
 ├── Dockerfile               # Multi-stage Docker build
 ├── docker-compose.yml       # Production deployment
-├── docker-compose.dev.yml   # Development setup
-├── docker-build.sh          # Build helper script
-├── .dockerignore            # Docker ignore rules
-├── .env.example             # Environment template
-├── DOCKER.md                # Docker documentation
 ├── CLAUDE_DESKTOP_SETUP.md  # Setup guide
-├── MASTER_PLAN.md           # Implementation roadmap
+├── CLAUDE.md                # Claude AI context
 └── pyproject.toml           # Project configuration
 ```
 
@@ -402,10 +392,10 @@ aareguru-mcp/
 - [x] FastMCP 2.0 framework with decorator-based tools
 - [x] Built-in HTTP/SSE transport via FastMCP
 - [x] Docker containerization
-- [ ] FastMCP Cloud deployment (`fastmcp deploy`)
+- [x] FastMCP Cloud deployment (`fastmcp deploy`)
 - [ ] Production monitoring & metrics
 
-See [MASTER_PLAN.md](MASTER_PLAN.md) for the complete roadmap.
+See [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md) for the complete roadmap.
 
 ## 🌍 Monitored Cities
 
@@ -422,16 +412,15 @@ Use the `list_cities` tool to get the complete list with current data.
 
 ## 📚 Documentation
 
-- **[DOCKER.md](DOCKER.md)** - Docker setup and deployment guide
-- **[CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)** - Complete setup guide
-- **[MASTER_PLAN.md](MASTER_PLAN.md)** - Implementation roadmap
-- **[HTTP_STREAMING_PLAN.md](HTTP_STREAMING_PLAN.md)** - HTTP/SSE deployment strategy
-- **[FULL_SSE_IMPLEMENTATION.md](FULL_SSE_IMPLEMENTATION.md)** - Complete SSE technical design
-- **[SSE_DESIGN_SUMMARY.md](SSE_DESIGN_SUMMARY.md)** - SSE implementation summary
-- **[AAREGURU_API_ANALYSIS.md](AAREGURU_API_ANALYSIS.md)** - API documentation
-- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Technical architecture
-- **[TESTING_PLAN.md](TESTING_PLAN.md)** - QA strategy
-- **[USER_QUESTIONS_SLIDES.md](USER_QUESTIONS_SLIDES.md)** - 130 user questions catalog
+- **[CLAUDE_DESKTOP_SETUP.md](CLAUDE_DESKTOP_SETUP.md)** - Complete setup guide for Claude Desktop
+
+### Development Docs (in `docs/`)
+
+- **[DOCKER.md](docs/DOCKER.md)** - Docker setup and deployment guide
+- **[MASTER_PLAN.md](docs/MASTER_PLAN.md)** - Implementation roadmap
+- **[AAREGURU_API_ANALYSIS.md](docs/AAREGURU_API_ANALYSIS.md)** - API documentation
+- **[TESTING_PLAN.md](docs/TESTING_PLAN.md)** - QA strategy
+- **[USER_QUESTIONS_SLIDES.md](docs/USER_QUESTIONS_SLIDES.md)** - 130 example user questions
 
 ## 🔒 Data Sources & Attribution
 
