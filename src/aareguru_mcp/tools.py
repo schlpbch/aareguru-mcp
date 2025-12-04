@@ -3,102 +3,20 @@
 Tools allow Claude to dynamically query the Aareguru API based on user requests.
 """
 
-from datetime import datetime
 from typing import Any
 
 import structlog
 
 from .client import AareguruClient
 from .config import get_settings
+from .helpers import (
+    _check_safety_warning,
+    _get_seasonal_advice,
+    _get_suggestion,
+    _get_swiss_german_explanation,
+)
 
 logger = structlog.get_logger(__name__)
-
-
-def _get_seasonal_advice() -> str:
-    """Get contextual advice based on the current season."""
-    month = datetime.now().month
-
-    if month in [11, 12, 1, 2, 3]:  # Winter
-        return (
-            "❄️ Winter Season: Water is freezing. "
-            "Only for experienced ice swimmers. Keep swims very short."
-        )
-    elif month in [4, 5]:  # Spring
-        return "🌱 Spring: Water is still very cold from snowmelt. Wetsuit recommended."
-    elif month in [6, 7, 8]:  # Summer
-        return "☀️ Summer: Perfect swimming season! Don't forget sunscreen."
-    else:  # Autumn (9, 10)
-        return "🍂 Autumn: Water is getting colder. Check daylight hours and bring warm clothes."
-
-
-def _check_safety_warning(flow: float | None, threshold: float | None = 220) -> str | None:
-    """Generate a warning if flow is dangerous."""
-    if flow is None:
-        return None
-
-    threshold = threshold or 220
-
-    if flow > 430:
-        return "⛔ EXTREME DANGER: Flow is very high (>430 m³/s). Swimming is life-threatening."
-    elif flow > 300:
-        return "⚠️ DANGER: High flow rate (>300 m³/s). Swimming NOT recommended."
-    elif flow > threshold:
-        return "⚠️ CAUTION: Elevated flow rate. Only for experienced swimmers."
-
-    return None
-
-
-def _get_swiss_german_explanation(text: str | None) -> str | None:
-    """Provide context for Swiss German phrases."""
-    if not text:
-        return None
-
-    phrases = {
-        "geil aber chli chalt": "Awesome but a bit cold (typical Bernese understatement)",
-        "schön warm": "Nice and warm",
-        "arschkalt": "Freezing cold",
-        "perfekt": "Perfect conditions",
-        "chli chalt": "A bit cold",
-        "brrr": "Very cold",
-    }
-
-    # Simple partial match
-    for phrase, explanation in phrases.items():
-        if phrase.lower() in text.lower():
-            return explanation
-
-    return None
-
-
-async def _get_suggestion(current_city: str, current_temp: float | None) -> str | None:
-    """Suggest a better city if current one is cold."""
-    if current_temp is None or current_temp >= 18.0:
-        return None
-
-    try:
-        # Use a new client instance to avoid connection pool issues
-        async with AareguruClient(settings=get_settings()) as suggestion_client:
-            all_cities = await suggestion_client.get_cities()
-
-            # Find warmest city
-            warmest = None
-            max_temp = -100.0
-
-            for city in all_cities:
-                if city.city != current_city and city.aare is not None:
-                    if city.aare > max_temp:
-                        max_temp = city.aare
-                        warmest = city
-
-            # Suggest if significantly warmer (>1°C difference)
-            if warmest and max_temp > (current_temp + 1.0):
-                return f"💡 Tip: {warmest.name} is warmer right now ({warmest.aare}°C)"
-
-    except Exception:
-        # Fail silently on suggestions
-        pass
-
-    return None
 
 
 async def get_current_temperature(city: str = "bern") -> dict[str, Any]:

@@ -5,7 +5,6 @@ Aareguru data to AI assistants via stdio or HTTP transport.
 """
 
 import json
-from datetime import datetime
 from typing import Any
 
 import structlog
@@ -15,6 +14,13 @@ from starlette.responses import JSONResponse
 
 from .client import AareguruClient
 from .config import get_settings
+from .helpers import (
+    _check_safety_warning,
+    _get_safety_assessment,
+    _get_seasonal_advice,
+    _get_suggestion,
+    _get_swiss_german_explanation,
+)
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -41,109 +47,6 @@ Swiss German phrases in the API responses add local flavor - feel free to explai
 to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 """,
 )
-
-
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
-
-def _get_seasonal_advice() -> str:
-    """Get contextual advice based on the current season."""
-    month = datetime.now().month
-
-    if month in [11, 12, 1, 2, 3]:  # Winter
-        return (
-            "❄️ Winter Season: Water is freezing. "
-            "Only for experienced ice swimmers. Keep swims very short."
-        )
-    elif month in [4, 5]:  # Spring
-        return "🌱 Spring: Water is still very cold from snowmelt. Wetsuit recommended."
-    elif month in [6, 7, 8]:  # Summer
-        return "☀️ Summer: Perfect swimming season! Don't forget sunscreen."
-    else:  # Autumn (9, 10)
-        return "🍂 Autumn: Water is getting colder. Check daylight hours and bring warm clothes."
-
-
-def _check_safety_warning(flow: float | None, threshold: float | None = 220) -> str | None:
-    """Generate a warning if flow is dangerous."""
-    if flow is None:
-        return None
-
-    threshold = threshold or 220
-
-    if flow > 430:
-        return "⛔ EXTREME DANGER: Flow is very high (>430 m³/s). Swimming is life-threatening."
-    elif flow > 300:
-        return "⚠️ DANGER: High flow rate (>300 m³/s). Swimming NOT recommended."
-    elif flow > threshold:
-        return "⚠️ CAUTION: Elevated flow rate. Only for experienced swimmers."
-
-    return None
-
-
-def _get_swiss_german_explanation(text: str | None) -> str | None:
-    """Provide context for Swiss German phrases."""
-    if not text:
-        return None
-
-    phrases = {
-        "geil aber chli chalt": "Awesome but a bit cold (typical Bernese understatement)",
-        "schön warm": "Nice and warm",
-        "arschkalt": "Freezing cold",
-        "perfekt": "Perfect conditions",
-        "chli chalt": "A bit cold",
-        "brrr": "Very cold",
-    }
-
-    for phrase, explanation in phrases.items():
-        if phrase.lower() in text.lower():
-            return explanation
-
-    return None
-
-
-async def _get_suggestion(current_city: str, current_temp: float | None) -> str | None:
-    """Suggest a better city if current one is cold."""
-    if current_temp is None or current_temp >= 18.0:
-        return None
-
-    try:
-        async with AareguruClient(settings=get_settings()) as suggestion_client:
-            all_cities = await suggestion_client.get_cities()
-
-            warmest = None
-            max_temp = -100.0
-
-            for city in all_cities:
-                if city.city != current_city and city.aare is not None:
-                    if city.aare > max_temp:
-                        max_temp = city.aare
-                        warmest = city
-
-            if warmest and max_temp > (current_temp + 1.0):
-                return f"💡 Tip: {warmest.name} is warmer right now ({warmest.aare}°C)"
-
-    except Exception:
-        pass
-
-    return None
-
-
-def _get_safety_assessment(flow: float | None, threshold: float = 220) -> tuple[str, int]:
-    """Get safety assessment and danger level from flow rate."""
-    if flow is None:
-        return "Unknown - no flow data", 0
-    elif flow < 100:
-        return "Safe - low flow", 1
-    elif flow < threshold:
-        return "Moderate - safe for experienced swimmers", 2
-    elif flow < 300:
-        return "Elevated - caution advised", 3
-    elif flow < 430:
-        return "High - dangerous conditions", 4
-    else:
-        return "Very high - extremely dangerous, avoid swimming", 5
 
 
 # ============================================================================
@@ -201,7 +104,7 @@ async def daily_swimming_report(city: str = "bern") -> str:
     return f"""Please provide a comprehensive daily swimming report for {city}.
 
 Include:
-1. **Current Conditions**: Use get_current_conditions to get water temperature, flow rate, and weather
+1. **Current Conditions**: Use get_current_conditions to get temperature, flow rate, and weather
 2. **Safety Assessment**: Use get_flow_danger_level to assess if swimming is safe
 3. **Forecast**: Use get_forecast to see how conditions will change in the next few hours
 4. **Recommendation**: Based on all data, give a clear swimming recommendation
