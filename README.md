@@ -37,6 +37,7 @@ Add to Claude Desktop config (see [`claude_desktop_remote_config.json`](claude_d
 |---------|-------------|
 | **7 MCP Tools** | Temperature, flow, safety, forecasts, comparisons, history |
 | **4 MCP Resources** | Direct data access via `aareguru://` URIs |
+| **3 MCP Prompts** | Daily reports, spot comparisons, weekly trends |
 | **Swiss German** | Authentic temperature descriptions ("geil aber chli chalt") |
 | **BAFU Safety** | Official flow danger levels and thresholds |
 | **Smart UX** | Proactive safety warnings, alternative suggestions, seasonal context |
@@ -72,6 +73,14 @@ Add to Claude Desktop config (see [`claude_desktop_remote_config.json`](claude_d
 | `aareguru://current/{city}` | Full current data for a city |
 | `aareguru://today/{city}` | Minimal current data |
 | `aareguru://widget` | Overview of all cities |
+
+## 💬 Prompts
+
+| Prompt | Description |
+|--------|-------------|
+| `daily_swimming_report` | Comprehensive daily report with conditions, safety, forecast, and recommendation |
+| `compare_swimming_spots` | Compare all cities to find the best swimming spot today |
+| `weekly_trend_analysis` | Analyze temperature and flow trends over the past week |
 
 ## 💻 Local Installation
 
