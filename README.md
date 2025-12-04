@@ -32,6 +32,7 @@ Add to Claude Desktop config (see
 <p align="center">
   <img src="claude-desktop-1.png" alt="Claude Desktop Integration" width="45%">
   <img src="claude-desktop-2.png" alt="Claude Desktop Integration" width="45%">
+  <img src="claude-desktop-3.png" alt="Claude Desktop Integration" width="45%">
 </p>
 
 ## 🎯 Features
