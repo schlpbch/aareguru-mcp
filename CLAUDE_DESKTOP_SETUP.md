@@ -2,6 +2,39 @@
 
 Complete guide for integrating the Aareguru MCP server with Claude Desktop.
 
+## Quick Start: FastMCP Cloud (Recommended)
+
+The easiest way to use Aareguru with Claude Desktop is via the **FastMCP Cloud** deployment - no local installation required!
+
+### Configuration
+
+Add this to your `claude_desktop_config.json`:
+
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`  
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Linux:** `~/.config/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "aareguru": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://aareguru.fastmcp.app/sse"]
+    }
+  }
+}
+```
+
+That's it! Restart Claude Desktop and start asking about Aare river conditions.
+
+> **Note:** Requires Node.js/npm installed. The `mcp-remote` package bridges Claude Desktop to the remote MCP server.
+
+---
+
+## Local Installation (Alternative)
+
+If you prefer to run the server locally, follow the steps below.
+
 ## Prerequisites
 
 - **Claude Desktop** installed ([Download here](https://claude.ai/download))
