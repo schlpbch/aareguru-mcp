@@ -7,7 +7,7 @@ other helper functions used by server tools.
 from datetime import datetime
 from unittest.mock import patch
 
-from aareguru_mcp.server import (
+from aareguru_mcp.helpers import (
     _check_safety_warning,
     _get_safety_assessment,
     _get_seasonal_advice,
@@ -20,7 +20,7 @@ class TestSeasonalAdvice:
 
     def test_winter_november(self):
         """Test winter advice for November."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 11, 15)
             result = _get_seasonal_advice()
             assert "Winter" in result
@@ -28,35 +28,35 @@ class TestSeasonalAdvice:
 
     def test_winter_december(self):
         """Test winter advice for December."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 12, 15)
             result = _get_seasonal_advice()
             assert "Winter" in result
 
     def test_winter_january(self):
         """Test winter advice for January."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 1, 15)
             result = _get_seasonal_advice()
             assert "Winter" in result
 
     def test_winter_february(self):
         """Test winter advice for February."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 2, 15)
             result = _get_seasonal_advice()
             assert "Winter" in result
 
     def test_winter_march(self):
         """Test winter advice for March."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 3, 15)
             result = _get_seasonal_advice()
             assert "Winter" in result
 
     def test_spring_april(self):
         """Test spring advice for April."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 4, 15)
             result = _get_seasonal_advice()
             assert "Spring" in result
@@ -64,14 +64,14 @@ class TestSeasonalAdvice:
 
     def test_spring_may(self):
         """Test spring advice for May."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 5, 15)
             result = _get_seasonal_advice()
             assert "Spring" in result
 
     def test_summer_june(self):
         """Test summer advice for June."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 6, 15)
             result = _get_seasonal_advice()
             assert "Summer" in result
@@ -79,21 +79,21 @@ class TestSeasonalAdvice:
 
     def test_summer_july(self):
         """Test summer advice for July."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 7, 15)
             result = _get_seasonal_advice()
             assert "Summer" in result
 
     def test_summer_august(self):
         """Test summer advice for August."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 8, 15)
             result = _get_seasonal_advice()
             assert "Summer" in result
 
     def test_autumn_september(self):
         """Test autumn advice for September."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 9, 15)
             result = _get_seasonal_advice()
             assert "Autumn" in result
@@ -101,7 +101,7 @@ class TestSeasonalAdvice:
 
     def test_autumn_october(self):
         """Test autumn advice for October."""
-        with patch("aareguru_mcp.server.datetime") as mock_dt:
+        with patch("aareguru_mcp.helpers.datetime") as mock_dt:
             mock_dt.now.return_value = datetime(2024, 10, 15)
             result = _get_seasonal_advice()
             assert "Autumn" in result

@@ -179,6 +179,14 @@ class TestServerConfiguration:
 
         assert len(resources) + len(templates) >= 4
 
+    def test_server_has_prompts(self):
+        """Test server has registered prompts."""
+        prompts = list(mcp._prompt_manager._prompts.keys())
+        assert len(prompts) >= 3
+        assert "daily_swimming_report" in prompts
+        assert "compare_swimming_spots" in prompts
+        assert "weekly_trend_analysis" in prompts
+
 
 class TestLogging:
     """Test logging functionality."""
