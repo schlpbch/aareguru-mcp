@@ -12,7 +12,7 @@
     "type": "git",
     "url": "https://github.com/schlpbch/aareguru-mcp"
   },
-  "homepage": "https://aareguru.fastmcp.app/mcp",
+  "homepage": "https://aare.guru/",
   "keywords": [
     "mcp",
     "aare",
@@ -44,7 +44,7 @@
       "port": 8000
     },
     "remote": {
-      "url": "https://aareguru.fastmcp.app/sse",
+      "url": "https://aareguru.fastmcp.app/mcp",
       "description": "FastMCP Cloud hosted server (no local installation required)"
     }
   },
