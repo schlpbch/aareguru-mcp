@@ -1,4 +1,4 @@
-"""GitHub Actions workflow for automated MCP server testing."""
+# GitHub Actions workflow for automated MCP server testing
 
 name: MCP Server Tests
 
