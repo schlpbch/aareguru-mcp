@@ -1,0 +1,47 @@
+"""GitHub Actions workflow for automated MCP server testing."""
+
+name: MCP Server Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+    
+    - name: Run unit tests
+      run: |
+        uv run pytest -v --cov --cov-report=term-missing
+    
+    - name: Start MCP HTTP server in background
+      run: |
+        uv run aareguru-mcp-http &
+        sleep 5  # Wait for server to start
+    
+    - name: Run HTTP integration tests
+      run: |
+        uv run python scripts/test_mcp_http.py
+    
+    - name: Stop server
+      if: always()
+      run: |
+        pkill -f aareguru-mcp-http || true
