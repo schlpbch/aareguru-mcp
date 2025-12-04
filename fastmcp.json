@@ -1,6 +1,6 @@
 {
   "name": "aareguru-mcp",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "description": "MCP server for Aareguru Swiss river conditions API",
   "main": "mcp_server.py:mcp",
   "mcpServers": {

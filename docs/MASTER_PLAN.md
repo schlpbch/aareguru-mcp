@@ -1,7 +1,7 @@
 # Aareguru MCP Server - Master Implementation Plan
 
 **Project**: MCP Server for Swiss Aare River Data  
-**Version**: 0.8.0  
+**Version**: 1.0.0  
 **Last Updated**: 2025-12-04  
 **Framework**: FastMCP 2.0
 
