@@ -1,8 +1,8 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/mcp)
-[![Tests](https://img.shields.io/badge/tests-153%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-200%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
 [![HTTP/SSE](https://img.shields.io/badge/HTTP%2FSSE-Built--in-orange)](src/aareguru_mcp/server.py)
@@ -41,7 +41,7 @@ Or add to your Claude Desktop config:
 - **HTTP/SSE Built-in** - Native transport support via FastMCP
 - **Structured Logging** - JSON-formatted logs for observability (structlog)
 - **☁️ FastMCP Cloud Deployed** - Use instantly without local setup
-- **Comprehensive Testing** - 153 tests, 85% coverage
+- **Comprehensive Testing** - 200 tests, 87% coverage
 - **Async HTTP Client** - With caching and rate limiting
 - **Docker Support** - Ready for containerized deployment
 
