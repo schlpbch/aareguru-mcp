@@ -184,6 +184,85 @@ async def get_today_resource(city: str) -> str:
 
 
 # ============================================================================
+# Prompts
+# ============================================================================
+
+
+@mcp.prompt()
+async def daily_swimming_report(city: str = "bern") -> str:
+    """Generate a comprehensive daily swimming report.
+
+    Creates a detailed report combining current conditions, safety assessment,
+    weather, and personalized recommendations for a specific city.
+
+    Args:
+        city: City to generate the report for (default: bern)
+    """
+    return f"""Please provide a comprehensive daily swimming report for {city}.
+
+Include:
+1. **Current Conditions**: Use get_current_conditions to get water temperature, flow rate, and weather
+2. **Safety Assessment**: Use get_flow_danger_level to assess if swimming is safe
+3. **Forecast**: Use get_forecast to see how conditions will change in the next few hours
+4. **Recommendation**: Based on all data, give a clear swimming recommendation
+
+Format the report in a friendly way with emojis. Include the Swiss German description if available.
+If conditions are dangerous, make this very clear at the top of the report.
+If there's a better location nearby, suggest it."""
+
+
+@mcp.prompt()
+async def compare_swimming_spots() -> str:
+    """Compare all available swimming locations.
+
+    Creates a formatted comparison of all monitored cities to help users
+    choose the best swimming spot.
+    """
+    return """Please compare all available Aare swimming locations.
+
+Use the compare_cities tool to get data for all cities, then present:
+
+1. **🏆 Best Choice Today**: The recommended city based on temperature and safety
+2. **📊 Comparison Table**: All cities ranked by temperature with safety status
+3. **⚠️ Safety Notes**: Any locations to avoid due to high flow
+
+Format as a clear, scannable report. Use emojis for quick visual reference:
+- 🟢 Safe (flow < 150 m³/s)
+- 🟡 Caution (150-220 m³/s)
+- 🔴 Dangerous (> 220 m³/s)
+
+End with a personalized recommendation based on conditions."""
+
+
+@mcp.prompt()
+async def weekly_trend_analysis(city: str = "bern") -> str:
+    """Analyze temperature and flow trends over the past week.
+
+    Creates a trend analysis to help users understand how conditions
+    have been changing and what to expect.
+
+    Args:
+        city: City to analyze (default: bern)
+    """
+    return f"""Please analyze the weekly trends for {city}.
+
+Use get_historical_data with days=7 to get the past week's data, then provide:
+
+1. **📈 Temperature Trend**: How has water temperature changed?
+   - Highest and lowest temperatures
+   - Current vs. weekly average
+   - Is it warming or cooling?
+
+2. **🌊 Flow Trend**: How has the flow rate varied?
+   - Any dangerous periods?
+   - Current conditions vs. average
+
+3. **🔮 Outlook**: Based on trends and current forecast, what should swimmers expect?
+
+Include specific numbers and dates. Make recommendations for the best swimming times."""
+
+
+# ============================================================================
 # Tools
 # ============================================================================
 
