@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss Aare river data from the Aareguru API to AI assistants. The server provides 5 MCP tools and 4 MCP resources for querying water temperature, flow rates, weather conditions, and safety assessments for swimming in the Aare river.
+Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss Aare river data from the Aareguru API to AI assistants. The server provides 7 MCP tools, 4 MCP resources, and 3 MCP prompts for querying water temperature, flow rates, weather conditions, and safety assessments for swimming in the Aare river.
 
-**Status**: Phase 1-2 complete - Production ready with 153/153 tests passing (85% coverage)
+**Status**: Production ready with 202 tests passing (87% coverage)
 **Version**: 1.0.0 (FastMCP 2.0, HTTP/SSE transport, FastMCP Cloud deployed)
 **Recent**: Added MCP prompts for guided interactions, structured logging with structlog
 
@@ -261,7 +261,7 @@ This annotation strategy ensures Claude selects the correct tool 95%+ of the tim
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **153 tests** across multiple categories with 85%+ coverage
+- **202 tests** across multiple categories with 87% coverage
 - **Test organization**:
   - `test_unit_*.py`: Unit tests for models, config, client, server helpers
   - `test_tools_basic.py` & `test_tools_advanced.py`: Tool functionality tests
