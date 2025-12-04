@@ -368,3 +368,211 @@ class TestPromptEdgeCases:
         assert len(daily_messages) == 1
         assert len(compare_messages) == 1
         assert len(weekly_messages) == 1
+
+
+# ============================================================================
+# End-to-End Integration Tests - Prompt + Tools Workflows
+# ============================================================================
+
+
+class TestPromptToolIntegration:
+    """Test that prompts reference tools that actually work."""
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_daily_report_tools_exist_and_work(self):
+        """Test that all tools referenced in daily report prompt work."""
+        from aareguru_mcp import tools
+
+        # Get the prompt text to verify tool names
+        prompt_text = await get_prompt_text(daily_swimming_report, city="bern")
+
+        # Verify referenced tools exist and work
+        assert "get_current_conditions" in prompt_text
+        conditions = await tools.get_current_conditions("bern")
+        assert "city" in conditions
+        assert conditions["city"] == "bern"
+
+        assert "get_flow_danger_level" in prompt_text
+        danger = await tools.get_flow_danger_level("bern")
+        assert "city" in danger
+        assert "danger_level" in danger
+
+        assert "get_forecast" in prompt_text
+        forecast = await tools.get_forecast("bern")
+        assert "city" in forecast
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_compare_spots_tool_exists_and_works(self):
+        """Test that compare_cities tool referenced in prompt works."""
+        from aareguru_mcp import tools
+
+        # Get the prompt text to verify tool name
+        prompt_text = await get_prompt_text(compare_swimming_spots)
+
+        # Verify referenced tool exists and works
+        assert "compare_cities" in prompt_text
+        comparison = await tools.compare_cities(["bern", "thun"])
+        assert "cities" in comparison
+        assert "warmest" in comparison
+        assert "safest" in comparison
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_weekly_analysis_tool_exists_and_works(self):
+        """Test that get_historical_data tool referenced in prompt works."""
+        from datetime import datetime, timedelta
+
+        from aareguru_mcp import tools
+
+        # Get the prompt text to verify tool name
+        prompt_text = await get_prompt_text(weekly_trend_analysis, city="bern")
+
+        # Verify referenced tool exists and works
+        assert "get_historical_data" in prompt_text
+
+        # Calculate date range for last 7 days
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=7)
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+
+        historical = await tools.get_historical_data("bern", start_str, end_str)
+        assert "city" in historical
+        assert "data" in historical or "data_points" in historical or "error" in historical
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_daily_report_complete_workflow(self):
+        """Simulate complete daily report workflow as Claude would execute it."""
+        from aareguru_mcp import tools
+
+        city = "bern"
+
+        # Step 1: Get current conditions (as prompted)
+        conditions = await tools.get_current_conditions(city)
+        assert conditions["city"] == city
+        has_aare_data = "aare" in conditions
+
+        # Step 2: Get flow danger level (as prompted)
+        danger = await tools.get_flow_danger_level(city)
+        assert danger["city"] == city
+        assert "safety_assessment" in danger
+        assert "danger_level" in danger
+
+        # Step 3: Get forecast (as prompted)
+        forecast = await tools.get_forecast(city)
+        assert forecast["city"] == city
+
+        # Verify we can build a coherent report
+        report_data = {
+            "city": city,
+            "has_conditions": has_aare_data,
+            "is_safe": danger["danger_level"] <= 2,
+            "has_forecast": "forecast_2h" in forecast or "current" in forecast,
+        }
+        assert report_data["city"] == city
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_compare_spots_complete_workflow(self):
+        """Simulate complete compare spots workflow as Claude would execute it."""
+        from aareguru_mcp import tools
+
+        # Step 1: Compare all cities (as prompted)
+        comparison = await tools.compare_cities(None)  # None = all cities
+
+        # Verify comparison structure
+        assert "cities" in comparison
+        assert "warmest" in comparison
+        assert "safest" in comparison
+        assert len(comparison["cities"]) > 0
+
+        # Verify we can identify best choice
+        warmest = comparison["warmest"]
+        safest = comparison["safest"]
+        assert "name" in warmest or "city" in warmest
+        assert "name" in safest or "city" in safest
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_weekly_analysis_complete_workflow(self):
+        """Simulate complete weekly analysis workflow as Claude would execute it."""
+        from datetime import datetime, timedelta
+
+        from aareguru_mcp import tools
+
+        city = "bern"
+
+        # Step 1: Get historical data for 7 days (as prompted)
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=7)
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
+
+        historical = await tools.get_historical_data(city, start_str, end_str)
+
+        # Verify historical data structure
+        assert historical["city"] == city
+        # Note: historical data might be limited or unavailable
+        # The tool should still return a valid response structure
+
+
+class TestPromptMCPProtocolCompliance:
+    """Test that prompts comply with MCP protocol requirements."""
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_prompt_message_format(self):
+        """Test that prompt messages follow MCP format."""
+        messages = await daily_swimming_report.render()
+
+        # Should be a list
+        assert isinstance(messages, list)
+
+        # Each message should have role and content
+        for msg in messages:
+            assert hasattr(msg, "role")
+            assert hasattr(msg, "content")
+            assert msg.role in ["user", "assistant"]
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_prompt_content_type(self):
+        """Test that prompt content is TextContent."""
+        messages = await daily_swimming_report.render()
+
+        for msg in messages:
+            # Content should have text attribute
+            assert hasattr(msg.content, "text")
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_prompt_arguments_schema(self):
+        """Test that prompt arguments are properly defined."""
+        # Daily report has city argument
+        assert daily_swimming_report.arguments is not None
+        assert len(daily_swimming_report.arguments) == 1
+        assert daily_swimming_report.arguments[0].name == "city"
+        assert daily_swimming_report.arguments[0].required is False
+
+        # Compare spots has no arguments
+        assert compare_swimming_spots.arguments is not None
+        assert len(compare_swimming_spots.arguments) == 0
+
+        # Weekly analysis has city argument
+        assert weekly_trend_analysis.arguments is not None
+        assert len(weekly_trend_analysis.arguments) == 1
+        assert weekly_trend_analysis.arguments[0].name == "city"
+
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_prompt_to_mcp_conversion(self):
+        """Test that prompts can be converted to MCP format."""
+        # FastMCP prompts have to_mcp_prompt method
+        mcp_prompt = daily_swimming_report.to_mcp_prompt()
+
+        assert mcp_prompt.name == "daily_swimming_report"
+        assert mcp_prompt.description is not None
+        assert hasattr(mcp_prompt, "arguments")
