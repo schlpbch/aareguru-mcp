@@ -14,8 +14,14 @@ safety.
 
 **Use directly from FastMCP Cloud** (no installation needed):
 
-Add to Claude Desktop config (see
-[`claude_desktop_remote_config.json`](claude_desktop_remote_config.json)):
+
+Add it is as *custom connector* in Claude Desktop:
+
+![Claude Custom Connector](claude-custom-connector.png)
+
+No authentication is needed.
+
+Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via option in `Claude -> Settings -> Extensions`. Or edit the Claude desktop config file directly:
 
 ```json
 {
@@ -27,13 +33,12 @@ Add to Claude Desktop config (see
 }
 ```
 
+
 ## 📸 Screenshots
 
-<p align="center">
-  <img src="claude-desktop-1.png" alt="Claude Desktop Integration" width="80%">
-  <img src="claude-desktop-2.png" alt="Claude Desktop Integration" width="80%">
-  <img src="claude-desktop-3.png" alt="Claude Desktop Integration" width="80%">
-</p>
+![Claude Desktop Integration](claude-desktop-1.png)
+![Claude Desktop Integration](claude-desktop-2.png)
+![Claude Desktop Integration](claude-desktop-3.png)
 
 ## 🎯 Features
 
