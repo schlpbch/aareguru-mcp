@@ -42,15 +42,17 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 
 ## 🎯 Features
 
-| Feature             | Description                                                          |
-| ------------------- | -------------------------------------------------------------------- |
-| **7 MCP Tools**     | Temperature, flow, safety, forecasts, comparisons, history           |
-| **4 MCP Resources** | Direct data access via `aareguru://` URIs                            |
-| **3 MCP Prompts**   | Daily reports, spot comparisons, weekly trends                       |
-| **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")          |
-| **BAFU Safety**     | Official flow danger levels and thresholds                           |
-| **Smart UX**        | Proactive safety warnings, alternative suggestions, seasonal context |
-| **200 Tests**       | 87% coverage, comprehensive test suite                               |
+| Feature              | Description                                                          |
+| -------------------- | -------------------------------------------------------------------- |
+| **7 MCP Tools**      | Temperature, flow, safety, forecasts, comparisons, history           |
+| **4 MCP Resources**  | Direct data access via `aareguru://` URIs                            |
+| **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                       |
+| **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                  |
+| **Metrics**          | Prometheus endpoint for monitoring and observability                 |
+| **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")          |
+| **BAFU Safety**      | Official flow danger levels and thresholds                           |
+| **Smart UX**         | Proactive safety warnings, alternative suggestions, seasonal context |
+| **200+ Tests**       | 83% coverage, comprehensive test suite                               |
 
 ## 🛠️ Tools
 
@@ -125,6 +127,102 @@ cp .env.example .env
 docker-compose up -d
 curl http://localhost:8000/health
 ```
+
+## ☁️ Hosting
+
+### FastMCP Cloud (Recommended)
+
+This server is deployed on [FastMCP Cloud](https://fastmcp.cloud), a managed platform for MCP servers with zero-config deployment.
+
+**Features:**
+
+- ✅ **Zero-Config Deployment** - Connect GitHub repo, automatic deployment
+- ✅ **Serverless Scaling** - Scale from 0 to millions of requests instantly
+- ✅ **Git-Native CI/CD** - Auto-deploy on push to `main`, branch deployments for PRs
+- ✅ **Built-in Security** - OAuth support, token management, secure endpoints
+- ✅ **MCP Analytics** - Request/response tracking, tool usage insights
+- ✅ **Free Tier** - Available for personal servers
+
+**Deployment Steps:**
+
+1. **Sign in** to [fastmcp.cloud](https://fastmcp.cloud) with GitHub
+2. **Create Project** and link your repository
+3. **Deploy** - Platform automatically clones, builds, and deploys
+4. **Access** - Get your unique URL (e.g., `https://aareguru.fastmcp.app/mcp`)
+
+**Configuration:**
+
+No special configuration needed! FastMCP Cloud auto-detects FastMCP servers. The server runs with:
+- Health endpoint: `https://your-app.fastmcp.app/health`
+- MCP endpoint: `https://your-app.fastmcp.app/mcp`
+
+**Pricing:**
+
+- Free tier for personal projects
+- Pay-as-you-go for teams (usage-based)
+
+### Alternative Hosting Options
+
+FastMCP servers can be deployed to any Python-compatible cloud platform:
+
+**Container Platforms:**
+
+- Google Cloud Run
+- AWS ECS/Fargate
+- Azure Container Instances
+
+**PaaS Providers:**
+
+- Railway
+- Render
+- Vercel
+
+**Cloud VMs:**
+
+- AWS EC2
+- Google Compute Engine
+- Azure VMs
+
+**Deployment Pattern:**
+
+```python
+# For HTTP deployment, modify server to use HTTP transport
+from fastmcp import FastMCP
+
+mcp = FastMCP("aareguru")
+# ... register tools ...
+
+if __name__ == "__main__":
+    mcp.run(transport="sse")  # Server-Sent Events for HTTP
+```
+
+Then containerize with Docker and deploy to your chosen platform.
+
+## 📊 Monitoring & Observability
+
+### Prometheus Metrics
+
+The server exposes Prometheus-compatible metrics at `/metrics` for monitoring:
+
+**Available Metrics:**
+- `aareguru_mcp_tool_calls_total` - Counter of tool invocations by name and status
+- `aareguru_mcp_tool_duration_seconds` - Histogram of tool execution times
+- `aareguru_mcp_api_requests_total` - Counter of Aareguru API requests
+- `aareguru_mcp_errors_total` - Counter of errors by type and component
+- `aareguru_mcp_active_requests` - Gauge of currently active requests
+
+**Example:**
+```bash
+curl http://localhost:8000/metrics
+```
+
+### Rate Limiting
+
+HTTP endpoints are protected with rate limiting:
+- **Default limits**: 100 requests/minute, 1000 requests/hour
+- **Health endpoint**: 60 requests/minute
+- **Headers**: Rate limit info included in responses
+- **429 responses**: Automatic retry-after headers when limits exceeded
 
 ## 🧪 Development
 

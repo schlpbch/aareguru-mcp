@@ -9,8 +9,9 @@ from typing import Any
 
 import structlog
 from fastmcp import FastMCP
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 from .client import AareguruClient
 from .config import get_settings
@@ -21,6 +22,8 @@ from .helpers import (
     _get_suggestion,
     _get_swiss_german_explanation,
 )
+from .metrics import MetricsCollector
+from .rate_limit import limiter, rate_limit_exceeded_handler
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -185,51 +188,52 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
     Returns:
         Dictionary with temperature data and Swiss German descriptions.
     """
-    logger.info(f"Getting current temperature for {city}")
+    with MetricsCollector.track_tool_call("get_current_temperature"):
+        logger.info(f"Getting current temperature for {city}")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
+        async with AareguruClient(settings=get_settings()) as client:
+            response = await client.get_current(city)
 
-        if not response.aare:
-            response = await client.get_today(city)
-            temp = response.aare
-            text = response.text
-            flow = None
-        else:
-            temp = response.aare.temperature
-            text = response.aare.temperature_text
-            flow = response.aare.flow
+            if not response.aare:
+                response = await client.get_today(city)
+                temp = response.aare
+                text = response.text
+                flow = None
+            else:
+                temp = response.aare.temperature
+                text = response.aare.temperature_text
+                flow = response.aare.flow
 
-        warning = _check_safety_warning(flow)
-        explanation = _get_swiss_german_explanation(text)
-        suggestion = await _get_suggestion(city, temp)
-        season_advice = _get_seasonal_advice()
+            warning = _check_safety_warning(flow)
+            explanation = _get_swiss_german_explanation(text)
+            suggestion = await _get_suggestion(city, temp)
+            season_advice = _get_seasonal_advice()
 
-        result = {
-            "city": city,
-            "temperature": temp,
-            "temperature_text": text,
-            "swiss_german_explanation": explanation,
-            "name": (
-                response.aare.location
-                if (response.aare and hasattr(response.aare, "location"))
-                else response.name
-            ),
-            "warning": warning,
-            "suggestion": suggestion,
-            "seasonal_advice": season_advice,
-        }
+            result = {
+                "city": city,
+                "temperature": temp,
+                "temperature_text": text,
+                "swiss_german_explanation": explanation,
+                "name": (
+                    response.aare.location
+                    if (response.aare and hasattr(response.aare, "location"))
+                    else response.name
+                ),
+                "warning": warning,
+                "suggestion": suggestion,
+                "seasonal_advice": season_advice,
+            }
 
-        if response.aare and hasattr(response.aare, "temperature"):
-            result["temperature_prec"] = response.aare.temperature
-            result["temperature_text_short"] = response.aare.temperature_text_short
-            result["longname"] = response.aare.location_long
-        else:
-            result["temperature_prec"] = response.aare_prec
-            result["temperature_text_short"] = response.text_short
-            result["longname"] = response.longname
+            if response.aare and hasattr(response.aare, "temperature"):
+                result["temperature_prec"] = response.aare.temperature
+                result["temperature_text_short"] = response.aare.temperature_text_short
+                result["longname"] = response.aare.location_long
+            else:
+                result["temperature_prec"] = response.aare_prec
+                result["temperature_text_short"] = response.text_short
+                result["longname"] = response.longname
 
-        return result
+            return result
 
 
 @mcp.tool()
@@ -591,6 +595,7 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
 
 
 @mcp.custom_route("/health", methods=["GET"])
+@limiter.limit("60/minute")
 async def health_check(request: Request) -> JSONResponse:
     """Health check endpoint."""
     return JSONResponse(
@@ -599,6 +604,15 @@ async def health_check(request: Request) -> JSONResponse:
             "service": "aareguru-mcp",
             "version": settings.app_version,
         }
+    )
+
+
+@mcp.custom_route("/metrics", methods=["GET"])
+async def metrics_endpoint(request: Request) -> Response:
+    """Prometheus metrics endpoint."""
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST,
     )
 
 

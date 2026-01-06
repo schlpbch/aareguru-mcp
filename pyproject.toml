@@ -16,6 +16,8 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
     "structlog>=24.1.0",        # Structured logging
+    "slowapi>=0.1.9",           # Rate limiting
+    "prometheus-client>=0.20.0", # Metrics and monitoring
 ]
 
 [project.scripts]
