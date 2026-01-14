@@ -59,7 +59,20 @@ to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 
 @mcp.resource("aareguru://cities")
 async def get_cities_resource() -> str:
-    """List of all cities with Aare data available."""
+    """Retrieves the complete list of cities with Aare monitoring stations.
+    
+    Returns JSON array containing city identifiers, full names, coordinates,
+    and current temperature readings for all monitored locations. Use this
+    resource for location discovery and initial data exploration.
+    
+    Returns:
+        JSON string with array of city objects, each containing:
+        - city (str): City identifier (e.g., 'bern', 'thun')
+        - name (str): Display name
+        - longname (str): Full location name
+        - coordinates (object): Latitude and longitude
+        - aare (float): Current water temperature in Celsius
+    """
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_cities()
         return json.dumps([city.model_dump() for city in response], indent=2)
@@ -67,7 +80,17 @@ async def get_cities_resource() -> str:
 
 @mcp.resource("aareguru://widget")
 async def get_widget_resource() -> str:
-    """Current data for all cities at once."""
+    """Retrieves current data snapshot for all monitored cities at once.
+    
+    Returns a comprehensive widget-style data structure containing real-time
+    conditions for all Aare monitoring locations. Use this for dashboard
+    displays or quick overview of all locations.
+    
+    Returns:
+        JSON string with current conditions for all cities, including
+        temperatures, flow rates, weather, and forecasts in a compact format
+        optimized for widget display.
+    """
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_widget()
         return json.dumps(response, indent=2)
@@ -75,7 +98,18 @@ async def get_widget_resource() -> str:
 
 @mcp.resource("aareguru://current/{city}")
 async def get_current_resource(city: str) -> str:
-    """Complete current conditions for a specific city."""
+    """Retrieves complete current conditions for a specific city.
+    
+    Returns comprehensive real-time data including water temperature, flow rate,
+    weather conditions, and forecasts for the specified location.
+    
+    Args:
+        city: City identifier (e.g., 'bern', 'thun', 'basel')
+    
+    Returns:
+        JSON string with complete current conditions including temperature,
+        flow, weather, and forecast data for the specified city.
+    """
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_current(city)
         return response.model_dump_json(indent=2)
@@ -83,7 +117,18 @@ async def get_current_resource(city: str) -> str:
 
 @mcp.resource("aareguru://today/{city}")
 async def get_today_resource(city: str) -> str:
-    """Minimal current data for a specific city."""
+    """Retrieves minimal current data snapshot for a specific city.
+    
+    Returns a lightweight data structure with essential current information.
+    Use this when you only need basic temperature data without full details.
+    
+    Args:
+        city: City identifier (e.g., 'bern', 'thun', 'basel')
+    
+    Returns:
+        JSON string with minimal current data including temperature and
+        basic location information for the specified city.
+    """
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_today(city)
         return response.model_dump_json(indent=2)
@@ -94,15 +139,20 @@ async def get_today_resource(city: str) -> str:
 # ============================================================================
 
 
-@mcp.prompt()
+@mcp.prompt(name="aareguru__daily-swimming-report")
 async def daily_swimming_report(city: str = "bern") -> str:
-    """Generate a comprehensive daily swimming report.
+    """Generates a comprehensive daily swimming report for a specific city.
 
     Creates a detailed report combining current conditions, safety assessment,
     weather, and personalized recommendations for a specific city.
 
     Args:
         city: City to generate the report for (default: bern)
+    
+    Returns:
+        Prompt template string instructing the LLM to create a formatted report
+        with current conditions, safety assessment, forecast, and recommendations.
+        The report includes Swiss German descriptions and safety warnings.
     """
     return f"""Please provide a comprehensive daily swimming report for {city}.
 
@@ -117,12 +167,17 @@ If conditions are dangerous, make this very clear at the top of the report.
 If there's a better location nearby, suggest it."""
 
 
-@mcp.prompt()
+@mcp.prompt(name="aareguru__compare-swimming-spots")
 async def compare_swimming_spots() -> str:
-    """Compare all available swimming locations.
+    """Generates a comparison of all available swimming locations.
 
     Creates a formatted comparison of all monitored cities to help users
     choose the best swimming spot.
+    
+    Returns:
+        Prompt template string instructing the LLM to compare all cities,
+        rank them by temperature and safety, and provide a recommendation
+        for the best swimming location today.
     """
     return """Please compare all available Aare swimming locations.
 
@@ -140,15 +195,20 @@ Format as a clear, scannable report. Use emojis for quick visual reference:
 End with a personalized recommendation based on conditions."""
 
 
-@mcp.prompt()
+@mcp.prompt(name="aareguru__weekly-trend-analysis")
 async def weekly_trend_analysis(city: str = "bern") -> str:
-    """Analyze temperature and flow trends over the past week.
+    """Generates a weekly trend analysis for temperature and flow patterns.
 
     Creates a trend analysis to help users understand how conditions
     have been changing and what to expect.
 
     Args:
         city: City to analyze (default: bern)
+    
+    Returns:
+        Prompt template string instructing the LLM to analyze historical data,
+        identify temperature and flow trends, and provide outlook recommendations
+        for optimal swimming times.
     """
     return f"""Please analyze the weekly trends for {city}.
 
@@ -173,9 +233,9 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 # ============================================================================
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__get_current_temperature")
 async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
-    """Get current water temperature for a specific city.
+    """Retrieves current water temperature for a specific city.
 
     Use this for quick temperature checks and simple 'how warm is the water?' questions.
     Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
@@ -186,7 +246,18 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
               Use list_cities to discover available locations.
 
     Returns:
-        Dictionary with temperature data and Swiss German descriptions.
+        Dictionary containing:
+        - city (str): City identifier
+        - temperature (float): Water temperature in Celsius
+        - temperature_text (str): Swiss German description
+        - swiss_german_explanation (str): English translation of Swiss German phrase
+        - name (str): Location name
+        - warning (str | None): Safety warning if flow is dangerous
+        - suggestion (str): Swimming recommendation based on temperature
+        - seasonal_advice (str): Season-specific swimming guidance
+        - temperature_prec (float): Precise temperature value
+        - temperature_text_short (str): Short temperature description
+        - longname (str): Full location name
     """
     with MetricsCollector.track_tool_call("get_current_temperature"):
         logger.info(f"Getting current temperature for {city}")
@@ -236,9 +307,9 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
             return result
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__get_current_conditions")
 async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
-    """Get comprehensive swimming conditions report including water temperature,
+    """Retrieves comprehensive swimming conditions report including water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
 
     Use this for safety assessments, 'is it safe to swim?' questions, and when users
@@ -250,7 +321,24 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
               Use list_cities to discover available locations.
 
     Returns:
-        Dictionary with comprehensive swimming conditions.
+        Dictionary containing:
+        - city (str): City identifier
+        - aare (dict): Aare river data with temperature, flow, height, and forecast
+          - location (str): Location name
+          - location_long (str): Full location name
+          - temperature (float): Water temperature in Celsius
+          - temperature_text (str): Swiss German temperature description
+          - swiss_german_explanation (str): English translation
+          - temperature_text_short (str): Short description
+          - flow (float): Flow rate in m³/s
+          - flow_text (str): Flow description
+          - height (float): Water height in meters
+          - forecast2h (float): Temperature forecast for 2 hours
+          - forecast2h_text (str): Forecast description
+          - warning (str | None): Safety warning if applicable
+        - seasonal_advice (str): Season-specific guidance
+        - weather (dict | None): Current weather conditions
+        - forecast (dict | None): Weather forecast
     """
     logger.info(f"Getting current conditions for {city}")
 
@@ -289,9 +377,9 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
         return result
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__get_historical_data")
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
-    """Get historical time-series data for trend analysis, comparisons with past
+    """Retrieves historical time-series data for trend analysis, comparisons with past
     conditions, and statistical queries.
 
     Returns hourly data points for temperature and flow. Use this for questions like
@@ -304,7 +392,13 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
         end: End date/time. Accepts ISO format, Unix timestamp, or 'now' for current time.
 
     Returns:
-        Dictionary with time series data containing hourly measurements.
+        Dictionary containing:
+        - timestamps (list[str]): ISO 8601 timestamps for each data point
+        - temperatures (list[float]): Water temperatures in Celsius
+        - flows (list[float]): Flow rates in m³/s
+        - city (str): City identifier
+        - start (str): Start timestamp of data range
+        - end (str): End timestamp of data range
     """
     logger.info(f"Getting historical data for {city} from {start} to {end}")
 
@@ -313,16 +407,21 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
         return response
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__list_cities")
 async def list_cities() -> list[dict[str, Any]]:
-    """Get all available cities with Aare monitoring stations.
+    """Retrieves all available cities with Aare monitoring stations.
 
     Returns city identifiers, full names, coordinates, and current temperature
     for each location. Use this for location discovery ('which cities are available?')
     and for comparing temperatures across all cities to find the warmest/coldest spot.
 
     Returns:
-        List of city dictionaries with identifiers, names, coordinates, and temperatures.
+        List of dictionaries, each containing:
+        - city (str): City identifier (e.g., 'bern', 'thun')
+        - name (str): Display name
+        - longname (str): Full location name
+        - coordinates (dict): Location coordinates with lat/lon
+        - temperature (float): Current water temperature in Celsius
     """
     logger.info("Listing all cities")
 
@@ -341,9 +440,9 @@ async def list_cities() -> list[dict[str, Any]]:
         ]
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
-    """Get current flow rate (m³/s) and safety assessment based on BAFU
+    """Retrieves current flow rate (m³/s) and safety assessment based on BAFU
     (Swiss Federal Office for the Environment) danger thresholds.
 
     Returns flow rate, danger level classification, and safety recommendations.
@@ -361,7 +460,13 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
               Use list_cities to discover available locations.
 
     Returns:
-        Dictionary with flow data and safety assessment.
+        Dictionary containing:
+        - city (str): City identifier
+        - flow (float | None): Current flow rate in m³/s
+        - flow_text (str | None): Flow description
+        - flow_threshold (float): Danger threshold for this location
+        - safety_assessment (str): Safety evaluation (e.g., 'Safe', 'Dangerous')
+        - danger_level (int): Numeric danger level (1-5, higher is more dangerous)
     """
     logger.info(f"Getting flow danger level for {city}")
 
@@ -391,9 +496,9 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         }
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__compare_cities")
 async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
-    """Compare water conditions across multiple cities.
+    """Compares water conditions across multiple cities.
 
     Use this for comparative questions like 'which city has the warmest water?',
     'compare Bern and Thun', or 'where's the best place to swim today?'.
@@ -404,7 +509,14 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
                 Use list_cities to discover available locations.
 
     Returns:
-        Dictionary with comparison data including warmest, coldest, and safest cities.
+        Dictionary containing:
+        - cities (list[dict]): List of city data with temperature, flow, and safety info
+        - warmest (dict | None): City with highest temperature
+        - coldest (dict | None): City with lowest temperature
+        - safest (dict | None): City with lowest flow rate
+        - comparison_summary (str): Text summary of comparison
+        - recommendation (str | None): Best swimming location recommendation
+        - seasonal_advice (str): Season-specific guidance
     """
     logger.info(f"Comparing cities: {cities or 'all'}")
 
@@ -516,9 +628,9 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
         }
 
 
-@mcp.tool()
+@mcp.tool(name="aareguru__get_forecast")
 async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
-    """Get temperature and flow forecast for a city.
+    """Retrieves temperature and flow forecast for a city.
 
     Use this for forecast questions like 'will the water be warmer tomorrow?',
     'what's the 2-hour forecast?', or 'when will it be warmest today?'.
@@ -529,7 +641,15 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
         hours: Forecast horizon in hours (typically 2). The API provides 2-hour forecasts.
 
     Returns:
-        Dictionary with forecast data including trend analysis and timing recommendations.
+        Dictionary containing:
+        - city (str): City identifier
+        - current (dict): Current conditions with temperature, text, and flow
+        - forecast_2h (float | None): Forecasted temperature in 2 hours
+        - forecast_text (str): Forecast description
+        - trend (str): Temperature trend ('rising', 'falling', 'stable', 'unknown')
+        - temperature_change (float | None): Expected temperature change in degrees
+        - recommendation (str): Timing recommendation for swimming
+        - seasonal_advice (str): Season-specific guidance
     """
     logger.info(f"Getting forecast for {city} ({hours}h)")
 
