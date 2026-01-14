@@ -78,24 +78,6 @@ async def get_cities_resource() -> str:
         return json.dumps([city.model_dump() for city in response], indent=2)
 
 
-@mcp.resource("aareguru://widget")
-async def get_widget_resource() -> str:
-    """Retrieves current data snapshot for all monitored cities at once.
-    
-    Returns a comprehensive widget-style data structure containing real-time
-    conditions for all Aare monitoring locations. Use this for dashboard
-    displays or quick overview of all locations.
-    
-    Returns:
-        JSON string with current conditions for all cities, including
-        temperatures, flow rates, weather, and forecasts in a compact format
-        optimized for widget display.
-    """
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_widget()
-        return json.dumps(response, indent=2)
-
-
 @mcp.resource("aareguru://current/{city}")
 async def get_current_resource(city: str) -> str:
     """Retrieves complete current conditions for a specific city.
