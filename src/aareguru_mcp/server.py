@@ -121,7 +121,7 @@ async def get_today_resource(city: str) -> str:
 # ============================================================================
 
 
-@mcp.prompt(name="aareguru__daily-swimming-report")
+@mcp.prompt(name="daily-swimming-report")
 async def daily_swimming_report(city: str = "bern") -> str:
     """Generates a comprehensive daily swimming report for a specific city.
 
@@ -149,7 +149,7 @@ If conditions are dangerous, make this very clear at the top of the report.
 If there's a better location nearby, suggest it."""
 
 
-@mcp.prompt(name="aareguru__compare-swimming-spots")
+@mcp.prompt(name="compare-swimming-spots")
 async def compare_swimming_spots() -> str:
     """Generates a comparison of all available swimming locations.
 
@@ -177,7 +177,7 @@ Format as a clear, scannable report. Use emojis for quick visual reference:
 End with a personalized recommendation based on conditions."""
 
 
-@mcp.prompt(name="aareguru__weekly-trend-analysis")
+@mcp.prompt(name="weekly-trend-analysis")
 async def weekly_trend_analysis(city: str = "bern") -> str:
     """Generates a weekly trend analysis for temperature and flow patterns.
 
@@ -215,7 +215,7 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 # ============================================================================
 
 
-@mcp.tool(name="aareguru__get_current_temperature")
+@mcp.tool(name="get_current_temperature")
 async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
     """Retrieves current water temperature for a specific city.
 
@@ -289,7 +289,7 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
             return result
 
 
-@mcp.tool(name="aareguru__get_current_conditions")
+@mcp.tool(name="get_current_conditions")
 async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
     """Retrieves comprehensive swimming conditions report including water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
@@ -359,7 +359,7 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
         return result
 
 
-@mcp.tool(name="aareguru__get_historical_data")
+@mcp.tool(name="get_historical_data")
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
     """Retrieves historical time-series data for trend analysis, comparisons with past
     conditions, and statistical queries.
@@ -389,7 +389,7 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
         return response
 
 
-@mcp.tool(name="aareguru__list_cities")
+@mcp.tool(name="list_cities")
 async def list_cities() -> list[dict[str, Any]]:
     """Retrieves all available cities with Aare monitoring stations.
 
@@ -422,7 +422,7 @@ async def list_cities() -> list[dict[str, Any]]:
         ]
 
 
-@mcp.tool(name="aareguru__get_flow_danger_level")
+@mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
     """Retrieves current flow rate (m³/s) and safety assessment based on BAFU
     (Swiss Federal Office for the Environment) danger thresholds.
@@ -478,7 +478,7 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         }
 
 
-@mcp.tool(name="aareguru__compare_cities")
+@mcp.tool(name="compare_cities")
 async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
     """Compares water conditions across multiple cities.
 
@@ -610,7 +610,7 @@ async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
         }
 
 
-@mcp.tool(name="aareguru__get_forecast")
+@mcp.tool(name="get_forecast")
 async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
     """Retrieves temperature and flow forecast for a city.
 
