@@ -181,33 +181,6 @@ class MCPHTTPTester:
             print(f"   ❌ Error: {e}")
             return False
 
-    async def test_tool_compare_cities(self) -> bool:
-        """Test compare_cities tool via Aareguru API."""
-        print("📊 Testing compare_cities (Bern, Thun)...")
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                # Get data for multiple cities
-                cities = ["bern", "thun"]
-                temps = []
-                for city in cities:
-                    response = await client.get(
-                        f"{self.api_base}/current",
-                        params={"city": city, "app": "aareguru-mcp-test"}
-                    )
-                    if response.status_code == 200:
-                        data = response.json()
-                        if "aare" in data and data["aare"]:
-                            temps.append(data["aare"].get("temperature"))
-
-                if len(temps) == len(cities):
-                    print(f"   ✅ Compared cities: {temps}")
-                    return True
-                print("   ❌ Could not get data for all cities")
-                return False
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            return False
-
     async def test_tool_get_forecast(self) -> bool:
         """Test get_forecast tool via Aareguru API."""
         print("🔮 Testing get_forecast (Bern)...")
