@@ -315,8 +315,6 @@ class MCPHTTPTester:
         print()
         results['tool_get_flow_danger_level'] = await self.test_tool_get_flow_danger_level()
         print()
-        results['tool_compare_cities'] = await self.test_tool_compare_cities()
-        print()
         results['tool_get_forecast'] = await self.test_tool_get_forecast()
 
         # Test all resources

@@ -161,7 +161,7 @@ class TestServerConfiguration:
     def test_server_has_tools(self):
         """Test server has registered tools."""
         tools = list(mcp._tool_manager._tools.keys())
-        assert len(tools) >= 7
+        assert len(tools) >= 6
         assert "get_current_temperature" in tools
         assert "get_current_conditions" in tools
         assert "list_cities" in tools
@@ -172,20 +172,19 @@ class TestServerConfiguration:
         templates = list(mcp._resource_manager._templates.keys())
 
         assert "aareguru://cities" in resources
-        assert "aareguru://widget" in resources
 
         assert "aareguru://current/{city}" in templates
         assert "aareguru://today/{city}" in templates
 
-        assert len(resources) + len(templates) >= 4
+        assert len(resources) + len(templates) >= 3
 
     def test_server_has_prompts(self):
         """Test server has registered prompts."""
         prompts = list(mcp._prompt_manager._prompts.keys())
         assert len(prompts) >= 3
-        assert "daily_swimming_report" in prompts
-        assert "compare_swimming_spots" in prompts
-        assert "weekly_trend_analysis" in prompts
+        assert "daily-swimming-report" in prompts
+        assert "compare-swimming-spots" in prompts
+        assert "weekly-trend-analysis" in prompts
 
 
 class TestLogging:

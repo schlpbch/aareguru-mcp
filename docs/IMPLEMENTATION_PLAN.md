@@ -224,31 +224,7 @@ Tools allow AI assistants to query the API dynamically. These 7 tools cover 95%+
 
 ---
 
-#### 6. `compare_cities`
-**Description**: Compare conditions across multiple cities
-
-**Input Schema**:
-```json
-{
-  "cities": {
-    "type": "array",
-    "items": {"type": "string"},
-    "description": "List of city identifiers to compare",
-    "minItems": 2
-  }
-}
-```
-
-**Returns**: Comparison table with temperature, flow, weather, and safety for each city
-
-**Example User Questions**:
-- "Compare Bern and Thun temperatures"
-- "Which city has the warmest water?"
-- "Where's the best place to swim today?"
-
----
-
-#### 7. `get_forecast`
+#### 6. `get_forecast`
 **Description**: Get weather and temperature forecasts
 
 **Input Schema**:
@@ -704,8 +680,7 @@ LOG_LEVEL=INFO
 7. **Document usage** in README
 
 ### Phase 2: Enhanced Features
-8. **Implement advanced tools** (tools 6-7):
-   - `compare_cities`
+8. **Implement advanced tools** (tool 6):
    - `get_forecast`
 9. **Add response formatting** with emojis and markdown
 10. **Implement Swiss German translations** in responses

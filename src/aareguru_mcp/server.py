@@ -155,7 +155,7 @@ async def compare_swimming_spots() -> str:
 
     Creates a formatted comparison of all monitored cities to help users
     choose the best swimming spot.
-    
+
     Returns:
         Prompt template string instructing the LLM to compare all cities,
         rank them by temperature and safety, and provide a recommendation
@@ -163,7 +163,8 @@ async def compare_swimming_spots() -> str:
     """
     return """Please compare all available Aare swimming locations.
 
-Use the compare_cities tool to get data for all cities, then present:
+Use the list_cities tool to get data for all cities, then use get_current_conditions
+to get detailed information for each city to present:
 
 1. **🏆 Best Choice Today**: The recommended city based on temperature and safety
 2. **📊 Comparison Table**: All cities ranked by temperature with safety status
@@ -475,138 +476,6 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
             "flow_threshold": threshold,
             "safety_assessment": safety,
             "danger_level": danger_level,
-        }
-
-
-@mcp.tool(name="compare_cities")
-async def compare_cities(cities: list[str] | None = None) -> dict[str, Any]:
-    """Compares water conditions across multiple cities.
-
-    Use this for comparative questions like 'which city has the warmest water?',
-    'compare Bern and Thun', or 'where's the best place to swim today?'.
-
-    Args:
-        cities: List of city identifiers to compare (e.g., ['bern', 'thun', 'basel']).
-                If not provided, compares all available cities.
-                Use list_cities to discover available locations.
-
-    Returns:
-        Dictionary containing:
-        - cities (list[dict]): List of city data with temperature, flow, and safety info
-        - warmest (dict | None): City with highest temperature
-        - coldest (dict | None): City with lowest temperature
-        - safest (dict | None): City with lowest flow rate
-        - comparison_summary (str): Text summary of comparison
-        - recommendation (str | None): Best swimming location recommendation
-        - seasonal_advice (str): Season-specific guidance
-    """
-    logger.info(f"Comparing cities: {cities or 'all'}")
-
-    async with AareguruClient(settings=get_settings()) as client:
-        if cities is None:
-            all_cities = await client.get_cities()
-            cities = [city.city for city in all_cities]
-
-        city_data = []
-        for city in cities:
-            try:
-                response = await client.get_current(city)
-
-                if response.aare:
-                    flow = response.aare.flow
-                    threshold = response.aare.flow_scale_threshold or 220
-
-                    if flow is None:
-                        safety = "Unknown"
-                        danger_level = 0
-                    elif flow < 100:
-                        safety = "Safe"
-                        danger_level = 1
-                    elif flow < threshold:
-                        safety = "Moderate"
-                        danger_level = 2
-                    elif flow < 300:
-                        safety = "Elevated"
-                        danger_level = 3
-                    elif flow < 430:
-                        safety = "High"
-                        danger_level = 4
-                    else:
-                        safety = "Very High"
-                        danger_level = 5
-
-                    city_data.append(
-                        {
-                            "city": city,
-                            "name": response.aare.location,
-                            "longname": response.aare.location_long,
-                            "temperature": response.aare.temperature,
-                            "temperature_text": response.aare.temperature_text,
-                            "flow": flow,
-                            "flow_text": response.aare.flow_text,
-                            "safety": safety,
-                            "danger_level": danger_level,
-                        }
-                    )
-            except Exception as e:
-                logger.warning(f"Failed to get data for {city}: {e}")
-                continue
-
-        if not city_data:
-            return {
-                "cities": [],
-                "warmest": None,
-                "coldest": None,
-                "safest": None,
-                "comparison_summary": "No data available for comparison",
-            }
-
-        cities_with_temp = [c for c in city_data if c["temperature"] is not None]
-        cities_with_flow = [c for c in city_data if c["flow"] is not None]
-
-        warmest = (
-            max(cities_with_temp, key=lambda c: c["temperature"]) if cities_with_temp else None
-        )
-        coldest = (
-            min(cities_with_temp, key=lambda c: c["temperature"]) if cities_with_temp else None
-        )
-        safest = min(cities_with_flow, key=lambda c: c["flow"]) if cities_with_flow else None
-
-        summary_parts = []
-        if warmest:
-            summary_parts.append(f"Warmest: {warmest['name']} ({warmest['temperature']}°C)")
-        if coldest:
-            summary_parts.append(f"Coldest: {coldest['name']} ({coldest['temperature']}°C)")
-        if safest:
-            summary_parts.append(f"Safest: {safest['name']} ({safest['flow']} m³/s)")
-
-        recommendation = None
-        if warmest and safest:
-            if warmest == safest:
-                recommendation = (
-                    f"🏆 Best Choice: {warmest['name']} is both the warmest and safest option!"
-                )
-            elif warmest["danger_level"] <= 2:
-                recommendation = (
-                    f"🏆 Best Choice: {warmest['name']} is the warmest safe option "
-                    f"({warmest['temperature']}°C)."
-                )
-            else:
-                recommendation = (
-                    f"⚠️ Trade-off: {warmest['name']} is warmest but has higher flow. "
-                    f"{safest['name']} is safer."
-                )
-
-        return {
-            "cities": city_data,
-            "warmest": warmest,
-            "coldest": coldest,
-            "safest": safest,
-            "comparison_summary": (
-                " | ".join(summary_parts) if summary_parts else "Comparison complete"
-            ),
-            "recommendation": recommendation,
-            "seasonal_advice": _get_seasonal_advice(),
         }
 
 

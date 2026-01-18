@@ -259,11 +259,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 - Safety-critical queries
 - Flow rate checks
 
-**`compare_cities`** → Category 4
-- Multi-location queries
-- Best spot recommendations
-
-**`get_forecast`** → Category 6
+**`get_forecast`** → Category 3
 - Future predictions
 - Optimal timing
 
@@ -327,18 +323,11 @@ Expected: Temperature + Swiss German + swimming status
 Tool: get_current_temperature
 ```
 
-**Category 4 (Comparative)**:
+**Category 4 (Temporal)**:
 ```
-Q: "Compare Bern and Thun temperatures"
-Expected: Side-by-side comparison table
-Tool: compare_cities
-```
-
-**Category 12 (Multi-Step)**:
-```
-Q: "Find warmest city and check its flow rate"
-Expected: City comparison → flow check → recommendation
-Tools: compare_cities + get_flow_danger_level
+Q: "Will the water be warmer in 2 hours?"
+Expected: Current temp → forecast → recommendation
+Tool: get_forecast
 ```
 
 ---

@@ -44,7 +44,7 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 
 | Feature              | Description                                                          |
 | -------------------- | -------------------------------------------------------------------- |
-| **7 MCP Tools**      | Temperature, flow, safety, forecasts, comparisons, history           |
+| **6 MCP Tools**      | Temperature, flow, safety, forecasts, history                        |
 | **4 MCP Resources**  | Direct data access via `aareguru://` URIs                            |
 | **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                       |
 | **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                  |
@@ -63,7 +63,6 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 | `get_flow_danger_level`   | Flow rate + BAFU safety assessment       | "Is it safe to swim?"           |
 | `list_cities`             | All monitored cities                     | "Which cities have data?"       |
 | `get_historical_data`     | Temperature/flow history                 | "Show last 7 days"              |
-| `compare_cities`          | Multi-city comparison                    | "Which city is warmest?"        |
 | `get_forecast`            | Temperature/flow forecast                | "Will it be warmer later?"      |
 
 ### BAFU Safety Thresholds

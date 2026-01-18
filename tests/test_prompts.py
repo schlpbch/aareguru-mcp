@@ -41,9 +41,9 @@ class TestPromptRegistration:
         prompt_manager = mcp._prompt_manager
         prompts = prompt_manager._prompts
 
-        assert "daily_swimming_report" in prompts
-        assert "compare_swimming_spots" in prompts
-        assert "weekly_trend_analysis" in prompts
+        assert "daily-swimming-report" in prompts
+        assert "compare-swimming-spots" in prompts
+        assert "weekly-trend-analysis" in prompts
 
     def test_prompt_count(self):
         """Test that we have exactly 3 prompts registered."""
@@ -53,9 +53,9 @@ class TestPromptRegistration:
 
     def test_prompt_names(self):
         """Test prompt names are correct."""
-        assert daily_swimming_report.name == "daily_swimming_report"
-        assert compare_swimming_spots.name == "compare_swimming_spots"
-        assert weekly_trend_analysis.name == "weekly_trend_analysis"
+        assert daily_swimming_report.name == "daily-swimming-report"
+        assert compare_swimming_spots.name == "compare-swimming-spots"
+        assert weekly_trend_analysis.name == "weekly-trend-analysis"
 
     def test_prompt_descriptions(self):
         """Test prompts have descriptions."""
@@ -145,10 +145,10 @@ class TestCompareSwimmingSpotsPrompt:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_mentions_compare_tool(self):
-        """Test that prompt mentions the compare_cities tool."""
+    async def test_mentions_list_tool(self):
+        """Test that prompt mentions the list_cities tool."""
         result = await get_prompt_text(compare_swimming_spots)
-        assert "compare_cities" in result
+        assert "list_cities" in result
 
     @pytest.mark.asyncio
     async def test_includes_key_sections(self):
@@ -265,8 +265,9 @@ class TestPromptIntegration:
         """Test compare spots prompt provides actionable instructions."""
         result = await get_prompt_text(compare_swimming_spots)
 
-        # Should guide Claude to use compare tool
-        assert "compare_cities" in result
+        # Should guide Claude to use list and conditions tools
+        assert "list_cities" in result
+        assert "get_current_conditions" in result
 
         # Should request structured output
         assert "Table" in result or "ranked" in result.lower()
@@ -304,7 +305,7 @@ class TestPromptIntegration:
 
         # Each should have different primary tool focus
         assert "get_current_conditions" in daily
-        assert "compare_cities" in compare
+        assert "list_cities" in compare or "get_current_conditions" in compare
         assert "get_historical_data" in weekly
 
     @pytest.mark.integration
@@ -404,19 +405,22 @@ class TestPromptToolIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_compare_spots_tool_exists_and_works(self):
-        """Test that compare_cities tool referenced in prompt works."""
+    async def test_compare_spots_tools_exist_and_work(self):
+        """Test that tools referenced in compare prompt work."""
         from aareguru_mcp import tools
 
-        # Get the prompt text to verify tool name
+        # Get the prompt text to verify tool names
         prompt_text = await get_prompt_text(compare_swimming_spots)
 
-        # Verify referenced tool exists and works
-        assert "compare_cities" in prompt_text
-        comparison = await tools.compare_cities(["bern", "thun"])
-        assert "cities" in comparison
-        assert "warmest" in comparison
-        assert "safest" in comparison
+        # Verify referenced tools exist and work
+        assert "list_cities" in prompt_text
+        cities = await tools.list_cities()
+        assert isinstance(cities, list)
+        assert len(cities) > 0
+
+        assert "get_current_conditions" in prompt_text
+        conditions = await tools.get_current_conditions("bern")
+        assert "city" in conditions
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -480,20 +484,21 @@ class TestPromptToolIntegration:
         """Simulate complete compare spots workflow as Claude would execute it."""
         from aareguru_mcp import tools
 
-        # Step 1: Compare all cities (as prompted)
-        comparison = await tools.compare_cities(None)  # None = all cities
+        # Step 1: List all cities (as prompted)
+        cities = await tools.list_cities()
+        assert isinstance(cities, list)
+        assert len(cities) > 0
 
-        # Verify comparison structure
-        assert "cities" in comparison
-        assert "warmest" in comparison
-        assert "safest" in comparison
-        assert len(comparison["cities"]) > 0
+        # Step 2: Get conditions for each city
+        city_data = []
+        for city_info in cities[:3]:  # Just check first 3 cities
+            city = city_info["city"]
+            conditions = await tools.get_current_conditions(city)
+            assert conditions["city"] == city
+            city_data.append(conditions)
 
-        # Verify we can identify best choice
-        warmest = comparison["warmest"]
-        safest = comparison["safest"]
-        assert "name" in warmest or "city" in warmest
-        assert "name" in safest or "city" in safest
+        # Verify we can compare data
+        assert len(city_data) > 0
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -573,6 +578,6 @@ class TestPromptMCPProtocolCompliance:
         # FastMCP prompts have to_mcp_prompt method
         mcp_prompt = daily_swimming_report.to_mcp_prompt()
 
-        assert mcp_prompt.name == "daily_swimming_report"
+        assert mcp_prompt.name == "daily-swimming-report"
         assert mcp_prompt.description is not None
         assert hasattr(mcp_prompt, "arguments")
