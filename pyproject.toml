@@ -18,7 +18,7 @@ dependencies = [
     "structlog>=23.1.0",        # Structured logging
     "slowapi>=0.1.9",           # Rate limiting
     "prometheus-client>=0.20.0", # Metrics and monitoring
-    "swiss-ai-mcp-commons @ file:///home/schlpbch/code/swiss-ai-mcp-commons",
+    "swiss-ai-mcp-commons @ git+https://github.com/schlpbch/swiss-ai-mcp-commons.git@v1.0.0",
 ]
 
 [project.scripts]
