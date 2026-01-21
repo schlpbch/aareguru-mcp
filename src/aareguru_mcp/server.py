@@ -33,7 +33,7 @@ settings = get_settings()
 
 # Create FastMCP server instance
 mcp = FastMCP(
-    name="aareguru_mcp",
+    name="aareguru-mcp",
     instructions="""You are an assistant that helps users with Swiss Aare river conditions.
 
 You can provide:
@@ -121,7 +121,7 @@ async def get_today_resource(city: str) -> str:
 # ============================================================================
 
 
-@mcp.prompt(name="daily_swimming_report")
+@mcp.prompt(name="daily-swimming-report")
 async def daily_swimming_report(city: str = "bern") -> str:
     """Generates comprehensive daily swimming report combining conditions, safety, and recommendations.
 
@@ -146,7 +146,7 @@ If conditions are dangerous, make this very clear at the top of the report.
 If there's a better location nearby, suggest it."""
 
 
-@mcp.prompt(name="compare_swimming_spots")
+@mcp.prompt(name="compare-swimming-spots")
 async def compare_swimming_spots() -> str:
     """Generates comparison of all swimming locations ranked by temperature and safety.
 
@@ -172,7 +172,7 @@ Format as a clear, scannable report. Use emojis for quick visual reference:
 End with a personalized recommendation based on conditions."""
 
 
-@mcp.prompt(name="weekly_trend_analysis")
+@mcp.prompt(name="weekly-trend-analysis")
 async def weekly_trend_analysis(city: str = "bern") -> str:
     """Generates weekly trend analysis showing temperature and flow patterns with outlook.
 
@@ -559,7 +559,7 @@ async def health_check(request: Request) -> JSONResponse:
     return JSONResponse(
         {
             "status": "healthy",
-            "service": "aareguru_mcp",
+            "service": mcp.name,
             "version": settings.app_version,
         }
     )
