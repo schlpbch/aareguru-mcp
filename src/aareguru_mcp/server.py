@@ -9,7 +9,7 @@ from typing import Any
 
 import structlog
 from fastmcp import FastMCP
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -23,7 +23,7 @@ from .helpers import (
     _get_swiss_german_explanation,
 )
 from .metrics import MetricsCollector
-from .rate_limit import limiter
+from .rate_limit import limiter, rate_limit_exceeded_handler
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -123,8 +123,7 @@ async def get_today_resource(city: str) -> str:
 
 @mcp.prompt(name="daily-swimming-report")
 async def daily_swimming_report(city: str = "bern") -> str:
-    """Generates comprehensive daily swimming report combining conditions, safety, and
-    recommendations.
+    """Generates comprehensive daily swimming report combining conditions, safety, and recommendations.
 
     Args:
         city: City to generate the report for (default: bern)
@@ -210,8 +209,7 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 
 @mcp.tool(name="get_current_temperature")
 async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
-    """Retrieves current water temperature for a specific city. Takes city parameter
-    (optional, default: bern).
+    """Retrieves current water temperature for a specific city. Takes city parameter (optional, default: bern).
 
     Use this for quick temperature checks and simple 'how warm is the water?' questions.
     Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
@@ -285,9 +283,8 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
 
 @mcp.tool(name="get_current_conditions")
 async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
-    """Retrieves comprehensive swimming conditions report. Takes city parameter
-    (optional, default: bern). Returns water temperature, flow rate, water height,
-    weather conditions, and 2-hour forecast.
+    """Retrieves comprehensive swimming conditions report. Takes city parameter (optional, default: bern). Returns water temperature,
+    flow rate, water height, weather conditions, and 2-hour forecast.
 
     Use this for safety assessments, 'is it safe to swim?' questions, and when users
     need a complete picture before swimming. This is the most detailed tool - use it
@@ -356,12 +353,9 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
 
 @mcp.tool(name="get_historical_data")
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
-    """Retrieves historical time-series data for trend analysis. Takes city, start,
-    and end parameters (all required). Returns hourly data points for temperature
-    and flow.
+    """Retrieves historical time-series data for trend analysis. Takes city, start, and end parameters (all required). Returns hourly data points for temperature and flow.
 
-    Use this for questions like 'how has temperature changed this week?' or
-    'what was the warmest day this month?'
+    Use this for questions like 'how has temperature changed this week?' or 'what was the warmest day this month?'
 
     Args:
         city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten')
@@ -420,9 +414,7 @@ async def list_cities() -> list[dict[str, Any]]:
 
 @mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
-    """Retrieves current flow rate and safety assessment. Takes city parameter
-    (optional, default: bern). Returns flow rate (m³/s), danger level, and safety
-    recommendations based on BAFU thresholds.
+    """Retrieves current flow rate and safety assessment. Takes city parameter (optional, default: bern). Returns flow rate (m³/s), danger level, and safety recommendations based on BAFU thresholds.
 
     Use this for safety-critical questions about current strength and danger.
 
@@ -476,9 +468,7 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
 
 @mcp.tool(name="get_forecast")
 async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
-    """Retrieves temperature and flow forecast for a city. Takes city and hours
-    parameters (both optional, defaults: bern, 2). Returns forecast data with
-    trend analysis.
+    """Retrieves temperature and flow forecast for a city. Takes city and hours parameters (both optional, defaults: bern, 2). Returns forecast data with trend analysis.
 
     Use this for forecast questions like 'will the water be warmer tomorrow?',
     'what's the 2-hour forecast?', or 'when will it be warmest today?'.
@@ -535,7 +525,8 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
             else:
                 trend = "falling"
                 recommendation = (
-                    f"Temperature falling by {abs(temp_diff):.1f}°C - swim sooner rather than later"
+                    f"Temperature falling by {abs(temp_diff):.1f}°C - "
+                    "swim sooner rather than later"
                 )
 
         return {
