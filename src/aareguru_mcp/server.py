@@ -60,11 +60,11 @@ to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 @mcp.resource("aareguru://cities")
 async def get_cities_resource() -> str:
     """Retrieves the complete list of cities with Aare monitoring stations.
-    
+
     Returns JSON array containing city identifiers, full names, coordinates,
     and current temperature readings for all monitored locations. Use this
     resource for location discovery and initial data exploration.
-    
+
     Returns:
         JSON string with array of city objects, each containing:
         - city (str): City identifier (e.g., 'bern', 'thun')
@@ -81,13 +81,13 @@ async def get_cities_resource() -> str:
 @mcp.resource("aareguru://current/{city}")
 async def get_current_resource(city: str) -> str:
     """Retrieves complete current conditions for a specific city.
-    
+
     Returns comprehensive real-time data including water temperature, flow rate,
     weather conditions, and forecasts for the specified location.
-    
+
     Args:
         city: City identifier (e.g., 'bern', 'thun', 'basel')
-    
+
     Returns:
         JSON string with complete current conditions including temperature,
         flow, weather, and forecast data for the specified city.
@@ -100,13 +100,13 @@ async def get_current_resource(city: str) -> str:
 @mcp.resource("aareguru://today/{city}")
 async def get_today_resource(city: str) -> str:
     """Retrieves minimal current data snapshot for a specific city.
-    
+
     Returns a lightweight data structure with essential current information.
     Use this when you only need basic temperature data without full details.
-    
+
     Args:
         city: City identifier (e.g., 'bern', 'thun', 'basel')
-    
+
     Returns:
         JSON string with minimal current data including temperature and
         basic location information for the specified city.
@@ -127,7 +127,7 @@ async def daily_swimming_report(city: str = "bern") -> str:
 
     Args:
         city: City to generate the report for (default: bern)
-    
+
     Returns:
         Prompt template string instructing the LLM to create a formatted report
         with current conditions, safety assessment, forecast, and recommendations.
@@ -178,7 +178,7 @@ async def weekly_trend_analysis(city: str = "bern") -> str:
 
     Args:
         city: City to analyze (default: bern)
-    
+
     Returns:
         Prompt template string instructing the LLM to analyze historical data,
         identify temperature and flow trends, and provide outlook recommendations
