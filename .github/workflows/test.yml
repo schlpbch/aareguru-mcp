@@ -4,44 +4,82 @@ name: MCP Server Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install uv
-      run: curl -LsSf https://astral.sh/uv/install.sh | sh
-    
-    - name: Install dependencies
-      run: |
-        uv sync --frozen
-    
-    - name: Run unit tests
-      run: |
-        uv run pytest -v --cov --cov-report=term-missing
-    
-    - name: Start MCP HTTP server in background
-      run: |
-        uv run aareguru-mcp-http &
-        sleep 5  # Wait for server to start
-    
-    - name: Run HTTP integration tests
-      run: |
-        uv run python scripts/test_mcp_http.py
-    
-    - name: Stop server
-      if: always()
-      run: |
-        pkill -f aareguru-mcp-http || true
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          uv sync --frozen
+
+      - name: Run linting
+        run: |
+          uv run ruff check src/ tests/
+
+      - name: Auto-format code
+        run: |
+          uv run ruff format src/ tests/
+
+      - name: Check for formatting changes
+        id: format-check
+        run: |
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "formatted=true" >> $GITHUB_OUTPUT
+            echo "::notice title=Code Formatting::Files were auto-formatted by ruff"
+            git diff --name-only
+          else
+            echo "formatted=false" >> $GITHUB_OUTPUT
+            echo "No formatting changes needed"
+          fi
+
+      - name: Commit auto-formatting changes
+        if: steps.format-check.outputs.formatted == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Auto-format code with ruff [skip ci]"
+          git push
+        continue-on-error: true
+
+      - name: Warning for PR formatting
+        if: steps.format-check.outputs.formatted == 'true' && github.event_name == 'pull_request'
+        run: |
+          echo "::warning title=Formatting Required::This PR has formatting issues. Please run 'uv run ruff format src/ tests/' locally and commit the changes."
+
+      - name: Run unit tests
+        run: |
+          uv run pytest -v --cov --cov-report=term-missing
+
+      - name: Start MCP HTTP server in background
+        run: |
+          uv run aareguru-mcp-http &
+          sleep 5  # Wait for server to start
+
+      - name: Run HTTP integration tests
+        run: |
+          uv run python scripts/test_mcp_http.py
+
+      - name: Stop server
+        if: always()
+        run: |
+          pkill -f aareguru-mcp-http || true

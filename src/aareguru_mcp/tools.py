@@ -324,6 +324,7 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
             "danger_level": danger_level,
         }
 
+
 async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
     """Get temperature and flow forecast for a city.
 

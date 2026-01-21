@@ -41,9 +41,7 @@ class TestHealthEndpoint:
 
     def test_health_with_origin_header(self, client):
         """Test health endpoint works with Origin header (CORS)."""
-        response = client.get(
-            "/health", headers={"Origin": "http://example.com"}
-        )
+        response = client.get("/health", headers={"Origin": "http://example.com"})
         assert response.status_code == 200
 
     def test_multiple_health_requests(self, client):

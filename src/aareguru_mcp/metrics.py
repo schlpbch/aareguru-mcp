@@ -1,8 +1,9 @@
 """Prometheus metrics for monitoring MCP server performance."""
 
-from prometheus_client import Counter, Histogram, Gauge, Info
-from typing import Any
 import time
+from typing import Any
+
+from prometheus_client import Counter, Gauge, Histogram, Info
 
 # Info metric for service metadata
 service_info = Info("aareguru_mcp_service", "Service information")
@@ -92,9 +93,7 @@ class MetricsCollector:
                 tool_calls_total.labels(tool_name=self.name, status=status).inc()
 
                 if exc_type:
-                    errors_total.labels(
-                        error_type=exc_type.__name__, component="tool"
-                    ).inc()
+                    errors_total.labels(error_type=exc_type.__name__, component="tool").inc()
 
                 active_requests.dec()
                 return False  # Don't suppress exceptions
@@ -121,9 +120,7 @@ class MetricsCollector:
 
             def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
                 duration = time.time() - self.start_time
-                api_request_duration_seconds.labels(endpoint=self.endpoint).observe(
-                    duration
-                )
+                api_request_duration_seconds.labels(endpoint=self.endpoint).observe(duration)
 
                 status_code = self.status_code if self.status_code else (500 if exc_type else 200)
                 api_requests_total.labels(
@@ -131,9 +128,7 @@ class MetricsCollector:
                 ).inc()
 
                 if exc_type:
-                    errors_total.labels(
-                        error_type=exc_type.__name__, component="api_client"
-                    ).inc()
+                    errors_total.labels(error_type=exc_type.__name__, component="api_client").inc()
 
                 return False  # Don't suppress exceptions
 
@@ -156,9 +151,7 @@ class MetricsCollector:
                 resource_requests_total.labels(resource_uri=self.uri, status=status).inc()
 
                 if exc_type:
-                    errors_total.labels(
-                        error_type=exc_type.__name__, component="resource"
-                    ).inc()
+                    errors_total.labels(error_type=exc_type.__name__, component="resource").inc()
 
                 active_requests.dec()
                 return False
@@ -182,9 +175,7 @@ class MetricsCollector:
                 prompt_requests_total.labels(prompt_name=self.name, status=status).inc()
 
                 if exc_type:
-                    errors_total.labels(
-                        error_type=exc_type.__name__, component="prompt"
-                    ).inc()
+                    errors_total.labels(error_type=exc_type.__name__, component="prompt").inc()
 
                 active_requests.dec()
                 return False

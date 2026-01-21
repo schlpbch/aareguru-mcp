@@ -1,8 +1,7 @@
 """Unit tests for rate limiting module."""
 
-import pytest
-from slowapi.errors import RateLimitExceeded
 from starlette.requests import Request
+
 from aareguru_mcp.rate_limit import limiter, rate_limit_exceeded_handler
 
 
