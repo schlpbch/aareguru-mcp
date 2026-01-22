@@ -4,7 +4,7 @@ requires-python = ">=3.10"
 
 [[package]]
 name = "aareguru-mcp"
-version = "3.0.1"
+version = "3.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
@@ -38,7 +38,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "slowapi", specifier = ">=0.1.9" },
     { name = "structlog", specifier = ">=23.1.0" },
-    { name = "swiss-ai-mcp-commons", git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.0.0" },
+    { name = "swiss-ai-mcp-commons", git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=master" },
 ]
 
 [package.metadata.requires-dev]
@@ -1655,7 +1655,7 @@ wheels = [
 [[package]]
 name = "swiss-ai-mcp-commons"
 version = "1.0.0"
-source = { git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.0.0#c9e799a14c3427696a3c488cadcc049b9b484740" }
+source = { git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=master#3d94cb52a7eb792de830d7161716e7e94c0b0c21" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
