@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         description="Application name for API requests",
     )
     app_version: str = Field(
-        default="1.0.0",
+        default="3.2.0",
         description="Application version for API requests",
     )
 

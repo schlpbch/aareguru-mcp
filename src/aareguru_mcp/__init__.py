@@ -9,7 +9,7 @@ import logging
 
 import structlog
 
-__version__ = "1.0.0"
+__version__ = "3.2.0"
 __author__ = "Andreas Schlapbach"
 __email__ = "schlpbch@gmail.com"
 
