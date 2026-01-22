@@ -1,6 +1,7 @@
 """Async HTTP client for Aareguru API with caching and rate limiting."""
 
 import asyncio
+import json
 from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
@@ -103,6 +104,27 @@ class AareguruClient:
             f"cache_ttl={self.cache_ttl}s"
             f")"
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert client state to dictionary for JSON serialization."""
+        return {
+            "base_url": self.base_url,
+            "app_name": self.app_name,
+            "app_version": self.app_version,
+            "cache_ttl_seconds": self.cache_ttl,
+            "cache_size": len(self._cache),
+        }
+
+    def to_json(self, **kwargs) -> str:
+        """Convert client state to compact JSON string.
+
+        Args:
+            **kwargs: Additional arguments for json.dumps (e.g., indent=2 for pretty print)
+
+        Returns:
+            JSON string representation of client state
+        """
+        return json.dumps(self.to_dict(), **kwargs)
 
     def _get_cache_key(self, endpoint: str, params: dict[str, Any]) -> str:
         """Generate cache key from endpoint and params."""
