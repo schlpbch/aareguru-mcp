@@ -38,7 +38,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "slowapi", specifier = ">=0.1.9" },
     { name = "structlog", specifier = ">=23.1.0" },
-    { name = "swiss-ai-mcp-commons", git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=master" },
+    { name = "swiss-ai-mcp-commons", git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.1.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1654,8 +1654,8 @@ wheels = [
 
 [[package]]
 name = "swiss-ai-mcp-commons"
-version = "1.0.0"
-source = { git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=master#3d94cb52a7eb792de830d7161716e7e94c0b0c21" }
+version = "1.1.0"
+source = { git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.1.0#66adc621e214a0561bcc0e8ed4cf55c324583493" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
