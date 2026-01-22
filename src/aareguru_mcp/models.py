@@ -103,6 +103,12 @@ class AareCurrentData(BaseModel):
     flow_scale: list[dict[str, Any]] | None = Field(None, description="Flow scale")
     historical_temp_max: dict[str, Any] | None = Field(None, description="Historical max")
 
+    def __str__(self) -> str:
+        """String representation of Aare current data."""
+        temp = f"{self.temperature}°C" if self.temperature else "N/A"
+        flow = f"{self.flow} m³/s" if self.flow else "N/A"
+        return f"AareCurrentData({self.location}: temp={temp}, flow={flow}, text='{self.temperature_text}')"
+
 
 class CurrentResponse(BaseModel):
     """Complete current conditions response model."""
@@ -112,6 +118,14 @@ class CurrentResponse(BaseModel):
     weather: dict[str, Any] | None = Field(None, description="Weather data")
     weatherprognosis: list[dict[str, Any]] | None = Field(None, description="Weather forecast")
     sun: dict[str, Any] | None = Field(None, description="Sun data")
+
+    def __str__(self) -> str:
+        """String representation of current response."""
+        if self.aare:
+            temp = f"{self.aare.temperature}°C" if self.aare.temperature else "N/A"
+            flow = f"{self.aare.flow} m³/s" if self.aare.flow else "N/A"
+            return f"CurrentResponse({self.aare.location}: temp={temp}, flow={flow})"
+        return "CurrentResponse(no data)"
 
 
 class TodayResponse(BaseModel):
@@ -127,6 +141,11 @@ class TodayResponse(BaseModel):
     time: int | None = Field(None, description="Timestamp")
     name: str | None = Field(None, description="City name")
     longname: str | None = Field(None, description="Full city name")
+
+    def __str__(self) -> str:
+        """String representation of today response."""
+        temp = f"{self.aare}°C" if self.aare else "N/A"
+        return f"TodayResponse({self.name}: {temp} - {self.text})"
 
 
 class CityListItem(BaseModel):
@@ -147,6 +166,11 @@ class CityListItem(BaseModel):
     today: str | None = Field(None, description="Today URL")
     widget: str | None = Field(None, description="Widget URL")
     history: str | None = Field(None, description="History URL")
+
+    def __str__(self) -> str:
+        """String representation of city list item."""
+        temp = f"{self.aare}°C" if self.aare else "N/A"
+        return f"CityListItem({self.name}: {temp})"
 
 
 # Type alias for cities response (it's just an array)

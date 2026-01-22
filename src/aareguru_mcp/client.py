@@ -26,6 +26,15 @@ class CacheEntry:
         """Check if cache entry has expired."""
         return datetime.now() > self.expires_at
 
+    def __str__(self) -> str:
+        """String representation of cache entry."""
+        status = "expired" if self.is_expired() else "valid"
+        return f"CacheEntry({status}, expires={self.expires_at.isoformat()})"
+
+    def __repr__(self) -> str:
+        """Repr representation of cache entry."""
+        return f"CacheEntry(data={type(self.data).__name__}, expires_at={self.expires_at!r})"
+
 
 class AareguruClient:
     """Async HTTP client for Aareguru API.
@@ -78,6 +87,22 @@ class AareguruClient:
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
         await self.close()
+
+    def __str__(self) -> str:
+        """String representation of client."""
+        cache_size = len(self._cache)
+        return f"AareguruClient(base_url={self.base_url}, cache_entries={cache_size})"
+
+    def __repr__(self) -> str:
+        """Repr representation of client."""
+        return (
+            f"AareguruClient("
+            f"base_url={self.base_url!r}, "
+            f"app_name={self.app_name!r}, "
+            f"app_version={self.app_version!r}, "
+            f"cache_ttl={self.cache_ttl}s"
+            f")"
+        )
 
     def _get_cache_key(self, endpoint: str, params: dict[str, Any]) -> str:
         """Generate cache key from endpoint and params."""
