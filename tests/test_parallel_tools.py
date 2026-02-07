@@ -19,7 +19,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             # Mock responses for multiple cities
@@ -39,7 +39,9 @@ class TestCompareCitiesFast:
                     {"bern": 100, "thun": 120, "basel": 90}[city],
                 )
             )
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=["bern", "thun", "basel"])
 
@@ -56,7 +58,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             # Mock get_cities
@@ -78,7 +80,9 @@ class TestCompareCitiesFast:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=None)
 
@@ -91,7 +95,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str, flow: float):
@@ -108,7 +112,9 @@ class TestCompareCitiesFast:
                     city, {"bern": 100, "thun": 250}[city]  # thun is unsafe
                 )
             )
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value= None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=["bern", "thun"])
 
@@ -127,7 +133,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str):
@@ -145,7 +151,9 @@ class TestGetForecastsBatch:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=["bern", "thun", "basel"])
 
@@ -170,7 +178,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str):
@@ -184,7 +192,9 @@ class TestGetForecastsBatch:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=["bern", "thun"])
 
@@ -199,7 +209,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             response = MagicMock()
@@ -208,7 +218,9 @@ class TestGetForecastsBatch:
             response.aare.forecast2h = None
 
             mock_client.get_current = AsyncMock(return_value=response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn(cities=["bern"])
 

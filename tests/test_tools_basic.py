@@ -21,7 +21,7 @@ class TestGetCurrentTemperature:
         tool = mcp._tool_manager._tools["get_current_temperature"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
             mock_response.aare = MagicMock()
@@ -32,7 +32,9 @@ class TestGetCurrentTemperature:
             mock_response.aare.location_long = "Bern, Schönau"
             mock_response.aare.flow = 85.0
             mock_client.get_current = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
 
@@ -45,9 +47,8 @@ class TestGetCurrentTemperature:
         tool = mcp._tool_manager._tools["get_current_temperature"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             # Current response has no aare data
             mock_current = MagicMock()
@@ -64,6 +65,9 @@ class TestGetCurrentTemperature:
 
             mock_client.get_current.return_value = mock_current
             mock_client.get_today.return_value = mock_today
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
             assert result.temperature == 17.5
@@ -79,9 +83,8 @@ class TestGetCurrentConditions:
         tool = mcp._tool_manager._tools["get_current_conditions"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             mock_response = MagicMock()
             mock_response.aare.location = "Bern"
@@ -98,6 +101,9 @@ class TestGetCurrentConditions:
             mock_response.weatherprognosis = [{"day": "Monday"}]
 
             mock_client.get_current.return_value = mock_response
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
 
@@ -114,9 +120,8 @@ class TestGetCurrentConditions:
         tool = mcp._tool_manager._tools["get_current_conditions"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             mock_response = MagicMock()
             mock_response.aare = None
@@ -124,6 +129,9 @@ class TestGetCurrentConditions:
             mock_response.weatherprognosis = None
 
             mock_client.get_current.return_value = mock_response
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
 
@@ -141,7 +149,7 @@ class TestGetFlowDangerLevel:
         tool = mcp._tool_manager._tools["get_flow_danger_level"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
             mock_response.aare = MagicMock()
@@ -149,7 +157,9 @@ class TestGetFlowDangerLevel:
             mock_response.aare.flow_text = "Low flow"
             mock_response.aare.flow_scale_threshold = 220
             mock_client.get_current = AsyncMock(return_value=mock_response)
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
 
@@ -163,14 +173,16 @@ class TestGetFlowDangerLevel:
         tool = mcp._tool_manager._tools["get_flow_danger_level"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_get_client.return_value = mock_client
 
             mock_response = MagicMock()
             mock_response.aare = None
 
             mock_client.get_current.return_value = mock_response
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern")
 
@@ -198,12 +210,14 @@ class TestGetHistoricalData:
         tool = mcp._tool_manager._tools["get_historical_data"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_client.get_history = AsyncMock(
                 return_value={"timeseries": [{"timestamp": 123, "temp": 17.0}]}
             )
-            mock_get_client.return_value = mock_client
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
 
             result = await fn("bern", "-7 days", "now")
 

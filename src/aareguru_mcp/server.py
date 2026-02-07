@@ -14,23 +14,14 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from . import tools
 from .client import AareguruClient
 from .config import get_settings
-from .helpers import (
-    _check_safety_warning,
-    _get_safety_assessment,
-    _get_seasonal_advice,
-    _get_suggestion,
-    _get_swiss_german_explanation,
-)
 from .metrics import MetricsCollector
 from .models import (
     AareConditionsData,
-    CityListResponse,
     ConditionsToolResponse,
-    CurrentConditionsData,
     FlowDangerResponse,
-    ForecastToolResponse,
     TemperatureToolResponse,
 )
 from .rate_limit import limiter
@@ -296,7 +287,7 @@ async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
     """Generates trend analysis showing temperature and flow patterns with outlook.
 
     **Args:**
-        city: City to analyze (default: `bern`). Use `compare_cities` to discover available locations.
+        city: City to analyze (default: `bern`). Use `compare_cities` to discover locations.
         days: Number of days to analyze (`3`, `7`, or `14`). Default: `7` days (one week).
 
     **Returns:**
@@ -341,9 +332,9 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
 
     **For multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
-    **Args:****
+    **Args:**
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities` to discover available locations.
+              Use `compare_cities` to discover locations.
 
     **Returns:**
         Dictionary containing:
@@ -360,47 +351,8 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
         - longname (str): Full location name
     """
     with MetricsCollector.track_tool_call("get_current_temperature"):
-        logger.info(f"Getting current temperature for {city}")
-
-        client = await get_http_client()
-        current_response = await client.get_current(city)
-
-        if not current_response.aare:
-            today_response = await client.get_today(city)
-            temp = today_response.aare
-            text = today_response.text
-            flow = None
-            temp_prec = today_response.aare_prec
-            text_short = today_response.text_short
-            longname = today_response.longname
-            location_name = today_response.name
-        else:
-            temp = current_response.aare.temperature
-            text = current_response.aare.temperature_text
-            flow = current_response.aare.flow
-            temp_prec = current_response.aare.temperature
-            text_short = current_response.aare.temperature_text_short
-            longname = current_response.aare.location_long
-            location_name = current_response.aare.location
-
-        warning = _check_safety_warning(flow)
-        explanation = _get_swiss_german_explanation(text)
-        suggestion = await _get_suggestion(city, temp)
-        season_advice = _get_seasonal_advice()
-
-        return TemperatureToolResponse(
-            city=city,
-            temperature=temp,
-            temperature_text=text,
-            swiss_german_explanation=explanation,
-            name=location_name,
-            warning=warning,
-            suggestion=suggestion,
-            seasonal_advice=season_advice,
-            temperature_prec=temp_prec,
-            temperature_text_short=text_short,
-            longname=longname,
-        )
+        result = await tools.get_current_temperature(city)
+        return TemperatureToolResponse(**result)
 
 
 @mcp.tool(name="get_current_conditions")
@@ -415,9 +367,9 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
 
     **For comparing multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
-    **Args:****
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities` to discover available locations.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`,
+              `'olten'`). Use `compare_cities` to discover locations.
 
     **Returns:**
         Dictionary containing:
@@ -439,39 +391,11 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
         - weather (dict | None): Current weather conditions
         - forecast (dict | None): Weather forecast
     """
-    logger.info(f"Getting current conditions for {city}")
+    result = await tools.get_current_conditions(city)
 
-    client = await get_http_client()
-    response = await client.get_current(city)
-
-    result: dict[str, Any] = {"city": city}
-
-    if response.aare:
-        warning = _check_safety_warning(response.aare.flow)
-        explanation = _get_swiss_german_explanation(response.aare.temperature_text)
-
-        result["aare"] = AareConditionsData(
-            location=response.aare.location,
-            location_long=response.aare.location_long,
-            temperature=response.aare.temperature,
-            temperature_text=response.aare.temperature_text,
-            swiss_german_explanation=explanation,
-            temperature_text_short=response.aare.temperature_text_short,
-            flow=response.aare.flow,
-            flow_text=response.aare.flow_text,
-            height=response.aare.height,
-            forecast2h=response.aare.forecast2h,
-            forecast2h_text=response.aare.forecast2h_text,
-            warning=warning,
-        )
-
-    result["seasonal_advice"] = _get_seasonal_advice()
-
-    if response.weather:
-        result["weather"] = response.weather
-
-    if response.weatherprognosis:
-        result["forecast"] = response.weatherprognosis
+    # Convert aare dict to typed model if present
+    if "aare" in result and result["aare"]:
+        result["aare"] = AareConditionsData(**result["aare"])
 
     return ConditionsToolResponse(**result)
 
@@ -501,11 +425,7 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
         - start (str): Start timestamp of data range
         - end (str): End timestamp of data range
     """
-    logger.info(f"Getting historical data for {city} from {start} to {end}")
-
-    client = await get_http_client()
-    response = await client.get_history(city, start, end)
-    return response
+    return await tools.get_historical_data(city, start, end)
 
 
 @mcp.tool(name="get_flow_danger_level")
@@ -538,34 +458,8 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
         - safety_assessment (str): Safety evaluation (e.g., 'Safe', 'Dangerous')
         - danger_level (int): Numeric danger level (1-5, higher is more dangerous)
     """
-    logger.info(f"Getting flow danger level for {city}")
-
-    client = await get_http_client()
-    response = await client.get_current(city)
-
-    if not response.aare:
-        return FlowDangerResponse(
-            city=city,
-            flow=None,
-            flow_text=None,
-            flow_threshold=None,
-            safety_assessment="No data available",
-            danger_level=None,
-        )
-
-    flow = response.aare.flow
-    threshold = response.aare.flow_scale_threshold or 220
-
-    safety, danger_level = _get_safety_assessment(flow, threshold)
-
-    return FlowDangerResponse(
-        city=city,
-        flow=flow,
-        flow_text=response.aare.flow_text,
-        flow_threshold=threshold,
-        safety_assessment=safety,
-        danger_level=danger_level,
-    )
+    result = await tools.get_flow_danger_level(city)
+    return FlowDangerResponse(**result)
 
 
 @mcp.tool(name="compare_cities")
@@ -592,49 +486,7 @@ async def compare_cities(
         - safe_count (int): Number of cities with safe flow levels
         - total_count (int): Total number of cities compared
     """
-    client = await get_http_client()
-
-    # Get city list if not provided
-    if cities is None:
-        cities_response = await client.get_cities()
-        cities = [city.city for city in cities_response]
-
-    logger.info(f"Comparing {len(cities)} cities in parallel")
-
-    # Fetch all city conditions concurrently
-    async def fetch_conditions(city: str):
-        return await client.get_current(city)
-
-    results = await fetch_multiple_cities(cities, fetch_conditions)
-
-    # Process results
-    city_data = []
-    for city, result in results:
-        if isinstance(result, Exception):
-            continue
-
-        if result.aare:
-            city_data.append(
-                {
-                    "city": city,
-                    "temperature": result.aare.temperature,
-                    "flow": result.aare.flow,
-                    "safe": result.aare.flow < 150 if result.aare.flow else True,
-                    "temperature_text": result.aare.temperature_text,
-                    "location": result.aare.location,
-                }
-            )
-
-    # Sort by temperature
-    city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
-
-    return {
-        "cities": city_data,
-        "warmest": city_data[0] if city_data else None,
-        "coldest": city_data[-1] if city_data else None,
-        "safe_count": sum(1 for c in city_data if c["safe"]),
-        "total_count": len(city_data),
-    }
+    return await tools.compare_cities(cities)
 
 
 @mcp.tool(name="get_forecasts")
@@ -654,40 +506,7 @@ async def get_forecasts(
         - forecasts (dict): Map of city to forecast data with current temp,
                            2-hour forecast, and trend
     """
-    client = await get_http_client()
-
-    async def fetch_forecast(city: str):
-        response = await client.get_current(city)
-        if not response.aare:
-            return None
-
-        current = response.aare.temperature
-        forecast_2h = response.aare.forecast2h
-
-        if current is None or forecast_2h is None:
-            trend = "unknown"
-        elif forecast_2h > current:
-            trend = "rising"
-        elif forecast_2h < current:
-            trend = "falling"
-        else:
-            trend = "stable"
-
-        return {
-            "current": current,
-            "forecast_2h": forecast_2h,
-            "trend": trend,
-            "change": forecast_2h - current if (forecast_2h and current) else None,
-        }
-
-    results = await fetch_multiple_cities(cities, fetch_forecast)
-
-    forecasts = {}
-    for city, result in results:
-        if not isinstance(result, Exception) and result is not None:
-            forecasts[city] = result
-
-    return {"forecasts": forecasts}
+    return await tools.get_forecasts(cities)
 
 
 # ============================================================================
