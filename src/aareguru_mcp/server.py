@@ -134,18 +134,18 @@ async def get_today_resource(city: str) -> str:
 async def daily_swimming_report(city: str = "bern", include_forecast: bool = True) -> str:
     """Generates comprehensive daily swimming report combining conditions, safety.
 
-    Args:
-        city: City to generate the report for (default: bern).
-              Use list_cities to discover available locations.
-        include_forecast: Whether to include 2-hour forecast in the report (default: true)
+    **Args:**
+        city: City to generate the report for (default: `bern`).
+              Use `list_cities` to discover available locations.
+        include_forecast: Whether to include 2-hour forecast in the report (default: `true`)
 
-    Returns:
+    **Returns:**
         Prompt template string instructing the LLM to create a formatted report
         with current conditions, safety assessment, forecast, and recommendations.
         The report includes Swiss German descriptions and safety warnings.
     """
     forecast_instruction = (
-        "\n3. **Forecast**: Use get_forecast to see how conditions "
+        "\n3. **Forecast**: Use `get_forecast` to see how conditions "
         "will change in the next few hours"
         if include_forecast
         else ""
@@ -154,9 +154,9 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
     return f"""Please provide a comprehensive daily swimming report for {city}.
 
 Include:
-1. **Current Conditions**: Use get_current_conditions to get temperature, \
+1. **Current Conditions**: Use `get_current_conditions` to get temperature, \
 flow rate, and weather
-2. **Safety Assessment**: Use get_flow_danger_level to assess if \
+2. **Safety Assessment**: Use `get_flow_danger_level` to assess if \
 swimming is safe{forecast_instruction}
 {'4' if include_forecast else '3'}. **Recommendation**: Based on all data, \
 give a clear swimming recommendation
@@ -172,12 +172,12 @@ async def compare_swimming_spots(
 ) -> str:
     """Generates comparison of all swimming locations ranked by temperature and safety.
 
-    Args:
-        min_temperature: Optional minimum temperature threshold in Celsius (e.g., 18.0).
+    **Args:**
+        min_temperature: Optional minimum temperature threshold in Celsius (e.g., `18.0`).
                         Filter out cities below this temperature.
-        safety_only: Whether to show only safe locations (flow < 150 m³/s). Default: false.
+        safety_only: Whether to show only safe locations (flow < 150 m³/s). Default: `false`.
 
-    Returns:
+    **Returns:**
         Prompt template string instructing the LLM to compare all cities,
         rank them by temperature and safety, and provide a recommendation
         for the best swimming location today.
@@ -190,7 +190,7 @@ async def compare_swimming_spots(
 
     return f"""Please compare all available Aare swimming locations.
 
-Use the list_cities tool to get data for all cities, then use get_current_conditions
+Use the `list_cities` tool to get data for all cities, then use `get_current_conditions`
 to get detailed information for each city to present:
 
 1. **🏆 Best Choice Today**: The recommended city based on temperature and safety
@@ -209,11 +209,11 @@ End with a personalized recommendation based on conditions."""
 async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
     """Generates trend analysis showing temperature and flow patterns with outlook.
 
-    Args:
-        city: City to analyze (default: bern). Use list_cities to discover available locations.
-        days: Number of days to analyze (3, 7, or 14). Default: 7 days (one week).
+    **Args:**
+        city: City to analyze (default: `bern`). Use `list_cities` to discover available locations.
+        days: Number of days to analyze (`3`, `7`, or `14`). Default: `7` days (one week).
 
-    Returns:
+    **Returns:**
         Prompt template string instructing the LLM to analyze historical data,
         identify temperature and flow trends, and provide outlook recommendations
         for optimal swimming times.
@@ -222,7 +222,7 @@ async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
 
     return f"""Please analyze the {period_name} trends for {city}.
 
-Use get_historical_data with days={days} to get the past {days} days of data, then provide:
+Use `get_historical_data` with days={days} to get the past {days} days of data, then provide:
 
 1. **📈 Temperature Trend**: How has water temperature changed?
    - Highest and lowest temperatures
@@ -247,17 +247,17 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
     """Retrieves current water temperature for a specific city.
 
-    Takes city parameter (optional, default: bern).
+    Takes `city` parameter (optional, default: `bern`).
 
-    Use this for quick temperature checks and simple 'how warm is the water?' questions.
-    Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
+    Use this for quick temperature checks and simple "how warm is the water?" questions.
+    Returns temperature in Celsius, Swiss German description (e.g., `geil aber chli chalt`),
     and swimming suitability.
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities to discover available locations.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+              Use `list_cities` to discover available locations.
 
-    Returns:
+    **Returns:**
         Dictionary containing:
         - city (str): City identifier
         - temperature (float): Water temperature in Celsius
@@ -319,18 +319,18 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
 async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
     """Retrieves comprehensive swimming conditions report.
 
-    Takes city parameter (optional, default: bern). Returns water temperature,
+    Takes `city` parameter (optional, default: `bern`). Returns water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
 
-    Use this for safety assessments, 'is it safe to swim?' questions, and when users
+    Use this for safety assessments, "is it safe to swim?" questions, and when users
     need a complete picture before swimming. This is the most detailed tool - use it
     for contextual and safety-critical queries.
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities to discover available locations.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+              Use `list_cities` to discover available locations.
 
-    Returns:
+    **Returns:**
         Dictionary containing:
         - city (str): City identifier
         - aare (dict): Aare river data with temperature, flow, height, and forecast
@@ -391,19 +391,19 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
     """Retrieves historical time-series data for trend analysis.
 
-    Takes city, start, and end parameters (all required).
+    Takes `city`, `start`, and `end` parameters (all required).
     Returns hourly data points for temperature and flow.
 
-    Use this for questions like 'how has temperature changed this week?'
-    or 'what was the warmest day this month?'
+    Use this for questions like "how has temperature changed this week?"
+    or "what was the warmest day this month?"
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten')
-        start: Start date/time. Accepts ISO format (2024-11-01T00:00:00Z),
-               Unix timestamp, or relative expressions like '-7 days', '-1 week'.
-        end: End date/time. Accepts ISO format, Unix timestamp, or 'now' for current time.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`)
+        start: Start date/time. Accepts ISO format (`2024-11-01T00:00:00Z`),
+               Unix timestamp, or relative expressions like `'-7 days'`, `'-1 week'`.
+        end: End date/time. Accepts ISO format, Unix timestamp, or `'now'` for current time.
 
-    Returns:
+    **Returns:**
         Dictionary containing:
         - timestamps (list[str]): ISO 8601 timestamps for each data point
         - temperatures (list[float]): Water temperatures in Celsius
@@ -424,10 +424,10 @@ async def list_cities() -> list[CityListResponse]:
     """Retrieves all available cities with Aare monitoring stations.
 
     Returns city identifiers, full names, coordinates, and current temperature
-    for each location. Use this for location discovery ('which cities are available?')
+    for each location. Use this for location discovery ("which cities are available?")
     and for comparing temperatures across all cities to find the warmest/coldest spot.
 
-    Returns:
+    **Returns:**
         List of dictionaries, each containing:
         - city (str): City identifier (e.g., 'bern', 'thun')
         - name (str): Display name
@@ -456,24 +456,24 @@ async def list_cities() -> list[CityListResponse]:
 async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     """Retrieves current flow rate and safety assessment.
 
-    Takes city parameter (optional, default: bern).
+    Takes `city` parameter (optional, default: `bern`).
     Returns flow rate (m³/s), danger level, and safety recommendations
     based on BAFU thresholds.
 
     Use this for safety-critical questions about current strength and danger.
 
-    Flow thresholds:
-    - <100: safe
-    - 100-220: moderate
-    - 220-300: elevated
-    - 300-430: high/dangerous
-    - >430: very high/extremely dangerous
+    **Flow thresholds:**
+    - `<100`: safe
+    - `100-220`: moderate
+    - `220-300`: elevated
+    - `300-430`: high/dangerous
+    - `>430`: very high/extremely dangerous
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities to discover available locations.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+              Use `list_cities` to discover available locations.
 
-    Returns:
+    **Returns:**
         Dictionary containing:
         - city (str): City identifier
         - flow (float | None): Current flow rate in m³/s
@@ -516,18 +516,18 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
 async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolResponse:
     """Retrieves temperature and flow forecast for a city.
 
-    Takes city and hours parameters (both optional, defaults: bern, 2).
+    Takes `city` and `hours` parameters (both optional, defaults: `bern`, `2`).
     Returns forecast data with trend analysis.
 
-    Use this for forecast questions like 'will the water be warmer tomorrow?',
-    'what's the 2-hour forecast?', or 'when will it be warmest today?'.
+    Use this for forecast questions like "will the water be warmer tomorrow?",
+    "what's the 2-hour forecast?", or "when will it be warmest today?".
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities to discover available locations.
-        hours: Forecast horizon in hours (typically 2). The API provides 2-hour forecasts.
+    **Args:**
+        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+              Use `list_cities` to discover available locations.
+        hours: Forecast horizon in hours (typically `2`). The API provides 2-hour forecasts.
 
-    Returns:
+    **Returns:**
         Dictionary containing:
         - city (str): City identifier
         - current (dict): Current conditions with temperature, text, and flow
