@@ -4,7 +4,6 @@ This module implements the Model Context Protocol server that exposes
 Aareguru data to AI assistants via stdio or HTTP transport.
 """
 
-import asyncio
 import json
 from typing import Any
 
@@ -32,52 +31,6 @@ logger = structlog.get_logger(__name__)
 # Get settings
 settings = get_settings()
 
-# ============================================================================
-# Singleton HTTP Client for connection pooling
-# ============================================================================
-
-_http_client: AareguruClient | None = None
-_client_lock = asyncio.Lock()
-
-
-async def get_http_client() -> AareguruClient:
-    """Get or create singleton HTTP client with connection reuse.
-
-    This client is shared across all tool calls to enable:
-    - Connection pooling and keep-alive
-    - Reduced connection setup overhead
-    - Better resource utilization
-
-    **Returns:**
-        Singleton AareguruClient instance
-    """
-    global _http_client
-
-    async with _client_lock:
-        if _http_client is None:
-            settings_instance = get_settings()
-            _http_client = AareguruClient(settings=settings_instance)
-            logger.info("Created singleton HTTP client with connection pooling")
-
-        return _http_client
-
-
-async def close_http_client():
-    """Close singleton HTTP client on shutdown."""
-    global _http_client
-
-    if _http_client is not None:
-        await _http_client.close()
-        _http_client = None
-        logger.info("Closed singleton HTTP client")
-
-
-def _reset_http_client():
-    """Reset singleton client for testing purposes."""
-    global _http_client
-    _http_client = None
-
-
 # Create FastMCP server instance
 mcp = FastMCP(
     name="aareguru-mcp",
@@ -97,43 +50,6 @@ Swiss German phrases in the API responses add local flavor - feel free to explai
 to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 """,
 )
-
-
-# ============================================================================
-# Parallel Fetch Utilities
-# ============================================================================
-
-
-async def fetch_multiple_cities(
-    cities: list[str],
-    fetch_func: callable,
-    max_concurrency: int = 10,
-) -> list[tuple[str, Any]]:
-    """Fetch data for multiple cities in parallel with concurrency limit.
-
-    **Args:**
-        cities: List of city identifiers
-        fetch_func: Async function to call for each city (takes city: str)
-        max_concurrency: Maximum concurrent requests (default: 10)
-
-    **Returns:**
-        List of tuples: (city, result or exception)
-    """
-    semaphore = asyncio.Semaphore(max_concurrency)
-
-    async def fetch_with_limit(city: str):
-        async with semaphore:
-            try:
-                result = await fetch_func(city)
-                return (city, result)
-            except Exception as e:
-                logger.warning(f"Failed to fetch {city}: {e}")
-                return (city, e)
-
-    tasks = [fetch_with_limit(city) for city in cities]
-    results = await asyncio.gather(*tasks)
-
-    return results
 
 
 # ============================================================================
@@ -157,9 +73,9 @@ async def get_cities_resource() -> str:
         - coordinates (object): Latitude and longitude
         - aare (float): Current water temperature in Celsius
     """
-    client = await get_http_client()
-    response = await client.get_cities()
-    return json.dumps([city.model_dump() for city in response], indent=2)
+    async with AareguruClient(settings=settings) as client:
+        response = await client.get_cities()
+        return json.dumps([city.model_dump() for city in response], indent=2)
 
 
 @mcp.resource("aareguru://current/{city}")
@@ -176,9 +92,9 @@ async def get_current_resource(city: str) -> str:
         JSON string with complete current conditions including temperature,
         flow, weather, and forecast data for the specified city.
     """
-    client = await get_http_client()
-    response = await client.get_current(city)
-    return response.model_dump_json(indent=2)
+    async with AareguruClient(settings=settings) as client:
+        response = await client.get_current(city)
+        return response.model_dump_json(indent=2)
 
 
 @mcp.resource("aareguru://today/{city}")
@@ -195,9 +111,9 @@ async def get_today_resource(city: str) -> str:
         JSON string with minimal current data including temperature and
         basic location information for the specified city.
     """
-    client = await get_http_client()
-    response = await client.get_today(city)
-    return response.model_dump_json(indent=2)
+    async with AareguruClient(settings=settings) as client:
+        response = await client.get_today(city)
+        return response.model_dump_json(indent=2)
 
 
 # ============================================================================
