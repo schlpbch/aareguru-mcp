@@ -9,12 +9,20 @@ from typing import Any
 
 import structlog
 from fastmcp import FastMCP
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from .client import AareguruClient
 from .config import get_settings
+from .helpers import (
+    _check_safety_warning,
+    _get_safety_assessment,
+    _get_seasonal_advice,
+    _get_suggestion,
+    _get_swiss_german_explanation,
+)
+from .metrics import MetricsCollector
 from .models import (
     AareConditionsData,
     CityListResponse,
@@ -24,14 +32,6 @@ from .models import (
     ForecastToolResponse,
     TemperatureToolResponse,
 )
-from .helpers import (
-    _check_safety_warning,
-    _get_safety_assessment,
-    _get_seasonal_advice,
-    _get_suggestion,
-    _get_swiss_german_explanation,
-)
-from .metrics import MetricsCollector
 from .rate_limit import limiter
 
 # Get structured logger
@@ -132,10 +132,11 @@ async def get_today_resource(city: str) -> str:
 
 @mcp.prompt(name="daily-swimming-report")
 async def daily_swimming_report(city: str = "bern", include_forecast: bool = True) -> str:
-    """Generates comprehensive daily swimming report combining conditions, safety, and recommendations.
+    """Generates comprehensive daily swimming report combining conditions, safety.
 
     Args:
-        city: City to generate the report for (default: bern). Use list_cities to discover available locations.
+        city: City to generate the report for (default: bern).
+              Use list_cities to discover available locations.
         include_forecast: Whether to include 2-hour forecast in the report (default: true)
 
     Returns:
@@ -143,14 +144,22 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
         with current conditions, safety assessment, forecast, and recommendations.
         The report includes Swiss German descriptions and safety warnings.
     """
-    forecast_instruction = "\n3. **Forecast**: Use get_forecast to see how conditions will change in the next few hours" if include_forecast else ""
-    
+    forecast_instruction = (
+        "\n3. **Forecast**: Use get_forecast to see how conditions "
+        "will change in the next few hours"
+        if include_forecast
+        else ""
+    )
+
     return f"""Please provide a comprehensive daily swimming report for {city}.
 
 Include:
-1. **Current Conditions**: Use get_current_conditions to get temperature, flow rate, and weather
-2. **Safety Assessment**: Use get_flow_danger_level to assess if swimming is safe{forecast_instruction}
-{'4' if include_forecast else '3'}. **Recommendation**: Based on all data, give a clear swimming recommendation
+1. **Current Conditions**: Use get_current_conditions to get temperature, \
+flow rate, and weather
+2. **Safety Assessment**: Use get_flow_danger_level to assess if \
+swimming is safe{forecast_instruction}
+{'4' if include_forecast else '3'}. **Recommendation**: Based on all data, \
+give a clear swimming recommendation
 
 Format the report in a friendly way with emojis. Include the Swiss German description if available.
 If conditions are dangerous, make this very clear at the top of the report.
@@ -158,11 +167,13 @@ If there's a better location nearby, suggest it."""
 
 
 @mcp.prompt(name="compare-swimming-spots")
-async def compare_swimming_spots(min_temperature: float | None = None, safety_only: bool = False) -> str:
+async def compare_swimming_spots(
+    min_temperature: float | None = None, safety_only: bool = False
+) -> str:
     """Generates comparison of all swimming locations ranked by temperature and safety.
 
     Args:
-        min_temperature: Optional minimum temperature threshold in Celsius (e.g., 18.0). 
+        min_temperature: Optional minimum temperature threshold in Celsius (e.g., 18.0).
                         Filter out cities below this temperature.
         safety_only: Whether to show only safe locations (flow < 150 m³/s). Default: false.
 
@@ -176,7 +187,7 @@ async def compare_swimming_spots(min_temperature: float | None = None, safety_on
         filter_instructions += f"\n- Only include cities with temperature >= {min_temperature}°C"
     if safety_only:
         filter_instructions += "\n- Only include cities with safe flow levels (< 150 m³/s)"
-    
+
     return f"""Please compare all available Aare swimming locations.
 
 Use the list_cities tool to get data for all cities, then use get_current_conditions
@@ -208,7 +219,7 @@ async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
         for optimal swimming times.
     """
     period_name = "3-day" if days == 3 else "weekly" if days == 7 else f"{days}-day"
-    
+
     return f"""Please analyze the {period_name} trends for {city}.
 
 Use get_historical_data with days={days} to get the past {days} days of data, then provide:
@@ -234,7 +245,9 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 
 @mcp.tool(name="get_current_temperature")
 async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
-    """Retrieves current water temperature for a specific city. Takes city parameter (optional, default: bern).
+    """Retrieves current water temperature for a specific city.
+
+    Takes city parameter (optional, default: bern).
 
     Use this for quick temperature checks and simple 'how warm is the water?' questions.
     Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
@@ -304,7 +317,9 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
 
 @mcp.tool(name="get_current_conditions")
 async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
-    """Retrieves comprehensive swimming conditions report. Takes city parameter (optional, default: bern). Returns water temperature,
+    """Retrieves comprehensive swimming conditions report.
+
+    Takes city parameter (optional, default: bern). Returns water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
 
     Use this for safety assessments, 'is it safe to swim?' questions, and when users
@@ -374,9 +389,13 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
 
 @mcp.tool(name="get_historical_data")
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
-    """Retrieves historical time-series data for trend analysis. Takes city, start, and end parameters (all required). Returns hourly data points for temperature and flow.
+    """Retrieves historical time-series data for trend analysis.
 
-    Use this for questions like 'how has temperature changed this week?' or 'what was the warmest day this month?'
+    Takes city, start, and end parameters (all required).
+    Returns hourly data points for temperature and flow.
+
+    Use this for questions like 'how has temperature changed this week?'
+    or 'what was the warmest day this month?'
 
     Args:
         city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten')
@@ -435,7 +454,11 @@ async def list_cities() -> list[CityListResponse]:
 
 @mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
-    """Retrieves current flow rate and safety assessment. Takes city parameter (optional, default: bern). Returns flow rate (m³/s), danger level, and safety recommendations based on BAFU thresholds.
+    """Retrieves current flow rate and safety assessment.
+
+    Takes city parameter (optional, default: bern).
+    Returns flow rate (m³/s), danger level, and safety recommendations
+    based on BAFU thresholds.
 
     Use this for safety-critical questions about current strength and danger.
 
@@ -491,7 +514,10 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
 
 @mcp.tool(name="get_forecast")
 async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolResponse:
-    """Retrieves temperature and flow forecast for a city. Takes city and hours parameters (both optional, defaults: bern, 2). Returns forecast data with trend analysis.
+    """Retrieves temperature and flow forecast for a city.
+
+    Takes city and hours parameters (both optional, defaults: bern, 2).
+    Returns forecast data with trend analysis.
 
     Use this for forecast questions like 'will the water be warmer tomorrow?',
     'what's the 2-hour forecast?', or 'when will it be warmest today?'.

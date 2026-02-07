@@ -107,7 +107,10 @@ class AareCurrentData(BaseModel):
         """String representation of Aare current data."""
         temp = f"{self.temperature}°C" if self.temperature else "N/A"
         flow = f"{self.flow} m³/s" if self.flow else "N/A"
-        return f"AareCurrentData({self.location}: temp={temp}, flow={flow}, text='{self.temperature_text}')"
+        return (
+            f"AareCurrentData({self.location}: temp={temp}, "
+            f"flow={flow}, text='{self.temperature_text}')"
+        )
 
 
 class CurrentResponse(BaseModel):
@@ -206,7 +209,9 @@ class TemperatureToolResponse(BaseModel):
     city: str = Field(..., description="City identifier")
     temperature: float | None = Field(None, description="Water temperature in Celsius")
     temperature_text: str | None = Field(None, description="Swiss German description")
-    swiss_german_explanation: str | None = Field(None, description="English translation of Swiss German phrase")
+    swiss_german_explanation: str | None = Field(
+        None, description="English translation of Swiss German phrase"
+    )
     name: str | None = Field(None, description="Location name")
     warning: str | None = Field(None, description="Safety warning if flow is dangerous")
     suggestion: str | None = Field(None, description="Swimming recommendation based on temperature")
@@ -249,7 +254,9 @@ class CityListResponse(BaseModel):
     city: str = Field(..., description="City identifier")
     name: str = Field(..., description="Display name")
     longname: str = Field(..., description="Full location name")
-    coordinates: dict[str, float] | None = Field(None, description="Location coordinates with lat/lon")
+    coordinates: dict[str, float] | None = Field(
+        None, description="Location coordinates with lat/lon"
+    )
     temperature: float | None = Field(None, description="Current water temperature in Celsius")
 
 
@@ -280,6 +287,8 @@ class ForecastToolResponse(BaseModel):
     forecast_2h: float | None = Field(None, description="Forecasted temperature in 2 hours")
     forecast_text: str | None = Field(None, description="Forecast description")
     trend: str = Field(..., description="Temperature trend (rising/falling/stable/unknown)")
-    temperature_change: float | None = Field(None, description="Expected temperature change in degrees")
+    temperature_change: float | None = Field(
+        None, description="Expected temperature change in degrees"
+    )
     recommendation: str = Field(..., description="Timing recommendation for swimming")
     seasonal_advice: str | None = Field(None, description="Season-specific guidance")
