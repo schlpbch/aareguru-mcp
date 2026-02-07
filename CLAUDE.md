@@ -11,9 +11,9 @@ MCP tools, 4 MCP resources, and 3 MCP prompts for querying water temperature,
 flow rates, weather conditions, and safety assessments for swimming in the Aare
 river.
 
-**Status**: Production ready with 202 tests passing (87% coverage) **Version**:
-1.0.0 (FastMCP 2.0, HTTP/SSE transport, FastMCP Cloud deployed) **Recent**:
-Added MCP prompts for guided interactions, structured logging with structlog
+**Status**: Production ready with 210 tests passing, 2 skipped (87% coverage)
+**Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
+**Features**: Rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
 
 ## Development Commands
 
@@ -89,70 +89,49 @@ uv pip install -e ".[dev]"
 
 ## Architecture Overview
 
-### Layer Structure
+The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
-The codebase uses **FastMCP 2.0** with a clean layered architecture:
-
-1. **MCP Server Layer** (`server.py`): FastMCP server with decorator-based
-   tools, resources, and prompts
-2. **HTTP Transport Layer** (`http_server.py`): Optional HTTP/SSE transport
-   wrapper for FastMCP
-3. **Helper Functions** (`helpers.py`): Shared utilities for safety checks,
-   seasonal advice, and Swiss German explanations
-4. **Legacy Layers** (`tools.py`, `resources.py`): Compatibility helpers (being
-   phased out in favor of decorators)
-5. **HTTP Client Layer** (`client.py`): Async HTTP client with caching and rate
-   limiting
-6. **Data Models Layer** (`models.py`): Pydantic models for API responses
-7. **Configuration Layer** (`config.py`): Settings management with
-   pydantic-settings
+**Key Layers:**
+1. **MCP Server** (`server.py`): FastMCP decorators (@mcp.tool, @mcp.resource, @mcp.prompt)
+2. **Business Logic** (`tools.py`, `resources.py`, `helpers.py`): Domain logic and transformations
+3. **HTTP Client** (`client.py`): Async client with caching, rate limiting, context managers
+4. **Models** (`models.py`): Pydantic validation
+5. **Config** (`config.py`): Environment-based settings
 
 ### Key Design Patterns
 
 #### Helper Functions Module
 
-The `helpers.py` module provides shared utility functions used across tools:
+The `helpers.py` module provides shared utilities:
 
-- **`get_seasonal_advice()`**: Returns contextual swimming advice based on
-  current season
-- **`check_safety_warning(flow, threshold)`**: Generates warning if flow rate is
-  dangerous
-- **`get_safety_assessment(flow, threshold)`**: Returns BAFU safety level string
-- **`get_suggestion(cities_data)`**: Suggests warmer/safer alternatives
-- **`get_swiss_german_explanation(text)`**: Explains Swiss German temperature
-  phrases
+- `get_seasonal_advice()`: Contextual swimming advice by season
+- `check_safety_warning(flow, threshold)`: Danger warnings for high flow rates
+- `get_safety_assessment(flow, threshold)`: BAFU safety levels (safe/moderate/elevated/high/very high)
+- `get_suggestion(cities_data)`: Suggests warmer/safer alternative locations
+- `get_swiss_german_explanation(text)`: Translates Swiss German phrases (e.g., "geil aber chli chalt")
 
-These helpers enable smart features like proactive safety checks and intelligent
-suggestions.
+These enable proactive safety checks and intelligent suggestions.
 
 #### Async Context Manager Pattern
-
-The `AareguruClient` uses async context managers for proper resource cleanup:
 
 ```python
 async with AareguruClient(settings=get_settings()) as client:
     response = await client.get_today(city)
 ```
 
-Every tool function creates a fresh client instance and closes it properly. This
-ensures HTTP connections are cleaned up.
+Every tool creates a scoped client instance for proper HTTP connection cleanup.
 
 #### Caching Strategy
 
-The HTTP client implements in-memory caching with TTL:
-
-- Cache key: `endpoint + sorted query params`
-- TTL: 120 seconds (configurable via `CACHE_TTL_SECONDS`)
-- Automatic expiration and cleanup
-- Historical data endpoints bypass cache (`use_cache=False`)
+- **Key**: `endpoint + sorted query params`
+- **TTL**: 120s (configurable via `CACHE_TTL_SECONDS`)
+- **Bypass**: Historical data uses `use_cache=False`
+- **Auto-cleanup**: Expired entries removed automatically
 
 #### Rate Limiting
 
-Built-in rate limiting prevents API abuse:
-
-- Minimum interval between requests: 300 seconds (configurable)
-- Lock-based coordination to prevent concurrent violations
-- Tracks `_last_request_time` to enforce delays
+- **Interval**: 300s minimum between requests (configurable via `MIN_REQUEST_INTERVAL_SECONDS`)
+- **Enforcement**: Lock-based coordination prevents concurrent violations
 
 ### Data Flow
 
@@ -303,20 +282,17 @@ time across all question categories.
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **202 tests** across multiple categories with 87% coverage
-- **Test organization**:
-  - `test_unit_*.py`: Unit tests for models, config, client, server helpers
-  - `test_tools_basic.py` & `test_tools_advanced.py`: Tool functionality tests
-  - `test_integration_workflows.py`: Multi-tool workflows, caching, error
-    handling
-  - `test_http_endpoints.py`: HTTP/SSE transport tests
-  - `test_resources.py`: Resource listing and reading
-  - `test_prompts.py`: MCP prompt functionality and E2E tests
-- **conftest.py**: Shared fixtures and mock settings
-- **Mocking strategy**: Real API responses captured in test code, not external
-  fixtures
-- **Test markers**: `@pytest.mark.integration` and `@pytest.mark.e2e` for
-  categorization
+- **210 passing + 2 skipped = 212 total tests** (87% coverage)
+- **Organization**:
+  - `test_unit_*.py`: Models, config, client, helpers
+  - `test_tools_*.py`: Tool functionality (basic & advanced)
+  - `test_integration_workflows.py`: Multi-tool workflows, caching, errors
+  - `test_http_endpoints.py`: HTTP/SSE transport
+  - `test_resources.py`: Resource listing/reading
+  - `test_prompts.py`: Prompts and E2E workflows
+- **Fixtures**: `conftest.py` provides shared mocks and settings
+- **Mocking**: API responses captured inline, no external fixtures
+- **Markers**: `@pytest.mark.integration` and `@pytest.mark.e2e`
 
 Key testing patterns:
 
@@ -334,75 +310,63 @@ Uses `pydantic-settings` with environment variable support:
 ```python
 class Settings(BaseSettings):
     aareguru_base_url: str = "https://aareguru.existenz.ch"
-    app_name: str = "aareguru-mcp"
-    app_version: str = "0.1.0"
     cache_ttl_seconds: int = 120
     min_request_interval_seconds: int = 300
 ```
 
-Environment variables override defaults (prefix with nothing, direct match):
+Environment variables override defaults:
 
 ```bash
 AAREGURU_BASE_URL=https://custom.url
 CACHE_TTL_SECONDS=300
+MIN_REQUEST_INTERVAL_SECONDS=600
 ```
 
 ## Common Development Patterns
 
-### Adding a New Tool (FastMCP 2.0)
+### Adding a New Tool
 
-Add tool decorator to `server.py`:
+Add decorator to `server.py`:
 
 ```python
 @mcp.tool()
-async def tool_name(param: str, optional_param: str = "default") -> dict[str, Any]:
-    """Clear description with use case guidance.
+async def tool_name(param: str, optional: str = "default") -> dict[str, Any]:
+    """[Use case]. Returns [data structure].
 
-    Use this for [specific scenarios]. Returns [specific data].
-    Important context: [thresholds/examples].
+    Use this for [scenarios]. [Context/thresholds/examples].
 
     Args:
-        param: Parameter description with examples (e.g., 'value1', 'value2')
-        optional_param: Optional parameter description
+        param: Description with examples (e.g., 'value1', 'value2')
+        optional: Optional parameter
     """
-    logger.info("tool_name", param=param, optional_param=optional_param)
+    logger.info("tool_name", param=param)
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_endpoint(param)
         return response.model_dump()
 ```
 
-**Annotation Guidelines**:
+**Guidelines**:
+- Start with use case: "Use this for..."
+- Include concrete examples in Args
+- Document thresholds/scales inline
+- Cross-reference related tools
+- Use structured logging
+- FastMCP auto-generates schema from types/docstrings
 
-- Start docstring with use case: "Use this for..."
-- Include concrete examples in parameter descriptions
-- Document domain-specific thresholds/scales inline
-- Mention related tools for cross-reference
-- Use structured logging with context
-- FastMCP auto-generates schema from type hints and docstrings
-
-**Testing**: Add tests in `tests/test_tools_basic.py` or
-`tests/test_tools_advanced.py`
-
-**Note**: No manual registration needed - FastMCP decorator handles it
-automatically
+**Testing**: Add to `tests/test_tools_basic.py` or `tests/test_tools_advanced.py`
 
 ### Adding a New API Endpoint
 
-1. Define Pydantic model in `models.py` matching API response structure
-2. Add client method in `client.py`:
-
-```python
-async def get_new_endpoint(self, params) -> NewResponseModel:
-    data = await self._request("/v2018/endpoint", params)
-    return NewResponseModel(**data)
-```
-
-3. Use in FastMCP tools/resources with `@mcp.tool()` or `@mcp.resource()`
-   decorators
+1. **Define model** in `models.py` matching API response structure
+2. **Add client method** in `client.py`:
+   ```python
+   async def get_new_endpoint(self, params) -> NewModel:
+       data = await self._request("/v2018/endpoint", params)
+       return NewModel(**data)
+   ```
+3. **Use in tools/resources** with `@mcp.tool()` or `@mcp.resource()` decorators
 
 ### Adding a New Prompt
-
-FastMCP 2.0 supports prompts for guided interactions:
 
 ```python
 @mcp.prompt()
@@ -410,44 +374,35 @@ async def prompt_name(city: str = "Bern") -> str:
     """Description of what this prompt does."""
     async with AareguruClient(settings=get_settings()) as client:
         data = await client.get_current(city)
+        return f"""Analyze Aare river conditions for {city}.
 
-        # Build rich prompt with context
-        prompt = f"""You are analyzing Aare river conditions for {city}.
-
-Current conditions:
-- Temperature: {data.aare.temperature}°C
-- Flow: {data.aare.flow} m³/s
-
-[Additional context and instructions...]
+Current: {data.aare.temperature}°C, {data.aare.flow} m³/s
+[Instructions...]
 """
-        return prompt
 ```
 
-Prompts allow users to invoke pre-built analysis workflows with current data.
+Prompts enable pre-built analysis workflows with live data.
 
 ### Modifying Cache Behavior
 
-Cache configuration is in `config.py`:
-
-- `cache_ttl_seconds`: How long to cache responses
-- `min_request_interval_seconds`: Minimum delay between API calls
-
-To bypass cache for specific endpoints, use `use_cache=False` in `_request()`.
+- **TTL**: Set `CACHE_TTL_SECONDS` env var (default 120s)
+- **Rate limit**: Set `MIN_REQUEST_INTERVAL_SECONDS` env var (default 300s)
+- **Bypass**: Use `use_cache=False` in `client._request()`
 
 ## Important Constraints
 
-1. **Non-commercial Use**: The Aareguru API is for non-commercial use only
-2. **Attribution Required**: Must credit BAFU and Aare.guru
-3. **Rate Limiting**: Respect 5-minute recommendation for repeated queries
-4. **App Identification**: All requests include `app` and `version` parameters
-5. **Transport Options**: Supports both stdio (for Claude Desktop) and HTTP/SSE
-   (for web deployments)
+1. **Non-commercial use only**: The Aareguru API is for non-commercial use
+2. **Attribution required**: Credit BAFU and Aare.guru
+3. **Rate limiting**: Respect 5-minute recommendation (300s default)
+4. **App identification**: Requests include `app` and `version` params
+5. **Transports**: stdio (Claude Desktop) or HTTP/SSE (web/cloud)
 
 ## Project Documentation
 
-For detailed planning and API documentation, see:
+For detailed planning and technical documentation, see:
 
 - `README.md`: User-facing documentation with features and examples
+- `ARCHITECTURE.md`: **Complete architecture and design patterns**
 - `CLAUDE_DESKTOP_SETUP.md`: Integration with Claude Desktop
 - `docs/MASTER_PLAN.md`: Complete implementation roadmap
 - `docs/AAREGURU_API_ANALYSIS.md`: Full API endpoint documentation
