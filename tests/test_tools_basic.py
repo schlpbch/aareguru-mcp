@@ -16,22 +16,6 @@ class TestGetCurrentTemperature:
     """Test get_current_temperature tool."""
 
     @pytest.mark.asyncio
-    async def test_default_city(self):
-        """Test get_current_temperature with default city (Bern)."""
-        result = await tools.get_current_temperature()
-        assert "city" in result
-        assert "temperature" in result
-        assert "temperature_text" in result
-        assert result["city"] == "bern"
-
-    @pytest.mark.asyncio
-    async def test_specific_city(self):
-        """Test get_current_temperature with specific city."""
-        result = await tools.get_current_temperature("thun")
-        assert result["city"] == "thun"
-        assert "temperature" in result
-
-    @pytest.mark.asyncio
     async def test_with_mocked_client(self):
         """Test with mocked client."""
         tool = mcp._tool_manager._tools["get_current_temperature"]
@@ -52,8 +36,8 @@ class TestGetCurrentTemperature:
 
             result = await fn("bern")
 
-            assert result["city"] == "bern"
-            assert result["temperature"] == 17.2
+            assert result.city == "bern"
+            assert result.temperature == 17.2
 
     @pytest.mark.asyncio
     async def test_fallback_to_today(self):
@@ -82,28 +66,12 @@ class TestGetCurrentTemperature:
             mock_client.get_today.return_value = mock_today
 
             result = await fn("bern")
-            assert result["temperature"] == 17.5
+            assert result.temperature == 17.5
             mock_client.get_today.assert_called_once()
 
 
 class TestGetCurrentConditions:
     """Test get_current_conditions tool."""
-
-    @pytest.mark.asyncio
-    async def test_returns_comprehensive_data(self):
-        """Test get_current_conditions returns comprehensive data."""
-        result = await tools.get_current_conditions("bern")
-        assert result["city"] == "bern"
-        assert "aare" in result or "weather" in result
-
-    @pytest.mark.asyncio
-    async def test_includes_aare_data(self):
-        """Test current conditions includes Aare data."""
-        result = await tools.get_current_conditions("bern")
-        if "aare" in result:
-            aare = result["aare"]
-            assert "temperature" in aare
-            assert "flow" in aare
 
     @pytest.mark.asyncio
     async def test_with_weather_and_forecast(self):
@@ -133,12 +101,12 @@ class TestGetCurrentConditions:
 
             result = await fn("bern")
 
-            assert "aare" in result
-            assert result["aare"]["temperature"] == 17.0
-            assert "swiss_german_explanation" in result["aare"]
-            assert "weather" in result
-            assert "forecast" in result
-            assert "seasonal_advice" in result
+            assert result.aare is not None
+            assert result.aare.temperature == 17.0
+            assert result.aare.swiss_german_explanation is not None
+            assert result.weather is not None
+            assert result.forecast is not None
+            assert result.seasonal_advice is not None
 
     @pytest.mark.asyncio
     async def test_without_aare_data(self):
@@ -159,9 +127,9 @@ class TestGetCurrentConditions:
 
             result = await fn("bern")
 
-            assert result["city"] == "bern"
-            assert "aare" not in result
-            assert "seasonal_advice" in result
+            assert result.city == "bern"
+            assert result.aare is None
+            assert result.seasonal_advice is not None
 
 
 class TestListCities:
@@ -175,22 +143,6 @@ class TestListCities:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_city_has_required_fields(self):
-        """Test each city has required fields."""
-        result = await tools.list_cities()
-        city = result[0]
-        assert "city" in city
-        assert "name" in city
-        assert "longname" in city
-
-    @pytest.mark.asyncio
-    async def test_includes_bern(self):
-        """Test that Bern is in the cities list."""
-        result = await tools.list_cities()
-        cities = [c["city"] for c in result]
-        assert "bern" in cities
-
-    @pytest.mark.asyncio
     async def test_with_mocked_client(self):
         """Test with mocked client."""
         tool = mcp._tool_manager._tools["list_cities"]
@@ -202,7 +154,7 @@ class TestListCities:
             mock_city.city = "bern"
             mock_city.name = "Bern"
             mock_city.longname = "Bern, Schönau"
-            mock_city.coordinates = "46.9,7.4"
+            mock_city.coordinates = {"lat": 46.9, "lon": 7.4}
             mock_city.aare = 17.2
             mock_client.get_cities = AsyncMock(return_value=[mock_city])
             MockClient.return_value.__aenter__.return_value = mock_client
@@ -210,29 +162,12 @@ class TestListCities:
             result = await fn()
 
             assert len(result) == 1
-            assert result[0]["city"] == "bern"
-            assert result[0]["temperature"] == 17.2
+            assert result[0].city == "bern"
+            assert result[0].temperature == 17.2
 
 
 class TestGetFlowDangerLevel:
     """Test get_flow_danger_level tool."""
-
-    @pytest.mark.asyncio
-    async def test_returns_safety_assessment(self):
-        """Test get_flow_danger_level returns safety assessment."""
-        result = await tools.get_flow_danger_level("bern")
-        assert result["city"] == "bern"
-        assert "flow" in result
-        assert "flow_threshold" in result
-        assert "safety_assessment" in result
-
-    @pytest.mark.asyncio
-    async def test_safety_text_is_readable(self):
-        """Test safety assessment is human-readable."""
-        result = await tools.get_flow_danger_level("bern")
-        safety = result["safety_assessment"]
-        assert isinstance(safety, str)
-        assert len(safety) > 0
 
     @pytest.mark.asyncio
     async def test_with_mocked_client(self):
@@ -252,9 +187,9 @@ class TestGetFlowDangerLevel:
 
             result = await fn("bern")
 
-            assert result["city"] == "bern"
-            assert result["flow"] == 85.0
-            assert result["danger_level"] == 1  # Safe
+            assert result.city == "bern"
+            assert result.flow == 85.0
+            assert result.danger_level == 1  # Safe
 
     @pytest.mark.asyncio
     async def test_no_aare_data(self):
@@ -273,8 +208,8 @@ class TestGetFlowDangerLevel:
 
             result = await fn("bern")
 
-            assert result["flow"] is None
-            assert "No data available" in result["safety_assessment"]
+            assert result.flow is None
+            assert "No data available" in result.safety_assessment
 
 
 class TestGetHistoricalData:

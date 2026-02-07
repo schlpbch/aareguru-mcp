@@ -15,6 +15,15 @@ from starlette.responses import JSONResponse, Response
 
 from .client import AareguruClient
 from .config import get_settings
+from .models import (
+    AareConditionsData,
+    CityListResponse,
+    ConditionsToolResponse,
+    CurrentConditionsData,
+    FlowDangerResponse,
+    ForecastToolResponse,
+    TemperatureToolResponse,
+)
 from .helpers import (
     _check_safety_warning,
     _get_safety_assessment,
@@ -23,7 +32,7 @@ from .helpers import (
     _get_swiss_german_explanation,
 )
 from .metrics import MetricsCollector
-from .rate_limit import limiter, rate_limit_exceeded_handler
+from .rate_limit import limiter
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -208,7 +217,7 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 
 
 @mcp.tool(name="get_current_temperature")
-async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
+async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
     """Retrieves current water temperature for a specific city. Takes city parameter (optional, default: bern).
 
     Use this for quick temperature checks and simple 'how warm is the water?' questions.
@@ -237,52 +246,48 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
         logger.info(f"Getting current temperature for {city}")
 
         async with AareguruClient(settings=get_settings()) as client:
-            response = await client.get_current(city)
+            current_response = await client.get_current(city)
 
-            if not response.aare:
-                response = await client.get_today(city)
-                temp = response.aare
-                text = response.text
+            if not current_response.aare:
+                today_response = await client.get_today(city)
+                temp = today_response.aare
+                text = today_response.text
                 flow = None
+                temp_prec = today_response.aare_prec
+                text_short = today_response.text_short
+                longname = today_response.longname
+                location_name = today_response.name
             else:
-                temp = response.aare.temperature
-                text = response.aare.temperature_text
-                flow = response.aare.flow
+                temp = current_response.aare.temperature
+                text = current_response.aare.temperature_text
+                flow = current_response.aare.flow
+                temp_prec = current_response.aare.temperature
+                text_short = current_response.aare.temperature_text_short
+                longname = current_response.aare.location_long
+                location_name = current_response.aare.location
 
             warning = _check_safety_warning(flow)
             explanation = _get_swiss_german_explanation(text)
             suggestion = await _get_suggestion(city, temp)
             season_advice = _get_seasonal_advice()
 
-            result = {
-                "city": city,
-                "temperature": temp,
-                "temperature_text": text,
-                "swiss_german_explanation": explanation,
-                "name": (
-                    response.aare.location
-                    if (response.aare and hasattr(response.aare, "location"))
-                    else response.name
-                ),
-                "warning": warning,
-                "suggestion": suggestion,
-                "seasonal_advice": season_advice,
-            }
-
-            if response.aare and hasattr(response.aare, "temperature"):
-                result["temperature_prec"] = response.aare.temperature
-                result["temperature_text_short"] = response.aare.temperature_text_short
-                result["longname"] = response.aare.location_long
-            else:
-                result["temperature_prec"] = response.aare_prec
-                result["temperature_text_short"] = response.text_short
-                result["longname"] = response.longname
-
-            return result
+            return TemperatureToolResponse(
+                city=city,
+                temperature=temp,
+                temperature_text=text,
+                swiss_german_explanation=explanation,
+                name=location_name,
+                warning=warning,
+                suggestion=suggestion,
+                seasonal_advice=season_advice,
+                temperature_prec=temp_prec,
+                temperature_text_short=text_short,
+                longname=longname,
+            )
 
 
 @mcp.tool(name="get_current_conditions")
-async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
+async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
     """Retrieves comprehensive swimming conditions report. Takes city parameter (optional, default: bern). Returns water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
 
@@ -325,20 +330,20 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
             warning = _check_safety_warning(response.aare.flow)
             explanation = _get_swiss_german_explanation(response.aare.temperature_text)
 
-            result["aare"] = {
-                "location": response.aare.location,
-                "location_long": response.aare.location_long,
-                "temperature": response.aare.temperature,
-                "temperature_text": response.aare.temperature_text,
-                "swiss_german_explanation": explanation,
-                "temperature_text_short": response.aare.temperature_text_short,
-                "flow": response.aare.flow,
-                "flow_text": response.aare.flow_text,
-                "height": response.aare.height,
-                "forecast2h": response.aare.forecast2h,
-                "forecast2h_text": response.aare.forecast2h_text,
-                "warning": warning,
-            }
+            result["aare"] = AareConditionsData(
+                location=response.aare.location,
+                location_long=response.aare.location_long,
+                temperature=response.aare.temperature,
+                temperature_text=response.aare.temperature_text,
+                swiss_german_explanation=explanation,
+                temperature_text_short=response.aare.temperature_text_short,
+                flow=response.aare.flow,
+                flow_text=response.aare.flow_text,
+                height=response.aare.height,
+                forecast2h=response.aare.forecast2h,
+                forecast2h_text=response.aare.forecast2h_text,
+                warning=warning,
+            )
 
         result["seasonal_advice"] = _get_seasonal_advice()
 
@@ -348,7 +353,7 @@ async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
         if response.weatherprognosis:
             result["forecast"] = response.weatherprognosis
 
-        return result
+        return ConditionsToolResponse(**result)
 
 
 @mcp.tool(name="get_historical_data")
@@ -380,7 +385,7 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
 
 
 @mcp.tool(name="list_cities")
-async def list_cities() -> list[dict[str, Any]]:
+async def list_cities() -> list[CityListResponse]:
     """Retrieves all available cities with Aare monitoring stations.
 
     Returns city identifiers, full names, coordinates, and current temperature
@@ -401,19 +406,19 @@ async def list_cities() -> list[dict[str, Any]]:
         response = await client.get_cities()
 
         return [
-            {
-                "city": city.city,
-                "name": city.name,
-                "longname": city.longname,
-                "coordinates": city.coordinates,
-                "temperature": city.aare,
-            }
+            CityListResponse(
+                city=city.city,
+                name=city.name,
+                longname=city.longname,
+                coordinates=city.coordinates,
+                temperature=city.aare,
+            )
             for city in response
         ]
 
 
 @mcp.tool(name="get_flow_danger_level")
-async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
+async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     """Retrieves current flow rate and safety assessment. Takes city parameter (optional, default: bern). Returns flow rate (m³/s), danger level, and safety recommendations based on BAFU thresholds.
 
     Use this for safety-critical questions about current strength and danger.
@@ -444,30 +449,32 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         response = await client.get_current(city)
 
         if not response.aare:
-            return {
-                "city": city,
-                "flow": None,
-                "flow_text": None,
-                "safety_assessment": "No data available",
-            }
+            return FlowDangerResponse(
+                city=city,
+                flow=None,
+                flow_text=None,
+                flow_threshold=None,
+                safety_assessment="No data available",
+                danger_level=None,
+            )
 
         flow = response.aare.flow
         threshold = response.aare.flow_scale_threshold or 220
 
         safety, danger_level = _get_safety_assessment(flow, threshold)
 
-        return {
-            "city": city,
-            "flow": flow,
-            "flow_text": response.aare.flow_text,
-            "flow_threshold": threshold,
-            "safety_assessment": safety,
-            "danger_level": danger_level,
-        }
+        return FlowDangerResponse(
+            city=city,
+            flow=flow,
+            flow_text=response.aare.flow_text,
+            flow_threshold=threshold,
+            safety_assessment=safety,
+            danger_level=danger_level,
+        )
 
 
 @mcp.tool(name="get_forecast")
-async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
+async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolResponse:
     """Retrieves temperature and flow forecast for a city. Takes city and hours parameters (both optional, defaults: bern, 2). Returns forecast data with trend analysis.
 
     Use this for forecast questions like 'will the water be warmer tomorrow?',
@@ -495,14 +502,16 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
         response = await client.get_current(city)
 
         if not response.aare:
-            return {
-                "city": city,
-                "current": None,
-                "forecast_2h": None,
-                "forecast_text": "No data available",
-                "trend": "unknown",
-                "recommendation": "Unable to provide forecast - no data available",
-            }
+            return ForecastToolResponse(
+                city=city,
+                current=None,
+                forecast_2h=None,
+                forecast_text="No data available",
+                trend="unknown",
+                temperature_change=None,
+                recommendation="Unable to provide forecast - no data available",
+                seasonal_advice=None,
+            )
 
         current_temp = response.aare.temperature
         forecast_temp = response.aare.forecast2h
@@ -529,22 +538,22 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> dict[str, Any]:
                     "swim sooner rather than later"
                 )
 
-        return {
-            "city": city,
-            "current": {
-                "temperature": current_temp,
-                "temperature_text": response.aare.temperature_text,
-                "flow": response.aare.flow,
-            },
-            "forecast_2h": forecast_temp,
-            "forecast_text": forecast_text,
-            "trend": trend,
-            "temperature_change": (
+        return ForecastToolResponse(
+            city=city,
+            current=CurrentConditionsData(
+                temperature=current_temp,
+                temperature_text=response.aare.temperature_text,
+                flow=response.aare.flow,
+            ),
+            forecast_2h=forecast_temp,
+            forecast_text=forecast_text,
+            trend=trend,
+            temperature_change=(
                 forecast_temp - current_temp if (forecast_temp and current_temp) else None
             ),
-            "recommendation": recommendation,
-            "seasonal_advice": _get_seasonal_advice(),
-        }
+            recommendation=recommendation,
+            seasonal_advice=_get_seasonal_advice(),
+        )
 
 
 # ============================================================================
