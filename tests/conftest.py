@@ -8,6 +8,15 @@ import pytest
 
 from aareguru_mcp.client import AareguruClient
 from aareguru_mcp.config import Settings
+from aareguru_mcp.server import _reset_http_client
+
+
+@pytest.fixture(autouse=True)
+def reset_singleton_client():
+    """Reset singleton HTTP client before each test."""
+    _reset_http_client()
+    yield
+    _reset_http_client()
 
 
 @pytest.fixture

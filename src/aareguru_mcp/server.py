@@ -4,6 +4,7 @@ This module implements the Model Context Protocol server that exposes
 Aareguru data to AI assistants via stdio or HTTP transport.
 """
 
+import asyncio
 import json
 from typing import Any
 
@@ -39,6 +40,52 @@ logger = structlog.get_logger(__name__)
 
 # Get settings
 settings = get_settings()
+
+# ============================================================================
+# Singleton HTTP Client for connection pooling
+# ============================================================================
+
+_http_client: AareguruClient | None = None
+_client_lock = asyncio.Lock()
+
+
+async def get_http_client() -> AareguruClient:
+    """Get or create singleton HTTP client with connection reuse.
+
+    This client is shared across all tool calls to enable:
+    - Connection pooling and keep-alive
+    - Reduced connection setup overhead
+    - Better resource utilization
+
+    **Returns:**
+        Singleton AareguruClient instance
+    """
+    global _http_client
+
+    async with _client_lock:
+        if _http_client is None:
+            settings_instance = get_settings()
+            _http_client = AareguruClient(settings=settings_instance)
+            logger.info("Created singleton HTTP client with connection pooling")
+
+        return _http_client
+
+
+async def close_http_client():
+    """Close singleton HTTP client on shutdown."""
+    global _http_client
+
+    if _http_client is not None:
+        await _http_client.close()
+        _http_client = None
+        logger.info("Closed singleton HTTP client")
+
+
+def _reset_http_client():
+    """Reset singleton client for testing purposes."""
+    global _http_client
+    _http_client = None
+
 
 # Create FastMCP server instance
 mcp = FastMCP(
@@ -82,9 +129,9 @@ async def get_cities_resource() -> str:
         - coordinates (object): Latitude and longitude
         - aare (float): Current water temperature in Celsius
     """
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_cities()
-        return json.dumps([city.model_dump() for city in response], indent=2)
+    client = await get_http_client()
+    response = await client.get_cities()
+    return json.dumps([city.model_dump() for city in response], indent=2)
 
 
 @mcp.resource("aareguru://current/{city}")
@@ -101,9 +148,9 @@ async def get_current_resource(city: str) -> str:
         JSON string with complete current conditions including temperature,
         flow, weather, and forecast data for the specified city.
     """
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
-        return response.model_dump_json(indent=2)
+    client = await get_http_client()
+    response = await client.get_current(city)
+    return response.model_dump_json(indent=2)
 
 
 @mcp.resource("aareguru://today/{city}")
@@ -120,9 +167,9 @@ async def get_today_resource(city: str) -> str:
         JSON string with minimal current data including temperature and
         basic location information for the specified city.
     """
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_today(city)
-        return response.model_dump_json(indent=2)
+    client = await get_http_client()
+    response = await client.get_today(city)
+    return response.model_dump_json(indent=2)
 
 
 # ============================================================================
@@ -274,45 +321,45 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
     with MetricsCollector.track_tool_call("get_current_temperature"):
         logger.info(f"Getting current temperature for {city}")
 
-        async with AareguruClient(settings=get_settings()) as client:
-            current_response = await client.get_current(city)
+        client = await get_http_client()
+        current_response = await client.get_current(city)
 
-            if not current_response.aare:
-                today_response = await client.get_today(city)
-                temp = today_response.aare
-                text = today_response.text
-                flow = None
-                temp_prec = today_response.aare_prec
-                text_short = today_response.text_short
-                longname = today_response.longname
-                location_name = today_response.name
-            else:
-                temp = current_response.aare.temperature
-                text = current_response.aare.temperature_text
-                flow = current_response.aare.flow
-                temp_prec = current_response.aare.temperature
-                text_short = current_response.aare.temperature_text_short
-                longname = current_response.aare.location_long
-                location_name = current_response.aare.location
+        if not current_response.aare:
+            today_response = await client.get_today(city)
+            temp = today_response.aare
+            text = today_response.text
+            flow = None
+            temp_prec = today_response.aare_prec
+            text_short = today_response.text_short
+            longname = today_response.longname
+            location_name = today_response.name
+        else:
+            temp = current_response.aare.temperature
+            text = current_response.aare.temperature_text
+            flow = current_response.aare.flow
+            temp_prec = current_response.aare.temperature
+            text_short = current_response.aare.temperature_text_short
+            longname = current_response.aare.location_long
+            location_name = current_response.aare.location
 
-            warning = _check_safety_warning(flow)
-            explanation = _get_swiss_german_explanation(text)
-            suggestion = await _get_suggestion(city, temp)
-            season_advice = _get_seasonal_advice()
+        warning = _check_safety_warning(flow)
+        explanation = _get_swiss_german_explanation(text)
+        suggestion = await _get_suggestion(city, temp)
+        season_advice = _get_seasonal_advice()
 
-            return TemperatureToolResponse(
-                city=city,
-                temperature=temp,
-                temperature_text=text,
-                swiss_german_explanation=explanation,
-                name=location_name,
-                warning=warning,
-                suggestion=suggestion,
-                seasonal_advice=season_advice,
-                temperature_prec=temp_prec,
-                temperature_text_short=text_short,
-                longname=longname,
-            )
+        return TemperatureToolResponse(
+            city=city,
+            temperature=temp,
+            temperature_text=text,
+            swiss_german_explanation=explanation,
+            name=location_name,
+            warning=warning,
+            suggestion=suggestion,
+            seasonal_advice=season_advice,
+            temperature_prec=temp_prec,
+            temperature_text_short=text_short,
+            longname=longname,
+        )
 
 
 @mcp.tool(name="get_current_conditions")
@@ -352,39 +399,39 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
     """
     logger.info(f"Getting current conditions for {city}")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
+    client = await get_http_client()
+    response = await client.get_current(city)
 
-        result: dict[str, Any] = {"city": city}
+    result: dict[str, Any] = {"city": city}
 
-        if response.aare:
-            warning = _check_safety_warning(response.aare.flow)
-            explanation = _get_swiss_german_explanation(response.aare.temperature_text)
+    if response.aare:
+        warning = _check_safety_warning(response.aare.flow)
+        explanation = _get_swiss_german_explanation(response.aare.temperature_text)
 
-            result["aare"] = AareConditionsData(
-                location=response.aare.location,
-                location_long=response.aare.location_long,
-                temperature=response.aare.temperature,
-                temperature_text=response.aare.temperature_text,
-                swiss_german_explanation=explanation,
-                temperature_text_short=response.aare.temperature_text_short,
-                flow=response.aare.flow,
-                flow_text=response.aare.flow_text,
-                height=response.aare.height,
-                forecast2h=response.aare.forecast2h,
-                forecast2h_text=response.aare.forecast2h_text,
-                warning=warning,
-            )
+        result["aare"] = AareConditionsData(
+            location=response.aare.location,
+            location_long=response.aare.location_long,
+            temperature=response.aare.temperature,
+            temperature_text=response.aare.temperature_text,
+            swiss_german_explanation=explanation,
+            temperature_text_short=response.aare.temperature_text_short,
+            flow=response.aare.flow,
+            flow_text=response.aare.flow_text,
+            height=response.aare.height,
+            forecast2h=response.aare.forecast2h,
+            forecast2h_text=response.aare.forecast2h_text,
+            warning=warning,
+        )
 
-        result["seasonal_advice"] = _get_seasonal_advice()
+    result["seasonal_advice"] = _get_seasonal_advice()
 
-        if response.weather:
-            result["weather"] = response.weather
+    if response.weather:
+        result["weather"] = response.weather
 
-        if response.weatherprognosis:
-            result["forecast"] = response.weatherprognosis
+    if response.weatherprognosis:
+        result["forecast"] = response.weatherprognosis
 
-        return ConditionsToolResponse(**result)
+    return ConditionsToolResponse(**result)
 
 
 @mcp.tool(name="get_historical_data")
@@ -414,9 +461,9 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
     """
     logger.info(f"Getting historical data for {city} from {start} to {end}")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_history(city, start, end)
-        return response
+    client = await get_http_client()
+    response = await client.get_history(city, start, end)
+    return response
 
 
 @mcp.tool(name="list_cities")
@@ -437,19 +484,19 @@ async def list_cities() -> list[CityListResponse]:
     """
     logger.info("Listing all cities")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_cities()
+    client = await get_http_client()
+    response = await client.get_cities()
 
-        return [
-            CityListResponse(
-                city=city.city,
-                name=city.name,
-                longname=city.longname,
-                coordinates=city.coordinates,
-                temperature=city.aare,
-            )
-            for city in response
-        ]
+    return [
+        CityListResponse(
+            city=city.city,
+            name=city.name,
+            longname=city.longname,
+            coordinates=city.coordinates,
+            temperature=city.aare,
+        )
+        for city in response
+    ]
 
 
 @mcp.tool(name="get_flow_danger_level")
@@ -484,32 +531,32 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     """
     logger.info(f"Getting flow danger level for {city}")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
+    client = await get_http_client()
+    response = await client.get_current(city)
 
-        if not response.aare:
-            return FlowDangerResponse(
-                city=city,
-                flow=None,
-                flow_text=None,
-                flow_threshold=None,
-                safety_assessment="No data available",
-                danger_level=None,
-            )
-
-        flow = response.aare.flow
-        threshold = response.aare.flow_scale_threshold or 220
-
-        safety, danger_level = _get_safety_assessment(flow, threshold)
-
+    if not response.aare:
         return FlowDangerResponse(
             city=city,
-            flow=flow,
-            flow_text=response.aare.flow_text,
-            flow_threshold=threshold,
-            safety_assessment=safety,
-            danger_level=danger_level,
+            flow=None,
+            flow_text=None,
+            flow_threshold=None,
+            safety_assessment="No data available",
+            danger_level=None,
         )
+
+    flow = response.aare.flow
+    threshold = response.aare.flow_scale_threshold or 220
+
+    safety, danger_level = _get_safety_assessment(flow, threshold)
+
+    return FlowDangerResponse(
+        city=city,
+        flow=flow,
+        flow_text=response.aare.flow_text,
+        flow_threshold=threshold,
+        safety_assessment=safety,
+        danger_level=danger_level,
+    )
 
 
 @mcp.tool(name="get_forecast")
@@ -540,43 +587,43 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolRespon
     """
     logger.info(f"Getting forecast for {city} ({hours}h)")
 
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
+    client = await get_http_client()
+    response = await client.get_current(city)
 
-        if not response.aare:
-            return ForecastToolResponse(
-                city=city,
-                current=None,
-                forecast_2h=None,
-                forecast_text="No data available",
-                trend="unknown",
-                temperature_change=None,
-                recommendation="Unable to provide forecast - no data available",
-                seasonal_advice=None,
+    if not response.aare:
+        return ForecastToolResponse(
+            city=city,
+            current=None,
+            forecast_2h=None,
+            forecast_text="No data available",
+            trend="unknown",
+            temperature_change=None,
+            recommendation="Unable to provide forecast - no data available",
+            seasonal_advice=None,
+        )
+
+    current_temp = response.aare.temperature
+    forecast_temp = response.aare.forecast2h
+    forecast_text = response.aare.forecast2h_text
+
+    if forecast_temp is None or current_temp is None:
+        trend = "unknown"
+        recommendation = "Forecast data not available"
+    else:
+        temp_diff = forecast_temp - current_temp
+
+        if abs(temp_diff) < 0.3:
+            trend = "stable"
+            recommendation = "Temperature will remain stable - good time to swim anytime"
+        elif temp_diff > 0:
+            trend = "rising"
+            recommendation = (
+                f"Temperature rising by {temp_diff:.1f}°C - water will be warmer in 2 hours"
             )
-
-        current_temp = response.aare.temperature
-        forecast_temp = response.aare.forecast2h
-        forecast_text = response.aare.forecast2h_text
-
-        if forecast_temp is None or current_temp is None:
-            trend = "unknown"
-            recommendation = "Forecast data not available"
         else:
-            temp_diff = forecast_temp - current_temp
-
-            if abs(temp_diff) < 0.3:
-                trend = "stable"
-                recommendation = "Temperature will remain stable - good time to swim anytime"
-            elif temp_diff > 0:
-                trend = "rising"
-                recommendation = (
-                    f"Temperature rising by {temp_diff:.1f}°C - water will be warmer in 2 hours"
-                )
-            else:
-                trend = "falling"
-                recommendation = (
-                    f"Temperature falling by {abs(temp_diff):.1f}°C - "
+            trend = "falling"
+            recommendation = (
+                f"Temperature falling by {abs(temp_diff):.1f}°C - "
                     "swim sooner rather than later"
                 )
 
