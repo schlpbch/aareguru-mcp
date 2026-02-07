@@ -198,7 +198,7 @@ class TestGetHistoricalData:
     async def test_with_relative_dates(self):
         """Test get_historical_data with relative dates."""
         result = await tools.get_historical_data(
-            city="Bern",
+            city="bern",
             start="-7 days",
             end="now",
         )

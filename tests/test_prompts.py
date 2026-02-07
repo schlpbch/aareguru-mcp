@@ -89,13 +89,13 @@ class TestDailySwimmingReportPrompt:
     async def test_default_city_is_Bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(daily_swimming_report)
-        assert "Bern" in result.lower()
+        assert "bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_custom_city(self):
         """Test that custom city is included in prompt."""
         result = await get_prompt_text(daily_swimming_report, city="Thun")
-        assert "Thun" in result.lower()
+        assert "thun" in result.lower()
 
     @pytest.mark.asyncio
     async def test_includes_key_sections(self):
@@ -193,7 +193,7 @@ class TestWeeklyTrendAnalysisPrompt:
     async def test_default_city_is_Bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(weekly_trend_analysis)
-        assert "Bern" in result.lower()
+        assert "bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_custom_city(self):
@@ -281,7 +281,7 @@ class TestPromptIntegration:
         result = await get_prompt_text(weekly_trend_analysis, city="Thun")
 
         # Should mention the city
-        assert "Thun" in result.lower()
+        assert "thun" in result.lower()
 
         # Should request specific data points
         assert "average" in result.lower() or "highest" in result.lower()
@@ -317,8 +317,8 @@ class TestPromptIntegration:
             daily = await get_prompt_text(daily_swimming_report, city=city)
             weekly = await get_prompt_text(weekly_trend_analysis, city=city)
 
-            assert city in daily.lower(), f"Daily prompt should include {city}"
-            assert city in weekly.lower(), f"Weekly prompt should include {city}"
+            assert city.lower() in daily.lower(), f"Daily prompt should include {city}"
+            assert city.lower() in weekly.lower(), f"Weekly prompt should include {city}"
 
 
 class TestPromptEdgeCases:
@@ -329,7 +329,7 @@ class TestPromptEdgeCases:
         """Test that empty city parameter uses default."""
         # The function has a default, so this should work
         result = await get_prompt_text(daily_swimming_report)
-        assert "Bern" in result.lower()
+        assert "bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_unusual_city_name(self):
@@ -431,7 +431,7 @@ class TestPromptToolIntegration:
         from aareguru_mcp import tools
 
         # Get the prompt text to verify tool name
-        prompt_text = await get_prompt_text(weekly_trend_analysis, city="Bern")
+        prompt_text = await get_prompt_text(weekly_trend_analysis, city="bern")
 
         # Verify referenced tool exists and works
         assert "get_historical_data" in prompt_text
@@ -442,7 +442,7 @@ class TestPromptToolIntegration:
         start_str = start_date.strftime("%Y-%m-%d")
         end_str = end_date.strftime("%Y-%m-%d")
 
-        historical = await tools.get_historical_data("Bern", start_str, end_str)
+        historical = await tools.get_historical_data("bern", start_str, end_str)
         assert "city" in historical
         assert "data" in historical or "data_points" in historical or "error" in historical
 
@@ -510,7 +510,7 @@ class TestPromptToolIntegration:
 
         from aareguru_mcp import tools
 
-        city = "Bern"
+        city = "bern"
 
         # Step 1: Get historical data for 7 days (as prompted)
         end_date = datetime.now()
