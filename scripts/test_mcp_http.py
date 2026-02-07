@@ -63,9 +63,7 @@ class MCPHTTPTester:
             try:
                 # Just test if we can hit the endpoint (won't establish full SSE)
                 await client.get(
-                    f"{self.base_url}/sse",
-                    timeout=2.0,
-                    headers={"Accept": "text/event-stream"}
+                    f"{self.base_url}/sse", timeout=2.0, headers={"Accept": "text/event-stream"}
                 )
                 # We expect timeout or connection, not 404
                 print("   ✅ SSE endpoint is reachable")
@@ -83,9 +81,7 @@ class MCPHTTPTester:
         async with httpx.AsyncClient() as client:
             # POST without proper session should fail gracefully
             response = await client.post(
-                f"{self.base_url}/messages/",
-                json={},
-                headers={"Content-Type": "application/json"}
+                f"{self.base_url}/messages/", json={}, headers={"Content-Type": "application/json"}
             )
             # Should get 400 (bad request) not 500 (server error)
             if response.status_code in [400, 401]:
@@ -101,8 +97,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -122,8 +117,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -145,8 +139,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/cities",
-                    params={"app": "aareguru-mcp-test"}
+                    f"{self.api_base}/cities", params={"app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -165,8 +158,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -181,14 +173,13 @@ class MCPHTTPTester:
             print(f"   ❌ Error: {e}")
             return False
 
-    async def test_tool_get_forecasts_batch(self) -> bool:
-        """Test get_forecasts_batch tool via Aareguru API."""
-        print("⚡ Testing get_forecasts_batch (Bern)...")
+    async def test_tool_get_forecasts(self) -> bool:
+        """Test get_forecasts tool via Aareguru API."""
+        print("⚡ Testing get_forecasts (Bern)...")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -209,8 +200,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/cities",
-                    params={"app": "aareguru-mcp-test"}
+                    f"{self.api_base}/cities", params={"app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -229,8 +219,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/widget",
-                    params={"app": "aareguru-mcp-test"}
+                    f"{self.api_base}/widget", params={"app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -250,8 +239,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -270,8 +258,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/today",
-                    params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/today", params={"city": "bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -286,52 +273,52 @@ class MCPHTTPTester:
 
     async def run_all_tests(self) -> dict[str, bool]:
         """Run all automated tests."""
-        print("="*60)
+        print("=" * 60)
         print("🚀 Starting MCP Server Automated Tests")
-        print("="*60)
+        print("=" * 60)
         print()
 
         results = {}
 
         # Test basic HTTP endpoints
         print("\n🔌 Testing HTTP Endpoints")
-        print("="*60)
-        results['health'] = await self.test_health()
+        print("=" * 60)
+        results["health"] = await self.test_health()
         print()
-        results['mcp_endpoint'] = await self.test_mcp_endpoint()
+        results["mcp_endpoint"] = await self.test_mcp_endpoint()
         print()
-        results['sse_endpoint'] = await self.test_sse_endpoint_reachable()
+        results["sse_endpoint"] = await self.test_sse_endpoint_reachable()
         print()
-        results['messages_endpoint'] = await self.test_messages_endpoint()
+        results["messages_endpoint"] = await self.test_messages_endpoint()
 
         # Test all tools
         print("\n🛠️  Testing MCP Tools")
-        print("="*60)
-        results['tool_get_current_temperature'] = await self.test_tool_get_current_temperature()
+        print("=" * 60)
+        results["tool_get_current_temperature"] = await self.test_tool_get_current_temperature()
         print()
-        results['tool_get_current_conditions'] = await self.test_tool_get_current_conditions()
+        results["tool_get_current_conditions"] = await self.test_tool_get_current_conditions()
         print()
-        results['tool_compare_cities_fast'] = await self.test_tool_compare_cities_fast()
+        results["tool_compare_cities_fast"] = await self.test_tool_compare_cities_fast()
         print()
-        results['tool_get_flow_danger_level'] = await self.test_tool_get_flow_danger_level()
+        results["tool_get_flow_danger_level"] = await self.test_tool_get_flow_danger_level()
         print()
-        results['tool_get_forecasts_batch'] = await self.test_tool_get_forecasts_batch()
+        results["tool_get_forecasts"] = await self.test_tool_get_forecasts()
 
         # Test all resources
         print("\n📚 Testing MCP Resources")
-        print("="*60)
-        results['resource_cities'] = await self.test_resource_cities()
+        print("=" * 60)
+        results["resource_cities"] = await self.test_resource_cities()
         print()
-        results['resource_widget'] = await self.test_resource_widget()
+        results["resource_widget"] = await self.test_resource_widget()
         print()
-        results['resource_current_city'] = await self.test_resource_current_city()
+        results["resource_current_city"] = await self.test_resource_current_city()
         print()
-        results['resource_today_city'] = await self.test_resource_today_city()
+        results["resource_today_city"] = await self.test_resource_today_city()
 
         # Summary
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📋 Test Summary")
-        print("="*60)
+        print("=" * 60)
         total = len(results)
         passed = sum(1 for r in results.values() if r)
 
@@ -341,7 +328,7 @@ class MCPHTTPTester:
 
         print()
         print(f"Results: {passed}/{total} tests passed")
-        print("="*60)
+        print("=" * 60)
 
         return results
 
@@ -354,7 +341,7 @@ async def main():
     parser.add_argument(
         "--url",
         default="http://localhost:8000",
-        help="Base URL of the MCP server (default: http://localhost:8000)"
+        help="Base URL of the MCP server (default: http://localhost:8000)",
     )
 
     args = parser.parse_args()

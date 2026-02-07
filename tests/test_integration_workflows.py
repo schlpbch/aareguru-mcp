@@ -20,7 +20,7 @@ class TestMultiToolWorkflows:
     @pytest.mark.asyncio
     async def test_compare_cities_then_get_temperature(self):
         """Test comparing cities then querying specific city temperature."""
-        comparison = await tools.compare_cities_fast()
+        comparison = await tools.compare_cities()
 
         assert "cities" in comparison
         assert len(comparison["cities"]) > 0, "Should have at least one city"

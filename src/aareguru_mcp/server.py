@@ -220,7 +220,7 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
 
     **Args:**
         city: City to generate the report for (default: `bern`).
-              Use `compare_cities_fast` to discover available locations.
+              Use `compare_cities` to discover available locations.
         include_forecast: Whether to include 2-hour forecast in the report (default: `true`)
 
     **Returns:**
@@ -229,7 +229,7 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
         The report includes Swiss German descriptions and safety warnings.
     """
     forecast_instruction = (
-        "\n3. **Forecast**: Use `get_forecasts_batch` to see how conditions "
+        "\n3. **Forecast**: Use `get_forecasts` to see how conditions "
         "will change in the next few hours"
         if include_forecast
         else ""
@@ -275,7 +275,7 @@ async def compare_swimming_spots(
     # Use fast parallel comparison tool
     return f"""Please compare all available Aare swimming locations.
 
-**Use `compare_cities_fast` tool** - it fetches all city data concurrently for maximum speed.
+**Use `compare_cities` tool** - it fetches all city data concurrently for maximum speed.
 This is 8-13x faster than sequential requests.
 
 Present:
@@ -296,7 +296,7 @@ async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
     """Generates trend analysis showing temperature and flow patterns with outlook.
 
     **Args:**
-        city: City to analyze (default: `bern`). Use `compare_cities_fast` to discover available locations.
+        city: City to analyze (default: `bern`). Use `compare_cities` to discover available locations.
         days: Number of days to analyze (`3`, `7`, or `14`). Default: `7` days (one week).
 
     **Returns:**
@@ -339,11 +339,11 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
     Returns temperature in Celsius, Swiss German description (e.g., `geil aber chli chalt`),
     and swimming suitability.
 
-    **For multiple cities:** Use `compare_cities_fast` instead - it's 8-13x faster.
+    **For multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
     **Args:****
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities_fast` to discover available locations.
+              Use `compare_cities` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -413,11 +413,11 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
     Use this for safety assessments, "is it safe to swim?" questions, and when users
     need a complete picture before swimming. This is the most detailed single-city tool.
 
-    **For comparing multiple cities:** Use `compare_cities_fast` instead - it's 8-13x faster.
+    **For comparing multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
     **Args:****
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities_fast` to discover available locations.
+              Use `compare_cities` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -507,6 +507,7 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
     response = await client.get_history(city, start, end)
     return response
 
+
 @mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     """Retrieves current flow rate and safety assessment.
@@ -526,7 +527,7 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
 
     **Args:**
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities_fast` to discover available locations.
+              Use `compare_cities` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -567,8 +568,8 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     )
 
 
-@mcp.tool(name="compare_cities_fast")
-async def compare_cities_fast(
+@mcp.tool(name="compare_cities")
+async def compare_cities(
     cities: list[str] | None = None,
 ) -> dict[str, Any]:
     """⚡ FAST: Compare multiple cities with parallel fetching (8-13x faster).
@@ -613,14 +614,16 @@ async def compare_cities_fast(
             continue
 
         if result.aare:
-            city_data.append({
-                "city": city,
-                "temperature": result.aare.temperature,
-                "flow": result.aare.flow,
-                "safe": result.aare.flow < 150 if result.aare.flow else True,
-                "temperature_text": result.aare.temperature_text,
-                "location": result.aare.location,
-            })
+            city_data.append(
+                {
+                    "city": city,
+                    "temperature": result.aare.temperature,
+                    "flow": result.aare.flow,
+                    "safe": result.aare.flow < 150 if result.aare.flow else True,
+                    "temperature_text": result.aare.temperature_text,
+                    "location": result.aare.location,
+                }
+            )
 
     # Sort by temperature
     city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
@@ -634,8 +637,8 @@ async def compare_cities_fast(
     }
 
 
-@mcp.tool(name="get_forecasts_batch")
-async def get_forecasts_batch(
+@mcp.tool(name="get_forecasts")
+async def get_forecasts(
     cities: list[str],
 ) -> dict[str, Any]:
     """⚡ FAST: Get forecasts for multiple cities in parallel (2-5x faster).

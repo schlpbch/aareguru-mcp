@@ -206,7 +206,7 @@ async def get_historical_data(
         return response
 
 
-async def compare_cities_fast(
+async def compare_cities(
     cities: list[str] | None = None,
 ) -> dict[str, Any]:
     """Compare multiple cities with parallel fetching (8-13x faster).
@@ -254,14 +254,16 @@ async def compare_cities_fast(
             if result is None or not result.aare:
                 continue
 
-            city_data.append({
-                "city": city,
-                "temperature": result.aare.temperature,
-                "flow": result.aare.flow,
-                "safe": result.aare.flow < 150 if result.aare.flow else True,
-                "temperature_text": result.aare.temperature_text,
-                "location": result.aare.location,
-            })
+            city_data.append(
+                {
+                    "city": city,
+                    "temperature": result.aare.temperature,
+                    "flow": result.aare.flow,
+                    "safe": result.aare.flow < 150 if result.aare.flow else True,
+                    "temperature_text": result.aare.temperature_text,
+                    "location": result.aare.location,
+                }
+            )
 
         # Sort by temperature
         city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
@@ -353,7 +355,7 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
         }
 
 
-async def get_forecasts_batch(
+async def get_forecasts(
     cities: list[str],
 ) -> dict[str, Any]:
     """Get forecasts for multiple cities in parallel (2-5x faster).
@@ -372,6 +374,7 @@ async def get_forecasts_batch(
     import asyncio
 
     async with AareguruClient(settings=get_settings()) as client:
+
         async def fetch_forecast(city: str):
             try:
                 response = await client.get_current(city)

@@ -112,7 +112,7 @@ class TestDailySwimmingReportPrompt:
         result = await get_prompt_text(daily_swimming_report)
         assert "get_current_conditions" in result
         assert "get_flow_danger_level" in result
-        assert "get_forecasts_batch" in result
+        assert "get_forecasts" in result
 
     @pytest.mark.asyncio
     async def test_mentions_swiss_german(self):
@@ -148,7 +148,7 @@ class TestCompareSwimmingSpotsPrompt:
     async def test_mentions_list_tool(self):
         """Test that prompt mentions the fast comparison tool."""
         result = await get_prompt_text(compare_swimming_spots)
-        assert "compare_cities_fast" in result
+        assert "compare_cities" in result
 
     @pytest.mark.asyncio
     async def test_includes_key_sections(self):
@@ -251,7 +251,7 @@ class TestPromptIntegration:
         tool_mentions = [
             "get_current_conditions",
             "get_flow_danger_level",
-            "get_forecasts_batch",
+            "get_forecasts",
         ]
         for tool in tool_mentions:
             assert tool in result, f"Prompt should mention {tool}"
@@ -266,7 +266,7 @@ class TestPromptIntegration:
         result = await get_prompt_text(compare_swimming_spots)
 
         # Should guide Claude to use fast parallel comparison tool
-        assert "compare_cities_fast" in result
+        assert "compare_cities" in result
 
         # Should request structured output
         assert "Table" in result or "ranked" in result.lower()
@@ -304,7 +304,7 @@ class TestPromptIntegration:
 
         # Each should have different primary tool focus
         assert "get_current_conditions" in daily
-        assert "compare_cities_fast" in compare  # Fast parallel tool
+        assert "compare_cities" in compare  # Fast parallel tool
         assert "get_historical_data" in weekly
 
     @pytest.mark.integration
@@ -398,8 +398,8 @@ class TestPromptToolIntegration:
         assert "city" in danger
         assert "danger_level" in danger
 
-        assert "get_forecasts_batch" in prompt_text
-        forecast_result = await tools.get_forecasts_batch(["bern"])
+        assert "get_forecasts" in prompt_text
+        forecast_result = await tools.get_forecasts(["bern"])
         assert "forecasts" in forecast_result
         assert "bern" in forecast_result["forecasts"]
 
@@ -413,8 +413,8 @@ class TestPromptToolIntegration:
         prompt_text = await get_prompt_text(compare_swimming_spots)
 
         # Verify referenced fast parallel tool exists
-        assert "compare_cities_fast" in prompt_text
-        comparison = await tools.compare_cities_fast()
+        assert "compare_cities" in prompt_text
+        comparison = await tools.compare_cities()
         assert "cities" in comparison
         assert isinstance(comparison["cities"], list)
         assert len(comparison["cities"]) > 0
@@ -466,7 +466,7 @@ class TestPromptToolIntegration:
         assert "danger_level" in danger
 
         # Step 3: Get forecast (as prompted)
-        forecast_result = await tools.get_forecasts_batch([city])
+        forecast_result = await tools.get_forecasts([city])
         assert "forecasts" in forecast_result
         assert city in forecast_result["forecasts"]
         forecast = forecast_result["forecasts"][city]
@@ -487,7 +487,7 @@ class TestPromptToolIntegration:
         from aareguru_mcp import tools
 
         # Step 1: Compare all cities (as prompted)
-        comparison = await tools.compare_cities_fast()
+        comparison = await tools.compare_cities()
         assert "cities" in comparison
         assert len(comparison["cities"]) > 0
 

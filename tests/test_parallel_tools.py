@@ -1,6 +1,6 @@
 """Tests for parallel fetch tools.
 
-Tests compare_cities_fast and get_forecasts_batch.
+Tests compare_cities and get_forecasts.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -11,12 +11,12 @@ from aareguru_mcp.server import mcp
 
 
 class TestCompareCitiesFast:
-    """Test compare_cities_fast tool."""
+    """Test compare_cities tool."""
 
     @pytest.mark.asyncio
     async def test_with_city_list(self):
         """Test with explicit city list."""
-        tool = mcp._tool_manager._tools["compare_cities_fast"]
+        tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
@@ -53,7 +53,7 @@ class TestCompareCitiesFast:
     @pytest.mark.asyncio
     async def test_without_city_list(self):
         """Test with automatic city discovery."""
-        tool = mcp._tool_manager._tools["compare_cities_fast"]
+        tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
@@ -88,7 +88,7 @@ class TestCompareCitiesFast:
     @pytest.mark.asyncio
     async def test_with_unsafe_flow(self):
         """Test with unsafe flow levels."""
-        tool = mcp._tool_manager._tools["compare_cities_fast"]
+        tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
@@ -119,12 +119,12 @@ class TestCompareCitiesFast:
 
 
 class TestGetForecastsBatch:
-    """Test get_forecasts_batch tool."""
+    """Test get_forecasts tool."""
 
     @pytest.mark.asyncio
     async def test_with_multiple_cities(self):
         """Test fetching forecasts for multiple cities."""
-        tool = mcp._tool_manager._tools["get_forecasts_batch"]
+        tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
@@ -167,7 +167,7 @@ class TestGetForecastsBatch:
     @pytest.mark.asyncio
     async def test_with_missing_data(self):
         """Test handling cities with missing data."""
-        tool = mcp._tool_manager._tools["get_forecasts_batch"]
+        tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
@@ -196,7 +196,7 @@ class TestGetForecastsBatch:
     @pytest.mark.asyncio
     async def test_with_null_forecast(self):
         """Test handling null forecast values."""
-        tool = mcp._tool_manager._tools["get_forecasts_batch"]
+        tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
         with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
