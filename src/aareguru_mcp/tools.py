@@ -19,18 +19,18 @@ from .helpers import (
 logger = structlog.get_logger(__name__)
 
 
-async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
+async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
     """Get current water temperature for a city.
 
     Use this for quick temperature checks and simple 'how warm is the water?' questions.
     Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
     and swimming suitability.
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities() to discover available locations.
+    **Args**:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
 
-    Returns:
+    **Returns**:
         Dictionary with temperature data and Swiss German descriptions:
         - temperature: Water temperature in Celsius
         - temperature_prec: Temperature precision/decimal places
@@ -39,8 +39,8 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
         - name: City short name
         - longname: City full name
 
-    Example:
-        >>> result = await get_current_temperature("bern")
+    **Example**:
+        >>> result = await get_current_temperature("Bern")
         >>> print(f"{result['temperature']}°C - {result['temperature_text']}")
         17.2°C - geil aber chli chalt
     """
@@ -95,25 +95,25 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
         return result
 
 
-async def get_current_conditions(city: str = "bern") -> dict[str, Any]:
+async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
     """Get complete current conditions for a city.
 
     Use this for safety assessments, 'is it safe to swim?' questions, and when users
     need a complete picture before swimming. This is the most detailed tool - use it
     for contextual and safety-critical queries.
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities() to discover available locations.
+    **Args**:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
 
-    Returns:
+    **Returns**:
         Dictionary with comprehensive swimming conditions:
         - aare: Nested dict with water data (temperature, flow, height, forecast)
         - weather: Current weather conditions (may be None)
         - forecast: Weather forecast data (may be None)
 
-    Example:
-        >>> result = await get_current_conditions("bern")
+    **Example**:
+        >>> result = await get_current_conditions("Bern")
         >>> print(f"Temp: {result['aare']['temperature']}°C")
         >>> print(f"Flow: {result['aare']['flow']} m³/s")
         >>> print(f"2h forecast: {result['aare']['forecast2h_text']}")
@@ -173,8 +173,8 @@ async def get_historical_data(
     Use this for trend analysis, comparisons with past conditions, and statistical queries.
     Returns hourly data points for temperature and flow.
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten')
+    **Args*:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten')
         start: Start date/time. Accepts:
                - ISO format: "2024-11-01T00:00:00Z"
                - Unix timestamp: "1698796800"
@@ -183,18 +183,18 @@ async def get_historical_data(
         end: End date/time. Accepts ISO format, Unix timestamp, or "now" for current time.
              Use "now" for most recent data.
 
-    Returns:
+    *Returns*:
         Dictionary with time series data containing hourly measurements
 
-    Example:
+    **Example**:
         >>> # Get last week's data
-        >>> result = await get_historical_data("bern", "-7 days", "now")
+        >>> result = await get_historical_data("Bern", "-7 days", "now")
         >>> print(f"Data points: {len(result['timeseries'])}")
         168  # 7 days × 24 hours
 
         >>> # Get specific date range
         >>> result = await get_historical_data(
-        ...     "bern",
+        ...     "Bern",
         ...     "2024-11-01T00:00:00Z",
         ...     "2024-11-07T23:59:59Z"
         ... )
@@ -217,10 +217,10 @@ async def compare_cities(
     **Performance:** 10 cities in ~60-100ms vs ~800ms sequential
 
     **Args:**
-        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`).
+        cities: List of city identifiers (e.g., `['Bern', 'Thun']`).
                 If None, compares all available cities.
 
-    **Returns:**
+    **Returns**:
         Dictionary with:
         - cities: List of city data with temperature, flow, safety
         - warmest: City with highest temperature
@@ -277,7 +277,7 @@ async def compare_cities(
         }
 
 
-async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
+async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
     """Get current flow rate and BAFU danger assessment.
 
     Use this for safety-critical questions about current strength and swimming danger.
@@ -291,19 +291,19 @@ async def get_flow_danger_level(city: str = "bern") -> dict[str, Any]:
     - 300-430 m³/s: High - dangerous conditions
     - >430 m³/s: Very high - extremely dangerous, avoid swimming
 
-    Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel', 'olten').
-              Use list_cities() to discover available locations.
+    **Args**:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
 
-    Returns:
+    **Returns**:
         Dictionary with flow data and safety assessment:
         - flow: Current flow rate in m³/s
         - flow_text: Human-readable flow description
         - flow_threshold: BAFU danger threshold for this location
         - safety_assessment: Safety recommendation based on current flow
 
-    Example:
-        >>> result = await get_flow_danger_level("bern")
+    **Example**:
+        >>> result = await get_flow_danger_level("Bern")
         >>> print(f"Flow: {result['flow']} m³/s")
         >>> print(f"Safety: {result['safety_assessment']}")
         Flow: 245 m³/s
@@ -364,7 +364,7 @@ async def get_forecasts(
     Fetches all forecasts concurrently.
 
     **Args:**
-        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`)
+        cities: List of city identifiers (e.g., `['Bern', 'Thun']`)
 
     **Returns:**
         Dictionary mapping city names to forecast data:

@@ -67,7 +67,7 @@ async def get_cities_resource() -> str:
 
     Returns:
         JSON string with array of city objects, each containing:
-        - city (str): City identifier (e.g., 'bern', 'thun')
+        - city (str): City identifier (e.g., 'Bern', 'Thun')
         - name (str): Display name
         - longname (str): Full location name
         - coordinates (object): Latitude and longitude
@@ -86,7 +86,7 @@ async def get_current_resource(city: str) -> str:
     weather conditions, and forecasts for the specified location.
 
     Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel')
+        city: City identifier (e.g., 'Bern', 'Thun')
 
     Returns:
         JSON string with complete current conditions including temperature,
@@ -105,7 +105,7 @@ async def get_today_resource(city: str) -> str:
     Use this when you only need basic temperature data without full details.
 
     Args:
-        city: City identifier (e.g., 'bern', 'thun', 'basel')
+        city: City identifier (e.g., 'Bern', 'Thun')
 
     Returns:
         JSON string with minimal current data including temperature and
@@ -122,11 +122,11 @@ async def get_today_resource(city: str) -> str:
 
 
 @mcp.prompt(name="daily-swimming-report")
-async def daily_swimming_report(city: str = "bern", include_forecast: bool = True) -> str:
+async def daily_swimming_report(city: str = "Bern", include_forecast: bool = True) -> str:
     """Generates comprehensive daily swimming report combining conditions, safety.
 
     **Args:**
-        city: City to generate the report for (default: `bern`).
+        city: City to generate the report for (default: `Bern`).
               Use `compare_cities` to discover available locations.
         include_forecast: Whether to include 2-hour forecast in the report (default: `true`)
 
@@ -199,11 +199,11 @@ End with a personalized recommendation based on conditions."""
 
 
 @mcp.prompt(name="weekly-trend-analysis")
-async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
+async def weekly_trend_analysis(city: str = "Bern", days: int = 7) -> str:
     """Generates trend analysis showing temperature and flow patterns with outlook.
 
     **Args:**
-        city: City to analyze (default: `bern`). Use `compare_cities` to discover locations.
+        city: City to analyze (default: `Bern`). Use `compare_cities` to discover locations.
         days: Number of days to analyze (`3`, `7`, or `14`). Default: `7` days (one week).
 
     **Returns:**
@@ -237,10 +237,10 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 
 
 @mcp.tool(name="get_current_temperature")
-async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
+async def get_current_temperature(city: str = "Bern") -> TemperatureToolResponse:
     """Retrieves current water temperature for a single city.
 
-    Takes `city` parameter (optional, default: `bern`).
+    Takes `city` parameter (optional, default: `Bern`).
 
     Use this for quick temperature checks and simple "how warm is the water?" questions.
     Returns temperature in Celsius, Swiss German description (e.g., `geil aber chli chalt`),
@@ -249,7 +249,7 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
     **For multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
     **Args:**
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`).
               Use `compare_cities` to discover locations.
 
     **Returns:**
@@ -272,10 +272,10 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
 
 
 @mcp.tool(name="get_current_conditions")
-async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
+async def get_current_conditions(city: str = "Bern") -> ConditionsToolResponse:
     """Retrieves comprehensive swimming conditions for a single city.
 
-    Takes `city` parameter (optional, default: `bern`). Returns water temperature,
+    Takes `city` parameter (optional, default: `Bern`). Returns water temperature,
     flow rate, water height, weather conditions, and 2-hour forecast.
 
     Use this for safety assessments, "is it safe to swim?" questions, and when users
@@ -284,7 +284,7 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
     **For comparing multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
 
     **Args:**
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`,
+        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`,
               `'olten'`). Use `compare_cities` to discover locations.
 
     **Returns:**
@@ -327,7 +327,7 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
     or "what was the warmest day this month?"
 
     **Args:**
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`)
+        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`)
         start: Start date/time. Accepts ISO format (`2024-11-01T00:00:00Z`),
                Unix timestamp, or relative expressions like `'-7 days'`, `'-1 week'`.
         end: End date/time. Accepts ISO format, Unix timestamp, or `'now'` for current time.
@@ -345,10 +345,10 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
 
 
 @mcp.tool(name="get_flow_danger_level")
-async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
+async def get_flow_danger_level(city: str = "Bern") -> FlowDangerResponse:
     """Retrieves current flow rate and safety assessment.
 
-    Takes `city` parameter (optional, default: `bern`).
+    Takes `city` parameter (optional, default: `Bern`).
     Returns flow rate (m³/s), danger level, and safety recommendations
     based on BAFU thresholds.
 
@@ -362,7 +362,7 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     - `>430`: very high/extremely dangerous
 
     **Args:**
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
+        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`).
               Use `compare_cities` to discover available locations.
 
     **Returns:**
@@ -390,7 +390,7 @@ async def compare_cities(
     **Performance:** 10 cities in ~60-100ms vs ~800ms sequential
 
     **Args:**
-        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`).
+        cities: List of city identifiers (e.g., `['Bern', 'Thun']`).
                 If None, compares all available cities.
 
     **Returns:**
@@ -415,7 +415,7 @@ async def get_forecasts(
     Fetches all forecasts concurrently.
 
     **Args:**
-        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`)
+        cities: List of city identifiers (e.g., `['Bern', 'Thun']`)
 
     **Returns:**
         Dictionary mapping city names to forecast data:

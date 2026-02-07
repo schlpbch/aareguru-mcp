@@ -38,7 +38,7 @@ class TestMultiToolWorkflows:
     @pytest.mark.asyncio
     async def test_temperature_and_flow_correlation(self):
         """Test getting temperature and flow for same city returns consistent data."""
-        city = "bern"
+        city = "Bern"
 
         temp_result = await tools.get_current_temperature(city)
         flow_result = await tools.get_flow_danger_level(city)
@@ -53,7 +53,7 @@ class TestMultiToolWorkflows:
     @pytest.mark.asyncio
     async def test_resource_and_tool_consistency(self):
         """Verify resource and tool return consistent data for same city."""
-        city = "bern"
+        city = "Bern"
 
         tool_result = await tools.get_current_temperature(city)
         resource_result = await resources.read_resource(f"aareguru://today/{city}")
@@ -65,7 +65,7 @@ class TestMultiToolWorkflows:
     @pytest.mark.asyncio
     async def test_multiple_cities_sequential(self):
         """Test querying multiple cities in sequence."""
-        cities_to_test = ["bern", "thun", "basel"]
+        cities_to_test = ["Bern", "Thun", "basel"]
         results = []
 
         for city in cities_to_test:
@@ -86,7 +86,7 @@ class TestCachingBehavior:
         """Verify cached responses work correctly."""
         import time
 
-        city = "bern"
+        city = "Bern"
 
         start1 = time.time()
         result1 = await tools.get_current_temperature(city)
@@ -123,9 +123,9 @@ class TestCachingBehavior:
         """Verify different parameters create different cache keys."""
         client = AareguruClient()
 
-        key1 = client._get_cache_key("/endpoint", {"city": "bern"})
-        key2 = client._get_cache_key("/endpoint", {"city": "thun"})
-        key3 = client._get_cache_key("/endpoint", {"city": "bern"})
+        key1 = client._get_cache_key("/endpoint", {"city": "Bern"})
+        key2 = client._get_cache_key("/endpoint", {"city": "Thun"})
+        key3 = client._get_cache_key("/endpoint", {"city": "Bern"})
 
         assert key1 != key2
         assert key1 == key3
@@ -153,7 +153,7 @@ class TestErrorHandling:
             mock_request.side_effect = TimeoutError("Request timed out")
 
             with pytest.raises(TimeoutError):
-                await tools.get_current_temperature("bern")
+                await tools.get_current_temperature("Bern")
 
     @pytest.mark.asyncio
     async def test_missing_data_fields(self):
@@ -173,7 +173,7 @@ class TestErrorHandling:
             mock_response.longname = "Bern, Schönau"
             mock_get_today.return_value = mock_response
 
-            result = await tools.get_current_temperature("bern")
+            result = await tools.get_current_temperature("Bern")
 
             assert result["temperature"] == 17.2
             assert result["temperature_prec"] is None
@@ -186,7 +186,7 @@ class TestDataConsistency:
     @pytest.mark.asyncio
     async def test_swiss_german_text_present(self):
         """Verify all temperature responses include Swiss German text."""
-        cities = ["bern", "thun", "basel"]
+        cities = ["Bern", "Thun", "basel"]
 
         for city in cities:
             result = await tools.get_current_temperature(city)
@@ -198,7 +198,7 @@ class TestDataConsistency:
     @pytest.mark.asyncio
     async def test_flow_threshold_accuracy(self):
         """Verify BAFU thresholds are applied correctly."""
-        result = await tools.get_flow_danger_level("bern")
+        result = await tools.get_flow_danger_level("Bern")
 
         if result["flow"] is not None:
             flow = result["flow"]
@@ -219,7 +219,7 @@ class TestDataConsistency:
     @pytest.mark.asyncio
     async def test_temperature_precision(self):
         """Verify temperature values have correct precision."""
-        result = await tools.get_current_temperature("bern")
+        result = await tools.get_current_temperature("Bern")
         temp = result["temperature"]
 
         assert isinstance(temp, (int, float))

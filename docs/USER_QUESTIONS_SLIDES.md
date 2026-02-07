@@ -1,10 +1,12 @@
 # 130 User Questions for Aareguru MCP Server
 
-A comprehensive collection of user questions that Claude can answer using the Aareguru MCP server.
+A comprehensive collection of user questions that Claude can answer using the
+Aareguru MCP server.
 
 ---
 
 ## Category 1: Basic Temperature Queries
+
 **10 Questions**
 
 1. What's the Aare temperature right now?
@@ -21,6 +23,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 2: Safety & Flow Questions
+
 **10 Questions**
 
 11. Is it safe to swim in the Aare today?
@@ -37,6 +40,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 3: Weather Integration
+
 **10 Questions**
 
 21. What's the weather like for swimming?
@@ -53,6 +57,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 4: Comparative Questions
+
 **10 Questions**
 
 31. Which city has the warmest water?
@@ -69,6 +74,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 5: Historical & Trend Questions
+
 **10 Questions**
 
 41. How has the temperature changed this week?
@@ -85,6 +91,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 6: Forecast Questions
+
 **10 Questions**
 
 51. Will the water be warmer tomorrow?
@@ -101,6 +108,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 7: Location Discovery
+
 **10 Questions**
 
 61. Where can I check Aare temperatures?
@@ -117,6 +125,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 8: Contextual & Complex Questions
+
 **10 Questions**
 
 71. I'm planning to swim at 5 PM, what will conditions be like?
@@ -133,6 +142,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 9: Conversational Questions
+
 **10 Questions**
 
 81. How's the Aare looking today?
@@ -149,6 +159,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 10: Data Analysis Questions
+
 **10 Questions**
 
 91. What's the warmest the Aare has been this year?
@@ -160,11 +171,12 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 97. Analyze temperature patterns
 98. What's the correlation between air and water temp?
 99. Show me daily temperature ranges
-100. What's the standard deviation?
+100.  What's the standard deviation?
 
 ---
 
 ## Category 11: Specific Use Cases
+
 **10 Questions**
 
 101. I'm a tourist, where should I swim?
@@ -181,6 +193,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 12: Multi-Step Queries
+
 **10 Questions**
 
 111. Check Bern temperature, then compare with Thun
@@ -197,6 +210,7 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ---
 
 ## Category 13: Edge Cases & Special Requests
+
 **10 Questions**
 
 121. What if there's no data available?
@@ -214,22 +228,22 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 
 ## Summary by Category
 
-| Category | Count | Focus Area |
-|----------|-------|------------|
-| Basic Temperature | 10 | Simple temp queries |
-| Safety & Flow | 10 | Current strength & danger |
-| Weather Integration | 10 | Weather conditions |
-| Comparative | 10 | Multi-city comparison |
-| Historical & Trends | 10 | Past data analysis |
-| Forecast | 10 | Future predictions |
-| Location Discovery | 10 | Available cities |
-| Contextual & Complex | 10 | Detailed scenarios |
-| Conversational | 10 | Natural language |
-| Data Analysis | 10 | Statistical queries |
-| Specific Use Cases | 10 | Activity-based |
-| Multi-Step | 10 | Complex workflows |
-| Edge Cases | 10 | Error handling |
-| **Total** | **130** | **Complete coverage** |
+| Category             | Count   | Focus Area                |
+| -------------------- | ------- | ------------------------- |
+| Basic Temperature    | 10      | Simple temp queries       |
+| Safety & Flow        | 10      | Current strength & danger |
+| Weather Integration  | 10      | Weather conditions        |
+| Comparative          | 10      | Multi-city comparison     |
+| Historical & Trends  | 10      | Past data analysis        |
+| Forecast             | 10      | Future predictions        |
+| Location Discovery   | 10      | Available cities          |
+| Contextual & Complex | 10      | Detailed scenarios        |
+| Conversational       | 10      | Natural language          |
+| Data Analysis        | 10      | Statistical queries       |
+| Specific Use Cases   | 10      | Activity-based            |
+| Multi-Step           | 10      | Complex workflows         |
+| Edge Cases           | 10      | Error handling            |
+| **Total**            | **130** | **Complete coverage**     |
 
 ---
 
@@ -238,28 +252,34 @@ A comprehensive collection of user questions that Claude can answer using the Aa
 ### Which tools answer which questions?
 
 **`get_current_temperature`** → Categories 1, 9
+
 - Quick temperature checks
 - Simple conversational queries
 
 **`get_current_conditions`** → Categories 2, 3, 8
+
 - Safety assessments
 - Weather integration
 - Full swimming reports
 
 **`get_historical_data`** → Categories 5, 10
+
 - Trend analysis
 - Statistical queries
 - Historical comparisons
 
 **`list_cities`** → Category 7
+
 - Location discovery
 - Available spots
 
 **`get_flow_danger_level`** → Category 2
+
 - Safety-critical queries
 - Flow rate checks
 
 **`get_forecast`** → Category 3
+
 - Future predictions
 - Optimal timing
 
@@ -296,17 +316,23 @@ Complex:   3-5 seconds
 ## Implementation Priority
 
 ### Phase 1 (MVP) - 70% Coverage
+
 Tools: 1-5
+
 - Categories 1, 2, 5, 7, 9
 - ~90 questions covered
 
 ### Phase 2 (Enhanced) - 95% Coverage
+
 Tools: 6-7
+
 - Categories 3, 4, 6, 8, 10, 11
 - ~123 questions covered
 
 ### Phase 3 (Complete) - 100% Coverage
+
 All tools + error handling
+
 - Categories 12, 13
 - All 130 questions covered
 
@@ -317,6 +343,7 @@ All tools + error handling
 ### Sample Test Cases
 
 **Category 1 (Basic)**:
+
 ```
 Q: "What's the Aare temperature in Bern?"
 Expected: Temperature + Swiss German + swimming status
@@ -324,6 +351,7 @@ Tool: get_current_temperature
 ```
 
 **Category 4 (Temporal)**:
+
 ```
 Q: "Will the water be warmer in 2 hours?"
 Expected: Current temp → forecast → recommendation
@@ -337,6 +365,7 @@ Tool: get_forecast
 ### Response Quality
 
 Every response should include:
+
 1. ✅ **Direct answer** to the question
 2. ✅ **Context** (Swiss German, safety notes)
 3. ✅ **Formatting** (emojis, tables, bullets)
@@ -347,21 +376,24 @@ Every response should include:
 **Question**: "Is it safe to swim in Bern today?"
 
 **Response**:
+
 ```markdown
 🏊 **Aare Swimming Safety Report - Bern**
 
 🌡️ **Water Temperature**: 17.2°C
+
 - "geil aber chli chalt" (awesome but a bit cold)
 - Comfortable for most swimmers
 
 💧 **Flow Conditions**: 245 m³/s
+
 - Danger Level: 2/5 (Moderate)
 - Safe for experienced swimmers
 
 ☀️ **Weather**: Sunny, 24°C
 
-✅ **Verdict**: Yes, it's safe to swim!
-Conditions are good. Be aware of the current strength.
+✅ **Verdict**: Yes, it's safe to swim! Conditions are good. Be aware of the
+current strength.
 
 💡 **Tip**: Water will be warmest around 4-5 PM.
 ```
@@ -370,4 +402,6 @@ Conditions are good. Be aware of the current strength.
 
 ## Conclusion
 
-These 130 questions represent the comprehensive scope of user needs for the Aareguru MCP server, ensuring Claude can provide helpful, accurate, and contextual responses for all swimming-related queries about the Aare river.
+These 130 questions represent the comprehensive scope of user needs for the
+Aareguru MCP server, ensuring Claude can provide helpful, accurate, and
+contextual responses for all swimming-related queries about the Aare river.

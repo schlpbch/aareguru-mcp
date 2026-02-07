@@ -61,9 +61,9 @@ async def test_read_resource_widget():
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_read_resource_current_bern():
+async def test_read_resource_current_Bern():
     """Test reading current resource for Bern."""
-    content = await resources.read_resource("aareguru://current/bern")
+    content = await resources.read_resource("aareguru://current/Bern")
 
     assert isinstance(content, str)
     data = json.loads(content)
@@ -73,9 +73,9 @@ async def test_read_resource_current_bern():
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_read_resource_today_bern():
+async def test_read_resource_today_Bern():
     """Test reading today resource for Bern."""
-    content = await resources.read_resource("aareguru://today/bern")
+    content = await resources.read_resource("aareguru://today/Bern")
 
     assert isinstance(content, str)
     data = json.loads(content)

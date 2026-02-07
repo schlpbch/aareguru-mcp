@@ -1,14 +1,19 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss Aare river data from the Aareguru API to AI assistants. The server provides 7 MCP tools, 4 MCP resources, and 3 MCP prompts for querying water temperature, flow rates, weather conditions, and safety assessments for swimming in the Aare river.
+Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss
+Aare river data from the Aareguru API to AI assistants. The server provides 7
+MCP tools, 4 MCP resources, and 3 MCP prompts for querying water temperature,
+flow rates, weather conditions, and safety assessments for swimming in the Aare
+river.
 
-**Status**: Production ready with 202 tests passing (87% coverage)
-**Version**: 1.0.0 (FastMCP 2.0, HTTP/SSE transport, FastMCP Cloud deployed)
-**Recent**: Added MCP prompts for guided interactions, structured logging with structlog
+**Status**: Production ready with 202 tests passing (87% coverage) **Version**:
+1.0.0 (FastMCP 2.0, HTTP/SSE transport, FastMCP Cloud deployed) **Recent**:
+Added MCP prompts for guided interactions, structured logging with structlog
 
 ## Development Commands
 
@@ -88,13 +93,19 @@ uv pip install -e ".[dev]"
 
 The codebase uses **FastMCP 2.0** with a clean layered architecture:
 
-1. **MCP Server Layer** (`server.py`): FastMCP server with decorator-based tools, resources, and prompts
-2. **HTTP Transport Layer** (`http_server.py`): Optional HTTP/SSE transport wrapper for FastMCP
-3. **Helper Functions** (`helpers.py`): Shared utilities for safety checks, seasonal advice, and Swiss German explanations
-4. **Legacy Layers** (`tools.py`, `resources.py`): Compatibility helpers (being phased out in favor of decorators)
-5. **HTTP Client Layer** (`client.py`): Async HTTP client with caching and rate limiting
+1. **MCP Server Layer** (`server.py`): FastMCP server with decorator-based
+   tools, resources, and prompts
+2. **HTTP Transport Layer** (`http_server.py`): Optional HTTP/SSE transport
+   wrapper for FastMCP
+3. **Helper Functions** (`helpers.py`): Shared utilities for safety checks,
+   seasonal advice, and Swiss German explanations
+4. **Legacy Layers** (`tools.py`, `resources.py`): Compatibility helpers (being
+   phased out in favor of decorators)
+5. **HTTP Client Layer** (`client.py`): Async HTTP client with caching and rate
+   limiting
 6. **Data Models Layer** (`models.py`): Pydantic models for API responses
-7. **Configuration Layer** (`config.py`): Settings management with pydantic-settings
+7. **Configuration Layer** (`config.py`): Settings management with
+   pydantic-settings
 
 ### Key Design Patterns
 
@@ -102,15 +113,20 @@ The codebase uses **FastMCP 2.0** with a clean layered architecture:
 
 The `helpers.py` module provides shared utility functions used across tools:
 
-- **`get_seasonal_advice()`**: Returns contextual swimming advice based on current season
-- **`check_safety_warning(flow, threshold)`**: Generates warning if flow rate is dangerous
+- **`get_seasonal_advice()`**: Returns contextual swimming advice based on
+  current season
+- **`check_safety_warning(flow, threshold)`**: Generates warning if flow rate is
+  dangerous
 - **`get_safety_assessment(flow, threshold)`**: Returns BAFU safety level string
 - **`get_suggestion(cities_data)`**: Suggests warmer/safer alternatives
-- **`get_swiss_german_explanation(text)`**: Explains Swiss German temperature phrases
+- **`get_swiss_german_explanation(text)`**: Explains Swiss German temperature
+  phrases
 
-These helpers enable smart features like proactive safety checks and intelligent suggestions.
+These helpers enable smart features like proactive safety checks and intelligent
+suggestions.
 
 #### Async Context Manager Pattern
+
 The `AareguruClient` uses async context managers for proper resource cleanup:
 
 ```python
@@ -118,17 +134,22 @@ async with AareguruClient(settings=get_settings()) as client:
     response = await client.get_today(city)
 ```
 
-Every tool function creates a fresh client instance and closes it properly. This ensures HTTP connections are cleaned up.
+Every tool function creates a fresh client instance and closes it properly. This
+ensures HTTP connections are cleaned up.
 
 #### Caching Strategy
+
 The HTTP client implements in-memory caching with TTL:
+
 - Cache key: `endpoint + sorted query params`
 - TTL: 120 seconds (configurable via `CACHE_TTL_SECONDS`)
 - Automatic expiration and cleanup
 - Historical data endpoints bypass cache (`use_cache=False`)
 
 #### Rate Limiting
+
 Built-in rate limiting prevents API abuse:
+
 - Minimum interval between requests: 300 seconds (configurable)
 - Lock-based coordination to prevent concurrent violations
 - Tracks `_last_request_time` to enforce delays
@@ -138,7 +159,8 @@ Built-in rate limiting prevents API abuse:
 1. **MCP Client** (e.g., Claude Desktop) → stdio transport → `server.py`
 2. **server.py** → routes to appropriate handler in `tools.py` or `resources.py`
 3. **Tools/Resources** → create `AareguruClient` instance
-4. **AareguruClient** → checks cache → makes HTTP request → validates with Pydantic
+4. **AareguruClient** → checks cache → makes HTTP request → validates with
+   Pydantic
 5. **Response** → formatted as JSON → returned via MCP protocol
 
 ### Critical API Response Structures
@@ -146,7 +168,9 @@ Built-in rate limiting prevents API abuse:
 The Aareguru API has **different response structures** for different endpoints:
 
 #### `/v2018/today` (TodayResponse)
+
 Flat structure with temperature at top level:
+
 ```python
 {
   "aare": 17.2,              # Direct float, not nested
@@ -158,7 +182,9 @@ Flat structure with temperature at top level:
 ```
 
 #### `/v2018/current` (CurrentResponse)
+
 Nested structure with Aare data in sub-object:
+
 ```python
 {
   "aare": {                  # Nested object
@@ -172,11 +198,13 @@ Nested structure with Aare data in sub-object:
 ```
 
 #### `/v2018/cities` (CitiesResponse)
+
 Returns array directly (not wrapped in object):
+
 ```python
 [
   {
-    "city": "bern",
+    "city": "Bern",
     "name": "Bern",
     "aare": 17.2,
     "coordinates": {"lat": 46.94, "lon": 7.44}
@@ -185,7 +213,9 @@ Returns array directly (not wrapped in object):
 ]
 ```
 
-**Important**: When adding new tools or modifying existing ones, always check the actual API response format. The models in `models.py` are carefully designed to match these structures.
+**Important**: When adding new tools or modifying existing ones, always check
+the actual API response format. The models in `models.py` are carefully designed
+to match these structures.
 
 ### MCP Protocol Implementation
 
@@ -194,9 +224,10 @@ Returns array directly (not wrapped in object):
 The server uses FastMCP decorators for clean, declarative MCP components:
 
 **Tools** - Use `@mcp.tool()` decorator:
+
 ```python
 @mcp.tool()
-async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
+async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
     """Get current water temperature with Swiss German description."""
     async with AareguruClient(settings=get_settings()) as client:
         response = await client.get_today(city)
@@ -204,6 +235,7 @@ async def get_current_temperature(city: str = "bern") -> dict[str, Any]:
 ```
 
 **Resources** - Use `@mcp.resource()` decorator with URI:
+
 ```python
 @mcp.resource("aareguru://cities")
 async def get_cities_resource() -> str:
@@ -214,9 +246,10 @@ async def get_cities_resource() -> str:
 ```
 
 **Prompts** - Use `@mcp.prompt()` decorator for guided interactions:
+
 ```python
 @mcp.prompt()
-async def daily_swimming_report(city: str = "bern") -> str:
+async def daily_swimming_report(city: str = "Bern") -> str:
     """Generate a comprehensive daily swimming report."""
     # Implementation generates rich prompt with current data
     return prompt_text
@@ -231,31 +264,40 @@ Each component:
 
 ### Tool Annotations Best Practices
 
-All MCP tool descriptions follow these principles (optimized for 130 user question patterns):
+All MCP tool descriptions follow these principles (optimized for 130 user
+question patterns):
 
 **1. Use Case Guidance**: Each tool description explains WHEN to use it
+
 - `get_current_temperature`: "Use this for quick temperature checks"
-- `get_current_conditions`: "Use this for safety assessments and comprehensive reports"
+- `get_current_conditions`: "Use this for safety assessments and comprehensive
+  reports"
 - `get_historical_data`: "Use this for trend analysis and statistical queries"
 
 **2. Parameter Examples**: Concrete examples instead of generic types
-- City parameters: `"e.g., 'bern', 'thun', 'basel', 'olten'"`
+
+- City parameters: `"e.g., 'Bern', 'Thun', 'olten'"`
 - Date parameters: `"-7 days"`, `"-1 week"`, `"now"`
 
 **3. Domain Knowledge Inline**: Critical information in descriptions
-- BAFU safety thresholds: `<100 (safe), 100-220 (moderate), 220-300 (elevated), 300-430 (high), >430 (very high)`
+
+- BAFU safety thresholds:
+  `<100 (safe), 100-220 (moderate), 220-300 (elevated), 300-430 (high), >430 (very high)`
 - Swiss German context: `"e.g., 'geil aber chli chalt'"`
 - Data granularity: `"Returns hourly data points"`
 
 **4. Tool Differentiation**: Clear guidance on simple vs comprehensive tools
+
 - Simple queries → `get_current_temperature`
 - Safety/comprehensive → `get_current_conditions`
 - Trends/history → `get_historical_data`
 
 **5. Cross-References**: Tools mention related tools
+
 - All city parameters: `"Use list_cities to discover available locations"`
 
-This annotation strategy ensures Claude selects the correct tool 95%+ of the time across all question categories.
+This annotation strategy ensures Claude selects the correct tool 95%+ of the
+time across all question categories.
 
 ### Testing Architecture
 
@@ -265,15 +307,19 @@ Tests use pytest with async support (`pytest-asyncio`):
 - **Test organization**:
   - `test_unit_*.py`: Unit tests for models, config, client, server helpers
   - `test_tools_basic.py` & `test_tools_advanced.py`: Tool functionality tests
-  - `test_integration_workflows.py`: Multi-tool workflows, caching, error handling
+  - `test_integration_workflows.py`: Multi-tool workflows, caching, error
+    handling
   - `test_http_endpoints.py`: HTTP/SSE transport tests
   - `test_resources.py`: Resource listing and reading
   - `test_prompts.py`: MCP prompt functionality and E2E tests
 - **conftest.py**: Shared fixtures and mock settings
-- **Mocking strategy**: Real API responses captured in test code, not external fixtures
-- **Test markers**: `@pytest.mark.integration` and `@pytest.mark.e2e` for categorization
+- **Mocking strategy**: Real API responses captured in test code, not external
+  fixtures
+- **Test markers**: `@pytest.mark.integration` and `@pytest.mark.e2e` for
+  categorization
 
 Key testing patterns:
+
 ```python
 # Mock httpx responses
 mock_response = Mock()
@@ -284,6 +330,7 @@ mock_client.get = AsyncMock(return_value=mock_response)
 ### Configuration Management
 
 Uses `pydantic-settings` with environment variable support:
+
 ```python
 class Settings(BaseSettings):
     aareguru_base_url: str = "https://aareguru.existenz.ch"
@@ -294,6 +341,7 @@ class Settings(BaseSettings):
 ```
 
 Environment variables override defaults (prefix with nothing, direct match):
+
 ```bash
 AAREGURU_BASE_URL=https://custom.url
 CACHE_TTL_SECONDS=300
@@ -332,9 +380,11 @@ async def tool_name(param: str, optional_param: str = "default") -> dict[str, An
 - Use structured logging with context
 - FastMCP auto-generates schema from type hints and docstrings
 
-**Testing**: Add tests in `tests/test_tools_basic.py` or `tests/test_tools_advanced.py`
+**Testing**: Add tests in `tests/test_tools_basic.py` or
+`tests/test_tools_advanced.py`
 
-**Note**: No manual registration needed - FastMCP decorator handles it automatically
+**Note**: No manual registration needed - FastMCP decorator handles it
+automatically
 
 ### Adding a New API Endpoint
 
@@ -347,7 +397,8 @@ async def get_new_endpoint(self, params) -> NewResponseModel:
     return NewResponseModel(**data)
 ```
 
-3. Use in FastMCP tools/resources with `@mcp.tool()` or `@mcp.resource()` decorators
+3. Use in FastMCP tools/resources with `@mcp.tool()` or `@mcp.resource()`
+   decorators
 
 ### Adding a New Prompt
 
@@ -355,7 +406,7 @@ FastMCP 2.0 supports prompts for guided interactions:
 
 ```python
 @mcp.prompt()
-async def prompt_name(city: str = "bern") -> str:
+async def prompt_name(city: str = "Bern") -> str:
     """Description of what this prompt does."""
     async with AareguruClient(settings=get_settings()) as client:
         data = await client.get_current(city)
@@ -377,6 +428,7 @@ Prompts allow users to invoke pre-built analysis workflows with current data.
 ### Modifying Cache Behavior
 
 Cache configuration is in `config.py`:
+
 - `cache_ttl_seconds`: How long to cache responses
 - `min_request_interval_seconds`: Minimum delay between API calls
 
@@ -388,7 +440,8 @@ To bypass cache for specific endpoints, use `use_cache=False` in `_request()`.
 2. **Attribution Required**: Must credit BAFU and Aare.guru
 3. **Rate Limiting**: Respect 5-minute recommendation for repeated queries
 4. **App Identification**: All requests include `app` and `version` parameters
-5. **Transport Options**: Supports both stdio (for Claude Desktop) and HTTP/SSE (for web deployments)
+5. **Transport Options**: Supports both stdio (for Claude Desktop) and HTTP/SSE
+   (for web deployments)
 
 ## Project Documentation
 
@@ -439,7 +492,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 # Log with structured context
-logger.info("tool_executed", tool="get_current_temperature", city="bern")
+logger.info("tool_executed", tool="get_current_temperature", city="Bern")
 logger.error("api_error", endpoint="/v2018/current", status_code=500)
 ```
 

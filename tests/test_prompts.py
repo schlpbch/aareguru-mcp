@@ -86,16 +86,16 @@ class TestDailySwimmingReportPrompt:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_default_city_is_bern(self):
+    async def test_default_city_is_Bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(daily_swimming_report)
-        assert "bern" in result.lower()
+        assert "Bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_custom_city(self):
         """Test that custom city is included in prompt."""
-        result = await get_prompt_text(daily_swimming_report, city="thun")
-        assert "thun" in result.lower()
+        result = await get_prompt_text(daily_swimming_report, city="Thun")
+        assert "Thun" in result.lower()
 
     @pytest.mark.asyncio
     async def test_includes_key_sections(self):
@@ -190,10 +190,10 @@ class TestWeeklyTrendAnalysisPrompt:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_default_city_is_bern(self):
+    async def test_default_city_is_Bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(weekly_trend_analysis)
-        assert "bern" in result.lower()
+        assert "Bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_custom_city(self):
@@ -245,7 +245,7 @@ class TestPromptIntegration:
     @pytest.mark.asyncio
     async def test_daily_report_prompt_structure(self):
         """Test daily report prompt provides actionable instructions."""
-        result = await get_prompt_text(daily_swimming_report, city="bern")
+        result = await get_prompt_text(daily_swimming_report, city="Bern")
 
         # Should guide Claude to use specific tools
         tool_mentions = [
@@ -278,10 +278,10 @@ class TestPromptIntegration:
     @pytest.mark.asyncio
     async def test_weekly_analysis_prompt_structure(self):
         """Test weekly analysis prompt provides actionable instructions."""
-        result = await get_prompt_text(weekly_trend_analysis, city="thun")
+        result = await get_prompt_text(weekly_trend_analysis, city="Thun")
 
         # Should mention the city
-        assert "thun" in result.lower()
+        assert "Thun" in result.lower()
 
         # Should request specific data points
         assert "average" in result.lower() or "highest" in result.lower()
@@ -311,7 +311,7 @@ class TestPromptIntegration:
     @pytest.mark.asyncio
     async def test_prompt_city_parameter_variations(self):
         """Test prompts work with different city parameters."""
-        cities = ["bern", "thun", "basel", "interlaken"]
+        cities = ["Bern", "Thun", "basel", "interlaken"]
 
         for city in cities:
             daily = await get_prompt_text(daily_swimming_report, city=city)
@@ -329,7 +329,7 @@ class TestPromptEdgeCases:
         """Test that empty city parameter uses default."""
         # The function has a default, so this should work
         result = await get_prompt_text(daily_swimming_report)
-        assert "bern" in result.lower()
+        assert "Bern" in result.lower()
 
     @pytest.mark.asyncio
     async def test_unusual_city_name(self):
@@ -341,8 +341,8 @@ class TestPromptEdgeCases:
     @pytest.mark.asyncio
     async def test_prompt_consistency(self):
         """Test that prompts return consistent results."""
-        result1 = await get_prompt_text(daily_swimming_report, city="bern")
-        result2 = await get_prompt_text(daily_swimming_report, city="bern")
+        result1 = await get_prompt_text(daily_swimming_report, city="Bern")
+        result2 = await get_prompt_text(daily_swimming_report, city="Bern")
         assert result1 == result2
 
     @pytest.mark.asyncio
@@ -385,23 +385,23 @@ class TestPromptToolIntegration:
         from aareguru_mcp import tools
 
         # Get the prompt text to verify tool names
-        prompt_text = await get_prompt_text(daily_swimming_report, city="bern")
+        prompt_text = await get_prompt_text(daily_swimming_report, city="Bern")
 
         # Verify referenced tools exist and work
         assert "get_current_conditions" in prompt_text
-        conditions = await tools.get_current_conditions("bern")
+        conditions = await tools.get_current_conditions("Bern")
         assert "city" in conditions
-        assert conditions["city"] == "bern"
+        assert conditions["city"] == "Bern"
 
         assert "get_flow_danger_level" in prompt_text
-        danger = await tools.get_flow_danger_level("bern")
+        danger = await tools.get_flow_danger_level("Bern")
         assert "city" in danger
         assert "danger_level" in danger
 
         assert "get_forecasts" in prompt_text
-        forecast_result = await tools.get_forecasts(["bern"])
+        forecast_result = await tools.get_forecasts(["Bern"])
         assert "forecasts" in forecast_result
-        assert "bern" in forecast_result["forecasts"]
+        assert "Bern" in forecast_result["forecasts"]
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -431,7 +431,7 @@ class TestPromptToolIntegration:
         from aareguru_mcp import tools
 
         # Get the prompt text to verify tool name
-        prompt_text = await get_prompt_text(weekly_trend_analysis, city="bern")
+        prompt_text = await get_prompt_text(weekly_trend_analysis, city="Bern")
 
         # Verify referenced tool exists and works
         assert "get_historical_data" in prompt_text
@@ -442,7 +442,7 @@ class TestPromptToolIntegration:
         start_str = start_date.strftime("%Y-%m-%d")
         end_str = end_date.strftime("%Y-%m-%d")
 
-        historical = await tools.get_historical_data("bern", start_str, end_str)
+        historical = await tools.get_historical_data("Bern", start_str, end_str)
         assert "city" in historical
         assert "data" in historical or "data_points" in historical or "error" in historical
 
@@ -452,7 +452,7 @@ class TestPromptToolIntegration:
         """Simulate complete daily report workflow as Claude would execute it."""
         from aareguru_mcp import tools
 
-        city = "bern"
+        city = "Bern"
 
         # Step 1: Get current conditions (as prompted)
         conditions = await tools.get_current_conditions(city)
@@ -510,7 +510,7 @@ class TestPromptToolIntegration:
 
         from aareguru_mcp import tools
 
-        city = "bern"
+        city = "Bern"
 
         # Step 1: Get historical data for 7 days (as prompted)
         end_date = datetime.now()

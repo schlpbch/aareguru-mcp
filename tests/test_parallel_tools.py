@@ -35,19 +35,19 @@ class TestCompareCitiesFast:
             mock_client.get_current = AsyncMock(
                 side_effect=lambda city: make_response(
                     city,
-                    {"bern": 18.5, "thun": 19.2, "basel": 17.8}[city],
-                    {"bern": 100, "thun": 120, "basel": 90}[city],
+                    {"Bern": 18.5, "Thun": 19.2, "basel": 17.8}[city],
+                    {"Bern": 100, "Thun": 120, "basel": 90}[city],
                 )
             )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["bern", "thun", "basel"])
+            result = await fn(cities=["Bern", "Thun", "basel"])
 
             assert result["total_count"] == 3
             assert result["safe_count"] == 3
-            assert result["warmest"]["city"] == "thun"
+            assert result["warmest"]["city"] == "Thun"
             assert result["warmest"]["temperature"] == 19.2
             assert result["coldest"]["city"] == "basel"
             assert result["coldest"]["temperature"] == 17.8
@@ -62,18 +62,18 @@ class TestCompareCitiesFast:
             mock_client = AsyncMock()
 
             # Mock get_cities
-            mock_city_bern = MagicMock()
-            mock_city_bern.city = "bern"
-            mock_city_thun = MagicMock()
-            mock_city_thun.city = "thun"
+            mock_city_Bern = MagicMock()
+            mock_city_Bern.city = "Bern"
+            mock_city_Thun = MagicMock()
+            mock_city_Thun.city = "Thun"
 
-            mock_client.get_cities = AsyncMock(return_value=[mock_city_bern, mock_city_thun])
+            mock_client.get_cities = AsyncMock(return_value=[mock_city_Bern, mock_city_Thun])
 
             # Mock get_current
             def make_response(city: str):
                 response = MagicMock()
                 response.aare = MagicMock()
-                response.aare.temperature = 18.0 if city == "bern" else 19.0
+                response.aare.temperature = 18.0 if city == "Bern" else 19.0
                 response.aare.flow = 100
                 response.aare.temperature_text = "warm"
                 response.aare.location = city.title()
@@ -109,17 +109,17 @@ class TestCompareCitiesFast:
 
             mock_client.get_current = AsyncMock(
                 side_effect=lambda city: make_response(
-                    city, {"bern": 100, "thun": 250}[city]  # thun is unsafe
+                    city, {"Bern": 100, "Thun": 250}[city]  # Thun is unsafe
                 )
             )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client.__aexit__ = AsyncMock(return_value= None)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["bern", "thun"])
+            result = await fn(cities=["Bern", "Thun"])
 
             assert result["total_count"] == 2
-            assert result["safe_count"] == 1  # Only bern is safe
+            assert result["safe_count"] == 1  # Only Bern is safe
             assert result["cities"][0]["safe"] is True
             assert result["cities"][1]["safe"] is False
 
@@ -139,10 +139,10 @@ class TestGetForecastsBatch:
             def make_response(city: str):
                 response = MagicMock()
                 response.aare = MagicMock()
-                if city == "bern":
+                if city == "Bern":
                     response.aare.temperature = 18.0
                     response.aare.forecast2h = 19.0
-                elif city == "thun":
+                elif city == "Thun":
                     response.aare.temperature = 19.0
                     response.aare.forecast2h = 18.5
                 else:
@@ -155,19 +155,19 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["bern", "thun", "basel"])
+            result = await fn(cities=["Bern", "Thun", "basel"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 3
 
-            # Check bern (rising)
-            assert result["forecasts"]["bern"]["current"] == 18.0
-            assert result["forecasts"]["bern"]["forecast_2h"] == 19.0
-            assert result["forecasts"]["bern"]["trend"] == "rising"
-            assert result["forecasts"]["bern"]["change"] == 1.0
+            # Check Bern (rising)
+            assert result["forecasts"]["Bern"]["current"] == 18.0
+            assert result["forecasts"]["Bern"]["forecast_2h"] == 19.0
+            assert result["forecasts"]["Bern"]["trend"] == "rising"
+            assert result["forecasts"]["Bern"]["change"] == 1.0
 
-            # Check thun (falling)
-            assert result["forecasts"]["thun"]["trend"] == "falling"
+            # Check Thun (falling)
+            assert result["forecasts"]["Thun"]["trend"] == "falling"
 
             # Check basel (stable)
             assert result["forecasts"]["basel"]["trend"] == "stable"
@@ -183,12 +183,12 @@ class TestGetForecastsBatch:
 
             def make_response(city: str):
                 response = MagicMock()
-                if city == "bern":
+                if city == "Bern":
                     response.aare = MagicMock()
                     response.aare.temperature = 18.0
                     response.aare.forecast2h = 19.0
                 else:
-                    response.aare = None  # No data for thun
+                    response.aare = None  # No data for Thun
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
@@ -196,12 +196,12 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["bern", "thun"])
+            result = await fn(cities=["Bern", "Thun"])
 
             assert "forecasts" in result
-            assert len(result["forecasts"]) == 1  # Only bern has data
-            assert "bern" in result["forecasts"]
-            assert "thun" not in result["forecasts"]
+            assert len(result["forecasts"]) == 1  # Only Bern has data
+            assert "Bern" in result["forecasts"]
+            assert "Thun" not in result["forecasts"]
 
     @pytest.mark.asyncio
     async def test_with_null_forecast(self):
@@ -222,9 +222,9 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["bern"])
+            result = await fn(cities=["Bern"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 1
-            assert result["forecasts"]["bern"]["trend"] == "unknown"
-            assert result["forecasts"]["bern"]["change"] is None
+            assert result["forecasts"]["Bern"]["trend"] == "unknown"
+            assert result["forecasts"]["Bern"]["change"] is None

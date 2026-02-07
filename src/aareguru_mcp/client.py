@@ -234,11 +234,11 @@ class AareguruClient(JsonSerializableMixin):
             logger.error(f"Validation error for cities response: {e}")
             raise
 
-    async def get_today(self, city: str = "bern") -> TodayResponse:
+    async def get_today(self, city: str = "Bern") -> TodayResponse:
         """Get minimal current data for a city.
 
         Args:
-            city: City identifier (default: "bern")
+            city: City identifier (default: "Bern")
 
         Returns:
             TodayResponse: Minimal current data
@@ -254,11 +254,11 @@ class AareguruClient(JsonSerializableMixin):
             logger.error(f"Validation error for today response: {e}")
             raise
 
-    async def get_current(self, city: str = "bern") -> CurrentResponse:
+    async def get_current(self, city: str = "Bern") -> CurrentResponse:
         """Get complete current conditions for a city.
 
         Args:
-            city: City identifier (default: "bern")
+            city: City identifier (default: "Bern")
 
         Returns:
             CurrentResponse: Complete current data

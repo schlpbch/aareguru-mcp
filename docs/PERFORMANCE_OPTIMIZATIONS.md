@@ -7,15 +7,17 @@ Three concrete ways to make the Aareguru MCP server significantly faster.
 ## 1. 🚀 Singleton HTTP Client (5-10x faster for repeated calls)
 
 ### Current Problem
+
 Every tool call creates a **new HTTP client** with fresh connection pool:
 
 ```python
-async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
+async def get_current_temperature(city: str = "Bern") -> TemperatureToolResponse:
     async with AareguruClient(settings=get_settings()) as client:  # New client each time!
         response = await client.get_current(city)
 ```
 
 **Impact:**
+
 - ❌ Creates new `httpx.AsyncClient()` on every request
 - ❌ Establishes new TCP connections (no keep-alive benefit)
 - ❌ Connection handshake overhead: 50-200ms per request
@@ -36,26 +38,28 @@ async def get_client() -> AareguruClient:
     return _http_client
 
 @mcp.tool(name="get_current_temperature")
-async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse:
+async def get_current_temperature(city: str = "Bern") -> TemperatureToolResponse:
     client = await get_client()  # Reuse connection pool!
     response = await client.get_current(city)
     # ... rest of code
 ```
 
 **Benefits:**
+
 - ✅ **5-10x faster** for consecutive requests (no connection setup)
 - ✅ HTTP keep-alive connections reused across all tools
 - ✅ Reduced memory allocation (single client instance)
 - ✅ Connection pool managed efficiently by httpx
 
 **Benchmark:**
+
 ```
 Before (new client per request):
   10 requests: ~800ms (80ms each with connection overhead)
 
 After (singleton client):
   10 requests: ~200ms (20ms each, connections reused)
-  
+
 Improvement: 4x faster
 ```
 
@@ -66,6 +70,7 @@ Improvement: 4x faster
 ## 2. ⚡ Parallel API Fetches with asyncio.gather() (2-5x faster)
 
 ### Current Problem
+
 Multiple API calls are made **sequentially** when they could run in parallel:
 
 ```python
@@ -73,7 +78,7 @@ Multiple API calls are made **sequentially** when they could run in parallel:
 async def compare_swimming_spots(...):
     # Current: Sequential fetches
     cities = await list_cities()  # Wait for all cities
-    
+
     # Then loop through cities one by one
     for city in cities:
         conditions = await get_current_conditions(city.city)  # Wait each time
@@ -81,6 +86,7 @@ async def compare_swimming_spots(...):
 ```
 
 **Impact:**
+
 - ❌ 10 cities × 50ms each = **500ms total** (sequential)
 - ❌ Network latency multiplied by number of cities
 - ❌ Underutilized async capabilities
@@ -94,19 +100,19 @@ import asyncio
 async def compare_all_cities() -> dict[str, Any]:
     """Fetch all city conditions in parallel."""
     client = await get_client()
-    
+
     # Get city list first
     cities_response = await client.get_cities()
-    
+
     # Fetch all city conditions concurrently
     tasks = [
-        client.get_current(city.city) 
+        client.get_current(city.city)
         for city in cities_response
     ]
-    
+
     # Wait for all to complete in parallel
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Process results
     city_data = []
     for city, result in zip(cities_response, results):
@@ -118,28 +124,31 @@ async def compare_all_cities() -> dict[str, Any]:
             "conditions": result,
             # ... rest of data
         })
-    
+
     return {"cities": city_data}
 ```
 
 **Benefits:**
+
 - ✅ **2-5x faster** for multi-city operations
 - ✅ All API calls happen simultaneously
 - ✅ Better user experience (faster responses)
 - ✅ Graceful handling of partial failures
 
 **Benchmark:**
+
 ```
 Before (sequential):
   10 cities × 50ms = 500ms total
 
 After (parallel):
   max(10 cities) = ~50-100ms total
-  
+
 Improvement: 5-10x faster for batch operations
 ```
 
 **Use cases:**
+
 - `compare_swimming_spots` prompt
 - `daily_swimming_report` (get conditions + forecast + flow)
 - Any operation needing multiple cities
@@ -151,6 +160,7 @@ Improvement: 5-10x faster for batch operations
 ## 3. 🎯 Smarter Cache Strategy (10-100x faster for repeated queries)
 
 ### Current Problem
+
 Cache is **per-client instance**, not shared:
 
 ```python
@@ -160,6 +170,7 @@ class AareguruClient:
 ```
 
 **Impact:**
+
 - ❌ Each new client creates empty cache
 - ❌ No benefit across tool calls (client destroyed after each call)
 - ❌ Same data fetched repeatedly within TTL window
@@ -176,17 +187,17 @@ class AareguruClient:
     def __init__(self, settings, shared_cache: dict | None = None):
         # Use shared cache if provided
         self._cache = shared_cache if shared_cache is not None else {}
-    
+
     async def _request(self, endpoint: str, params: dict, use_cache: bool = True):
         cache_key = self._get_cache_key(endpoint, params)
-        
+
         # Check shared cache
         if use_cache and cache_key in self._cache:
             entry = self._cache[cache_key]
             if not entry.is_expired():
                 logger.debug(f"Cache HIT: {cache_key}")
                 return entry.data
-        
+
         # Cache miss - fetch from API
         async with _cache_lock:  # Prevent stampede
             # Double-check after acquiring lock
@@ -194,7 +205,7 @@ class AareguruClient:
                 entry = self._cache[cache_key]
                 if not entry.is_expired():
                     return entry.data
-            
+
             # Fetch from API
             data = await self._fetch_from_api(endpoint, params)
             self._cache[cache_key] = CacheEntry(data, self.cache_ttl)
@@ -212,19 +223,21 @@ async def get_client() -> AareguruClient:
 ```
 
 **Benefits:**
+
 - ✅ **10-100x faster** for repeated queries within TTL
 - ✅ Cache works across tool calls and user sessions
 - ✅ Dramatically reduced API load
 - ✅ Better compliance with API rate limits (5min between requests)
 
 **Benchmark:**
+
 ```
 Before (no effective caching):
   Same city 10 times: 10 × 50ms = 500ms
 
 After (shared cache):
   Same city 10 times: 50ms + 9 × 0.1ms = ~51ms
-  
+
 Improvement: ~10x faster for cache hits
 ```
 
@@ -233,13 +246,13 @@ Improvement: ~10x faster for cache hits
 ```python
 async def warmup_cache():
     """Pre-fetch popular cities to warm cache."""
-    popular_cities = ["bern", "thun", "basel", "interlaken"]
+    popular_cities = ["Bern", "Thun", "basel", "interlaken"]
     client = await get_client()
-    
+
     # Warm cache in background
     tasks = [client.get_current(city) for city in popular_cities]
     await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     logger.info(f"Cache warmed with {len(popular_cities)} cities")
 
 # Call on server startup
@@ -256,12 +269,12 @@ async def startup():
 
 Implementing **all three** optimizations:
 
-| Scenario | Before | After | Improvement |
-|----------|--------|-------|-------------|
-| Single temperature query | 80ms | 20ms | **4x faster** |
-| Repeated query (cache hit) | 80ms | 0.1ms | **800x faster** |
-| Compare 10 cities | 800ms | 60ms | **13x faster** |
-| Daily report (3 API calls) | 240ms | 30ms | **8x faster** |
+| Scenario                   | Before | After | Improvement     |
+| -------------------------- | ------ | ----- | --------------- |
+| Single temperature query   | 80ms   | 20ms  | **4x faster**   |
+| Repeated query (cache hit) | 80ms   | 0.1ms | **800x faster** |
+| Compare 10 cities          | 800ms  | 60ms  | **13x faster**  |
+| Daily report (3 API calls) | 240ms  | 30ms  | **8x faster**   |
 
 **Overall: 4-800x improvement depending on usage pattern**
 
@@ -270,13 +283,16 @@ Implementing **all three** optimizations:
 ## 🛠️ Implementation Priority
 
 ### Phase 1: Quick Wins (1-2 hours)
+
 1. ✅ **Singleton HTTP Client** - Biggest impact, lowest effort
 2. ✅ **Shared Cache** - Major improvement for repeated queries
 
 ### Phase 2: Optimization (2-4 hours)
+
 3. ✅ **Parallel Fetches** - Refactor prompts to use asyncio.gather()
 
 ### Phase 3: Polish (optional, 1-2 hours)
+
 - Cache pre-warming on startup
 - Cache size limits (LRU eviction)
 - Metrics for cache hit rate
@@ -287,16 +303,19 @@ Implementing **all three** optimizations:
 ## ⚠️ Considerations
 
 ### Singleton Client Lifecycle
+
 - Need proper cleanup on server shutdown
 - Handle client reconnection if connection drops
 - Thread-safe access (use asyncio.Lock if needed)
 
 ### Cache Consistency
+
 - Respect API's 2-minute recommended TTL
 - Consider cache invalidation strategies
 - Monitor cache memory usage (implement LRU if needed)
 
 ### Parallel Fetch Limits
+
 - Don't overwhelm API with 100s of concurrent requests
 - Use semaphore to limit concurrency: `asyncio.Semaphore(10)`
 - Respect rate limits even with parallel fetches
@@ -305,10 +324,14 @@ Implementing **all three** optimizations:
 
 ## 🎯 Recommended Action
 
-**Start with #1 (Singleton Client)** - it's the easiest and gives immediate 5-10x improvement for consecutive requests. This alone will make the server noticeably faster with minimal code changes.
+**Start with #1 (Singleton Client)** - it's the easiest and gives immediate
+5-10x improvement for consecutive requests. This alone will make the server
+noticeably faster with minimal code changes.
 
-Then add #3 (Shared Cache) to stack another 10-100x improvement for repeated queries.
+Then add #3 (Shared Cache) to stack another 10-100x improvement for repeated
+queries.
 
-Finally, implement #2 (Parallel Fetches) for batch operations that fetch multiple cities.
+Finally, implement #2 (Parallel Fetches) for batch operations that fetch
+multiple cities.
 
 **Total implementation time: 4-8 hours for all three optimizations.**

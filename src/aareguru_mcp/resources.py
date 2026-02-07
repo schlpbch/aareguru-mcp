@@ -37,13 +37,13 @@ async def list_resources() -> list[Resource]:
             uri="aareguru://current/{city}",
             name="Current Conditions",
             mimeType="application/json",
-            description="Complete current conditions for a specific city (e.g., aareguru://current/bern)",
+            description="Complete current conditions for a specific city (e.g., aareguru://current/Bern)",
         ),
         Resource(
             uri="aareguru://today/{city}",
             name="Today's Summary",
             mimeType="application/json",
-            description="Minimal current data for a specific city (e.g., aareguru://today/bern)",
+            description="Minimal current data for a specific city (e.g., aareguru://today/Bern)",
         ),
     ]
 
@@ -51,13 +51,13 @@ async def list_resources() -> list[Resource]:
 async def read_resource(uri: str) -> str:
     """Read a specific Aareguru resource.
 
-    Args:
-        uri: Resource URI (e.g., "aareguru://cities" or "aareguru://current/bern")
+    **Args**:
+        uri: Resource URI (e.g., "aareguru://cities" or "aareguru://current/Bern")
 
-    Returns:
+    **Returns**:
         JSON string with resource data
 
-    Raises:
+    **Raises**:
         ValueError: If URI is invalid or resource not found
     """
     # Convert AnyUrl to string if needed

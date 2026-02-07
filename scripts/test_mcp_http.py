@@ -97,7 +97,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -117,7 +117,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -158,7 +158,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -179,7 +179,7 @@ class MCPHTTPTester:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -235,11 +235,11 @@ class MCPHTTPTester:
 
     async def test_resource_current_city(self) -> bool:
         """Test current/{city} resource via Aareguru API."""
-        print("📍 Testing resource: current/bern...")
+        print("📍 Testing resource: current/Bern...")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/current", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/current", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -254,11 +254,11 @@ class MCPHTTPTester:
 
     async def test_resource_today_city(self) -> bool:
         """Test today/{city} resource via Aareguru API."""
-        print("📅 Testing resource: today/bern...")
+        print("📅 Testing resource: today/Bern...")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.api_base}/today", params={"city": "bern", "app": "aareguru-mcp-test"}
+                    f"{self.api_base}/today", params={"city": "Bern", "app": "aareguru-mcp-test"}
                 )
                 if response.status_code == 200:
                     data = response.json()

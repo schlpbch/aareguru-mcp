@@ -1,9 +1,9 @@
 {
-  "current_bern": {
-    "city": "bern",
+  "current_Bern": {
+    "city": "Bern",
     "name": "Bern",
     "longname": "Bern - Schönau",
-    "url": "https://aare.guru/bern",
+    "url": "https://aare.guru/Bern",
     "aare": {
       "temperature": 17.2,
       "temperature_text": "geil aber chli chalt",
@@ -21,16 +21,16 @@
   "cities": {
     "cities": [
       {
-        "city": "bern",
+        "city": "Bern",
         "name": "Bern",
         "longname": "Bern - Schönau",
-        "url": "https://aare.guru/bern"
+        "url": "https://aare.guru/Bern"
       },
       {
-        "city": "thun",
+        "city": "Thun",
         "name": "Thun",
         "longname": "Thun",
-        "url": "https://aare.guru/thun"
+        "url": "https://aare.guru/Thun"
       },
       {
         "city": "basel",
@@ -40,8 +40,8 @@
       }
     ]
   },
-  "today_bern": {
-    "city": "bern",
+  "today_Bern": {
+    "city": "Bern",
     "aare": {
       "temperature": 17.2,
       "temperature_text": "geil aber chli chalt",

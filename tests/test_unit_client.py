@@ -60,22 +60,22 @@ class TestCacheKeyGeneration:
     def test_basic_key_generation(self):
         """Test basic cache key generation."""
         client = AareguruClient()
-        key = client._get_cache_key("/test", {"city": "bern"})
+        key = client._get_cache_key("/test", {"city": "Bern"})
         assert key is not None
         assert len(key) > 0
 
     def test_same_params_same_key(self):
         """Test same params produce same key regardless of order."""
         client = AareguruClient()
-        key1 = client._get_cache_key("/test", {"city": "bern", "app": "test"})
-        key2 = client._get_cache_key("/test", {"app": "test", "city": "bern"})
+        key1 = client._get_cache_key("/test", {"city": "Bern", "app": "test"})
+        key2 = client._get_cache_key("/test", {"app": "test", "city": "Bern"})
         assert key1 == key2
 
     def test_different_params_different_key(self):
         """Test different params produce different keys."""
         client = AareguruClient()
-        key1 = client._get_cache_key("/endpoint", {"city": "bern"})
-        key2 = client._get_cache_key("/endpoint", {"city": "thun"})
+        key1 = client._get_cache_key("/endpoint", {"city": "Bern"})
+        key2 = client._get_cache_key("/endpoint", {"city": "Thun"})
         assert key1 != key2
 
 

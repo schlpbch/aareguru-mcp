@@ -79,11 +79,11 @@ class TestCityInfo:
     def test_valid_city(self):
         """Test CityInfo with valid data."""
         city = CityInfo(
-            city="bern",
+            city="Bern",
             name="Bern",
             longname="Bern - Schönau",
         )
-        assert city.city == "bern"
+        assert city.city == "Bern"
 
     def test_missing_required_field(self):
         """Test CityInfo requires city field."""

@@ -36,9 +36,9 @@ class TestGetCurrentTemperature:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
 
-            assert result.city == "bern"
+            assert result.city == "Bern"
             assert result.temperature == 17.2
 
     @pytest.mark.asyncio
@@ -69,7 +69,7 @@ class TestGetCurrentTemperature:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
             assert result.temperature == 17.5
             mock_client.get_today.assert_called_once()
 
@@ -105,7 +105,7 @@ class TestGetCurrentConditions:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
 
             assert result.aare is not None
             assert result.aare.temperature == 17.0
@@ -133,9 +133,9 @@ class TestGetCurrentConditions:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
 
-            assert result.city == "bern"
+            assert result.city == "Bern"
             assert result.aare is None
             assert result.seasonal_advice is not None
 
@@ -161,9 +161,9 @@ class TestGetFlowDangerLevel:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
 
-            assert result.city == "bern"
+            assert result.city == "Bern"
             assert result.flow == 85.0
             assert result.danger_level == 1  # Safe
 
@@ -184,7 +184,7 @@ class TestGetFlowDangerLevel:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern")
+            result = await fn("Bern")
 
             assert result.flow is None
             assert "No data available" in result.safety_assessment
@@ -198,7 +198,7 @@ class TestGetHistoricalData:
     async def test_with_relative_dates(self):
         """Test get_historical_data with relative dates."""
         result = await tools.get_historical_data(
-            city="bern",
+            city="Bern",
             start="-7 days",
             end="now",
         )
@@ -219,7 +219,7 @@ class TestGetHistoricalData:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("bern", "-7 days", "now")
+            result = await fn("Bern", "-7 days", "now")
 
             assert "timeseries" in result
 
