@@ -1,14 +1,17 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-200%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-210%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
+[![Version](https://img.shields.io/badge/version-3.3.0-blue)](CHANGELOG.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
+
+**Latest Release: v3.3.0** - Major architectural improvements with parallel API fetching, comprehensive documentation, and enhanced code quality. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## 🚀 Quick Start
 
@@ -44,7 +47,7 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 
 | Feature              | Description                                                          |
 | -------------------- | -------------------------------------------------------------------- |
-| **6 MCP Tools**      | Temperature, flow, safety, forecasts, history                        |
+| **6 MCP Tools**      | Temperature, flow, safety, forecasts, history, comparisons           |
 | **4 MCP Resources**  | Direct data access via `aareguru://` URIs                            |
 | **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                       |
 | **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                  |
@@ -52,18 +55,19 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 | **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")          |
 | **BAFU Safety**      | Official flow danger levels and thresholds                           |
 | **Smart UX**         | Proactive safety warnings, alternative suggestions, seasonal context |
-| **200+ Tests**       | 83% coverage, comprehensive test suite                               |
+| **210 Tests**        | 87% coverage, comprehensive test suite                               |
+| **Async-First**      | Context managers, parallel API fetching with asyncio.gather()        |
 
 ## 🛠️ Tools
 
-| Tool                      | Description                              | Example Query                   |
-| ------------------------- | ---------------------------------------- | ------------------------------- |
-| `get_current_temperature` | Water temperature with Swiss German text | "What's the Aare temperature?"  |
-| `get_current_conditions`  | Full conditions (temp, flow, weather)    | "How's the Aare looking today?" |
-| `get_flow_danger_level`   | Flow rate + BAFU safety assessment       | "Is it safe to swim?"           |
-| `list_cities`             | All monitored cities                     | "Which cities have data?"       |
-| `get_historical_data`     | Temperature/flow history                 | "Show last 7 days"              |
-| `get_forecast`            | Temperature/flow forecast                | "Will it be warmer later?"      |
+| Tool                      | Description                              | Example Query                      |
+| ------------------------- | ---------------------------------------- | ---------------------------------- |
+| `get_current_temperature` | Water temperature with Swiss German text | "What's the Aare temperature?"     |
+| `get_current_conditions`  | Full conditions (temp, flow, weather)    | "How's the Aare looking today?"    |
+| `get_flow_danger_level`   | Flow rate + BAFU safety assessment       | "Is it safe to swim?"              |
+| `compare_cities`          | Compare all cities (parallel fetching)   | "Which city is warmest?"           |
+| `get_forecasts`           | Forecasts for multiple cities (parallel) | "Show forecasts for all cities"    |
+| `get_historical_data`     | Temperature/flow history (hourly data)   | "Show last 7 days for Bern"       |
 
 ### BAFU Safety Thresholds
 
@@ -226,19 +230,29 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests
-uv run pytest --cov=aareguru_mcp # With coverage
+uv run pytest                    # Run tests (210 tests)
+uv run pytest --cov=aareguru_mcp # With coverage (87%)
 uv run black src/ tests/         # Format
 uv run ruff check src/ tests/    # Lint
 ```
+
+## 📖 Documentation
+
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Comprehensive architecture guide (design patterns, data flow, deployment)
+- **[CHANGELOG.md](CHANGELOG.md)** - Release history and version details
+- **[CLAUDE.md](CLAUDE.md)** - Development guide for AI assistants
+- **[docs/](docs/)** - Additional API documentation and planning
 
 ## 📁 Project Structure
 
 ```
 aareguru-mcp/
 ├── src/aareguru_mcp/     # Server, client, models, config
-├── tests/                # 200 tests, 87% coverage
+├── tests/                # 210 tests, 87% coverage
 ├── docs/                 # API docs, testing, implementation
+├── ARCHITECTURE.md       # Comprehensive architecture documentation
+├── CLAUDE.md             # AI assistant guidance
+├── CHANGELOG.md          # Release history
 ├── mcp_server.py         # FastMCP CLI entry
 └── pyproject.toml
 ```
