@@ -139,9 +139,9 @@ class MCPHTTPTester:
             print(f"   ❌ Error: {e}")
             return False
 
-    async def test_tool_list_cities(self) -> bool:
-        """Test list_cities tool via Aareguru API."""
-        print("🏙️  Testing list_cities...")
+    async def test_tool_compare_cities_fast(self) -> bool:
+        """Test compare_cities_fast tool via Aareguru API."""
+        print("⚡ Testing compare_cities_fast...")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
@@ -151,7 +151,7 @@ class MCPHTTPTester:
                 if response.status_code == 200:
                     data = response.json()
                     if isinstance(data, list) and len(data) > 0:
-                        print(f"   ✅ Found {len(data)} cities")
+                        print(f"   ✅ Can fetch {len(data)} cities for comparison")
                         return True
                 print(f"   ❌ Failed: {response.status_code}")
                 return False
@@ -181,9 +181,9 @@ class MCPHTTPTester:
             print(f"   ❌ Error: {e}")
             return False
 
-    async def test_tool_get_forecast(self) -> bool:
-        """Test get_forecast tool via Aareguru API."""
-        print("🔮 Testing get_forecast (Bern)...")
+    async def test_tool_get_forecasts_batch(self) -> bool:
+        """Test get_forecasts_batch tool via Aareguru API."""
+        print("⚡ Testing get_forecasts_batch (Bern)...")
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
@@ -195,7 +195,7 @@ class MCPHTTPTester:
                     if "aare" in data and data["aare"]:
                         forecast = data["aare"].get("forecast2h")
                         forecast_text = data["aare"].get("forecast2h_text", "")
-                        print(f"   ✅ Forecast: {forecast}°C ({forecast_text})")
+                        print(f"   ✅ Can fetch forecast: {forecast}°C ({forecast_text})")
                         return True
                 print(f"   ❌ Failed: {response.status_code}")
                 return False
@@ -311,11 +311,11 @@ class MCPHTTPTester:
         print()
         results['tool_get_current_conditions'] = await self.test_tool_get_current_conditions()
         print()
-        results['tool_list_cities'] = await self.test_tool_list_cities()
+        results['tool_compare_cities_fast'] = await self.test_tool_compare_cities_fast()
         print()
         results['tool_get_flow_danger_level'] = await self.test_tool_get_flow_danger_level()
         print()
-        results['tool_get_forecast'] = await self.test_tool_get_forecast()
+        results['tool_get_forecasts_batch'] = await self.test_tool_get_forecasts_batch()
 
         # Test all resources
         print("\n📚 Testing MCP Resources")

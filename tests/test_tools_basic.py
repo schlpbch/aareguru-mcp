@@ -1,6 +1,6 @@
 """Tests for basic MCP tools.
 
-Tests get_current_temperature, get_current_conditions, list_cities,
+Tests get_current_temperature, get_current_conditions,
 get_flow_danger_level, and get_historical_data.
 """
 
