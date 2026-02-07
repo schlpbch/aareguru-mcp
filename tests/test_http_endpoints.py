@@ -162,7 +162,7 @@ class TestServerConfiguration:
         assert len(tools) >= 6
         assert "get_current_temperature" in tools
         assert "get_current_conditions" in tools
-        assert "list_cities" in tools
+        assert "compare_cities_fast" in tools
 
     def test_server_has_resources(self):
         """Test server has registered resources."""

@@ -132,40 +132,6 @@ class TestGetCurrentConditions:
             assert result.seasonal_advice is not None
 
 
-class TestListCities:
-    """Test list_cities tool."""
-
-    @pytest.mark.asyncio
-    async def test_returns_array(self):
-        """Test list_cities returns array of cities."""
-        result = await tools.list_cities()
-        assert isinstance(result, list)
-        assert len(result) > 0
-
-    @pytest.mark.asyncio
-    async def test_with_mocked_client(self):
-        """Test with mocked client."""
-        tool = mcp._tool_manager._tools["list_cities"]
-        fn = tool.fn
-
-        with patch("aareguru_mcp.server.get_http_client") as mock_get_client:
-            mock_client = AsyncMock()
-            mock_city = MagicMock()
-            mock_city.city = "bern"
-            mock_city.name = "Bern"
-            mock_city.longname = "Bern, Schönau"
-            mock_city.coordinates = {"lat": 46.9, "lon": 7.4}
-            mock_city.aare = 17.2
-            mock_client.get_cities = AsyncMock(return_value=[mock_city])
-            mock_get_client.return_value = mock_client
-
-            result = await fn()
-
-            assert len(result) == 1
-            assert result[0].city == "bern"
-            assert result[0].temperature == 17.2
-
-
 class TestGetFlowDangerLevel:
     """Test get_flow_danger_level tool."""
 

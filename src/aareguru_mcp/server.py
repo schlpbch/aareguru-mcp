@@ -220,7 +220,7 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
 
     **Args:**
         city: City to generate the report for (default: `bern`).
-              Use `list_cities` to discover available locations.
+              Use `compare_cities_fast` to discover available locations.
         include_forecast: Whether to include 2-hour forecast in the report (default: `true`)
 
     **Returns:**
@@ -229,7 +229,7 @@ async def daily_swimming_report(city: str = "bern", include_forecast: bool = Tru
         The report includes Swiss German descriptions and safety warnings.
     """
     forecast_instruction = (
-        "\n3. **Forecast**: Use `get_forecast` to see how conditions "
+        "\n3. **Forecast**: Use `get_forecasts_batch` to see how conditions "
         "will change in the next few hours"
         if include_forecast
         else ""
@@ -296,7 +296,7 @@ async def weekly_trend_analysis(city: str = "bern", days: int = 7) -> str:
     """Generates trend analysis showing temperature and flow patterns with outlook.
 
     **Args:**
-        city: City to analyze (default: `bern`). Use `list_cities` to discover available locations.
+        city: City to analyze (default: `bern`). Use `compare_cities_fast` to discover available locations.
         days: Number of days to analyze (`3`, `7`, or `14`). Default: `7` days (one week).
 
     **Returns:**
@@ -343,7 +343,7 @@ async def get_current_temperature(city: str = "bern") -> TemperatureToolResponse
 
     **Args:****
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `list_cities` to discover available locations.
+              Use `compare_cities_fast` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -417,7 +417,7 @@ async def get_current_conditions(city: str = "bern") -> ConditionsToolResponse:
 
     **Args:****
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `list_cities` to discover available locations.
+              Use `compare_cities_fast` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -507,42 +507,6 @@ async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]
     response = await client.get_history(city, start, end)
     return response
 
-
-@mcp.tool(name="list_cities")
-async def list_cities() -> list[CityListResponse]:
-    """Retrieves all available cities with Aare monitoring stations.
-
-    Returns city identifiers, full names, coordinates, and current temperature
-    for each location. Use this for location discovery ("which cities are available?").
-
-    **Note:** For comparing multiple cities, use `compare_cities_fast` instead - it's 8-13x faster
-    than calling individual city tools sequentially.
-
-    **Returns:**
-        List of dictionaries, each containing:
-        - city (str): City identifier (e.g., 'bern', 'thun')
-        - name (str): Display name
-        - longname (str): Full location name
-        - coordinates (dict): Location coordinates with lat/lon
-        - temperature (float): Current water temperature in Celsius
-    """
-    logger.info("Listing all cities")
-
-    client = await get_http_client()
-    response = await client.get_cities()
-
-    return [
-        CityListResponse(
-            city=city.city,
-            name=city.name,
-            longname=city.longname,
-            coordinates=city.coordinates,
-            temperature=city.aare,
-        )
-        for city in response
-    ]
-
-
 @mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
     """Retrieves current flow rate and safety assessment.
@@ -562,7 +526,7 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
 
     **Args:**
         city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `list_cities` to discover available locations.
+              Use `compare_cities_fast` to discover available locations.
 
     **Returns:**
         Dictionary containing:
@@ -601,92 +565,6 @@ async def get_flow_danger_level(city: str = "bern") -> FlowDangerResponse:
         safety_assessment=safety,
         danger_level=danger_level,
     )
-
-
-@mcp.tool(name="get_forecast")
-async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolResponse:
-    """Retrieves temperature and flow forecast for a single city.
-
-    Takes `city` and `hours` parameters (both optional, defaults: `bern`, `2`).
-    Returns forecast data with trend analysis.
-
-    Use this for single-city forecast questions. For multiple cities,
-    use `get_forecasts_batch` instead - it's 2-5x faster with parallel fetching.
-
-    **Args:**
-        city: City identifier (e.g., `'bern'`, `'thun'`, `'basel'`, `'olten'`).
-              Use `list_cities` to discover available locations.
-        hours: Forecast horizon in hours (typically `2`). The API provides 2-hour forecasts.
-
-    **Returns:**
-        Dictionary containing:
-        - city (str): City identifier
-        - current (dict): Current conditions with temperature, text, and flow
-        - forecast_2h (float | None): Forecasted temperature in 2 hours
-        - forecast_text (str): Forecast description
-        - trend (str): Temperature trend ('rising', 'falling', 'stable', 'unknown')
-        - temperature_change (float | None): Expected temperature change in degrees
-        - recommendation (str): Timing recommendation for swimming
-        - seasonal_advice (str): Season-specific guidance
-    """
-    logger.info(f"Getting forecast for {city} ({hours}h)")
-
-    client = await get_http_client()
-    response = await client.get_current(city)
-
-    if not response.aare:
-        return ForecastToolResponse(
-            city=city,
-            current=None,
-            forecast_2h=None,
-            forecast_text="No data available",
-            trend="unknown",
-            temperature_change=None,
-            recommendation="Unable to provide forecast - no data available",
-            seasonal_advice=None,
-        )
-
-    current_temp = response.aare.temperature
-    forecast_temp = response.aare.forecast2h
-    forecast_text = response.aare.forecast2h_text
-
-    if forecast_temp is None or current_temp is None:
-        trend = "unknown"
-        recommendation = "Forecast data not available"
-    else:
-        temp_diff = forecast_temp - current_temp
-
-        if abs(temp_diff) < 0.3:
-            trend = "stable"
-            recommendation = "Temperature will remain stable - good time to swim anytime"
-        elif temp_diff > 0:
-            trend = "rising"
-            recommendation = (
-                f"Temperature rising by {temp_diff:.1f}°C - water will be warmer in 2 hours"
-            )
-        else:
-            trend = "falling"
-            recommendation = (
-                f"Temperature falling by {abs(temp_diff):.1f}°C - "
-                    "swim sooner rather than later"
-                )
-
-        return ForecastToolResponse(
-            city=city,
-            current=CurrentConditionsData(
-                temperature=current_temp,
-                temperature_text=response.aare.temperature_text,
-                flow=response.aare.flow,
-            ),
-            forecast_2h=forecast_temp,
-            forecast_text=forecast_text,
-            trend=trend,
-            temperature_change=(
-                forecast_temp - current_temp if (forecast_temp and current_temp) else None
-            ),
-            recommendation=recommendation,
-            seasonal_advice=_get_seasonal_advice(),
-        )
 
 
 @mcp.tool(name="compare_cities_fast")

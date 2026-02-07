@@ -112,7 +112,7 @@ class TestDailySwimmingReportPrompt:
         result = await get_prompt_text(daily_swimming_report)
         assert "get_current_conditions" in result
         assert "get_flow_danger_level" in result
-        assert "get_forecast" in result
+        assert "get_forecasts_batch" in result
 
     @pytest.mark.asyncio
     async def test_mentions_swiss_german(self):
@@ -251,7 +251,7 @@ class TestPromptIntegration:
         tool_mentions = [
             "get_current_conditions",
             "get_flow_danger_level",
-            "get_forecast",
+            "get_forecasts_batch",
         ]
         for tool in tool_mentions:
             assert tool in result, f"Prompt should mention {tool}"
@@ -398,9 +398,10 @@ class TestPromptToolIntegration:
         assert "city" in danger
         assert "danger_level" in danger
 
-        assert "get_forecast" in prompt_text
-        forecast = await tools.get_forecast("bern")
-        assert "city" in forecast
+        assert "get_forecasts_batch" in prompt_text
+        forecast_result = await tools.get_forecasts_batch(["bern"])
+        assert "forecasts" in forecast_result
+        assert "bern" in forecast_result["forecasts"]
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -413,9 +414,10 @@ class TestPromptToolIntegration:
 
         # Verify referenced fast parallel tool exists
         assert "compare_cities_fast" in prompt_text
-        cities = await tools.list_cities()
-        assert isinstance(cities, list)
-        assert len(cities) > 0
+        comparison = await tools.compare_cities_fast()
+        assert "cities" in comparison
+        assert isinstance(comparison["cities"], list)
+        assert len(comparison["cities"]) > 0
 
         # Verify the fast tool can be called
         # (Full test is in test_parallel_tools.py)
@@ -464,15 +466,17 @@ class TestPromptToolIntegration:
         assert "danger_level" in danger
 
         # Step 3: Get forecast (as prompted)
-        forecast = await tools.get_forecast(city)
-        assert forecast["city"] == city
+        forecast_result = await tools.get_forecasts_batch([city])
+        assert "forecasts" in forecast_result
+        assert city in forecast_result["forecasts"]
+        forecast = forecast_result["forecasts"][city]
 
         # Verify we can build a coherent report
         report_data = {
             "city": city,
             "has_conditions": has_aare_data,
             "is_safe": danger["danger_level"] <= 2,
-            "has_forecast": "forecast_2h" in forecast or "current" in forecast,
+            "has_forecast": forecast is not None,
         }
         assert report_data["city"] == city
 
@@ -482,14 +486,14 @@ class TestPromptToolIntegration:
         """Simulate complete compare spots workflow as Claude would execute it."""
         from aareguru_mcp import tools
 
-        # Step 1: List all cities (as prompted)
-        cities = await tools.list_cities()
-        assert isinstance(cities, list)
-        assert len(cities) > 0
+        # Step 1: Compare all cities (as prompted)
+        comparison = await tools.compare_cities_fast()
+        assert "cities" in comparison
+        assert len(comparison["cities"]) > 0
 
-        # Step 2: Get conditions for each city
+        # Step 2: Get detailed conditions for top cities
         city_data = []
-        for city_info in cities[:3]:  # Just check first 3 cities
+        for city_info in comparison["cities"][:3]:  # Just check first 3 cities
             city = city_info["city"]
             conditions = await tools.get_current_conditions(city)
             assert conditions["city"] == city

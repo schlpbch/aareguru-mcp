@@ -18,14 +18,16 @@ class TestMultiToolWorkflows:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_list_cities_then_get_temperature(self):
-        """Test discovering cities then querying specific city temperature."""
-        cities = await tools.list_cities()
+    async def test_compare_cities_then_get_temperature(self):
+        """Test comparing cities then querying specific city temperature."""
+        comparison = await tools.compare_cities_fast()
 
-        assert len(cities) > 0, "Should have at least one city"
-        assert "bern" in [c["city"] for c in cities], "Bern should be in city list"
+        assert "cities" in comparison
+        assert len(comparison["cities"]) > 0, "Should have at least one city"
 
-        first_city = cities[0]["city"]
+        # Cities are sorted by temperature (warmest first), so just pick the first one
+        first_city = comparison["cities"][0]["city"]
+
         temp_result = await tools.get_current_temperature(first_city)
 
         assert "temperature" in temp_result
