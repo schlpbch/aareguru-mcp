@@ -109,6 +109,43 @@ to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 
 
 # ============================================================================
+# Parallel Fetch Utilities
+# ============================================================================
+
+
+async def fetch_multiple_cities(
+    cities: list[str],
+    fetch_func: callable,
+    max_concurrency: int = 10,
+) -> list[tuple[str, Any]]:
+    """Fetch data for multiple cities in parallel with concurrency limit.
+
+    **Args:**
+        cities: List of city identifiers
+        fetch_func: Async function to call for each city (takes city: str)
+        max_concurrency: Maximum concurrent requests (default: 10)
+
+    **Returns:**
+        List of tuples: (city, result or exception)
+    """
+    semaphore = asyncio.Semaphore(max_concurrency)
+
+    async def fetch_with_limit(city: str):
+        async with semaphore:
+            try:
+                result = await fetch_func(city)
+                return (city, result)
+            except Exception as e:
+                logger.warning(f"Failed to fetch {city}: {e}")
+                return (city, e)
+
+    tasks = [fetch_with_limit(city) for city in cities]
+    results = await asyncio.gather(*tasks)
+
+    return results
+
+
+# ============================================================================
 # Resources
 # ============================================================================
 
@@ -235,11 +272,16 @@ async def compare_swimming_spots(
     if safety_only:
         filter_instructions += "\n- Only include cities with safe flow levels (< 150 m³/s)"
 
+    # Recommend using the parallel comparison tool
     return f"""Please compare all available Aare swimming locations.
 
-Use the `list_cities` tool to get data for all cities, then use `get_current_conditions`
-to get detailed information for each city to present:
+**Recommended approach:** Use `compare_cities_fast` tool for much faster parallel fetching
+across all cities. This fetches all city data concurrently instead of sequentially.
 
+Alternative: Use `list_cities` to see all cities, then use `get_current_conditions` for each
+city individually (slower).
+
+Present:
 1. **🏆 Best Choice Today**: The recommended city based on temperature and safety
 2. **📊 Comparison Table**: All cities ranked by temperature with safety status
 3. **⚠️ Safety Notes**: Any locations to avoid due to high flow{filter_instructions}
@@ -643,6 +685,121 @@ async def get_forecast(city: str = "bern", hours: int = 2) -> ForecastToolRespon
             recommendation=recommendation,
             seasonal_advice=_get_seasonal_advice(),
         )
+
+
+@mcp.tool(name="compare_cities_fast")
+async def compare_cities_fast(
+    cities: list[str] | None = None,
+) -> dict[str, Any]:
+    """Compare multiple cities with parallel fetching for faster results.
+
+    Fetches data for all cities concurrently instead of sequentially.
+    Significantly faster than calling `get_current_conditions` in a loop.
+
+    **Args:**
+        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`).
+                If None, compares all available cities.
+
+    **Returns:**
+        Dictionary with comparison results including temperature ranking,
+        safety status, and recommendations:
+        - cities (list): List of city data with temperature, flow, safety
+        - warmest (dict): City with highest temperature
+        - coldest (dict): City with lowest temperature
+        - safe_count (int): Number of cities with safe flow levels
+        - total_count (int): Total number of cities compared
+    """
+    client = await get_http_client()
+
+    # Get city list if not provided
+    if cities is None:
+        cities_response = await client.get_cities()
+        cities = [city.city for city in cities_response]
+
+    logger.info(f"Comparing {len(cities)} cities in parallel")
+
+    # Fetch all city conditions concurrently
+    async def fetch_conditions(city: str):
+        return await client.get_current(city)
+
+    results = await fetch_multiple_cities(cities, fetch_conditions)
+
+    # Process results
+    city_data = []
+    for city, result in results:
+        if isinstance(result, Exception):
+            continue
+
+        if result.aare:
+            city_data.append({
+                "city": city,
+                "temperature": result.aare.temperature,
+                "flow": result.aare.flow,
+                "safe": result.aare.flow < 150 if result.aare.flow else True,
+                "temperature_text": result.aare.temperature_text,
+                "location": result.aare.location,
+            })
+
+    # Sort by temperature
+    city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
+
+    return {
+        "cities": city_data,
+        "warmest": city_data[0] if city_data else None,
+        "coldest": city_data[-1] if city_data else None,
+        "safe_count": sum(1 for c in city_data if c["safe"]),
+        "total_count": len(city_data),
+    }
+
+
+@mcp.tool(name="get_forecasts_batch")
+async def get_forecasts_batch(
+    cities: list[str],
+) -> dict[str, Any]:
+    """Get forecasts for multiple cities in parallel.
+
+    **Args:**
+        cities: List of city identifiers (e.g., `['bern', 'thun', 'basel']`)
+
+    **Returns:**
+        Dictionary mapping city names to forecast data:
+        - forecasts (dict): Map of city to forecast data with current temp,
+                           2-hour forecast, and trend
+    """
+    client = await get_http_client()
+
+    async def fetch_forecast(city: str):
+        response = await client.get_current(city)
+        if not response.aare:
+            return None
+
+        current = response.aare.temperature
+        forecast_2h = response.aare.forecast2h
+
+        if current is None or forecast_2h is None:
+            trend = "unknown"
+        elif forecast_2h > current:
+            trend = "rising"
+        elif forecast_2h < current:
+            trend = "falling"
+        else:
+            trend = "stable"
+
+        return {
+            "current": current,
+            "forecast_2h": forecast_2h,
+            "trend": trend,
+            "change": forecast_2h - current if (forecast_2h and current) else None,
+        }
+
+    results = await fetch_multiple_cities(cities, fetch_forecast)
+
+    forecasts = {}
+    for city, result in results:
+        if not isinstance(result, Exception) and result is not None:
+            forecasts[city] = result
+
+    return {"forecasts": forecasts}
 
 
 # ============================================================================
