@@ -555,21 +555,28 @@ class TestPromptMCPProtocolCompliance:
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_prompt_arguments_schema(self):
-        """Test that prompt arguments are properly defined."""
-        # Daily report has city argument
+        """Test that prompt arguments are properly defined with elicitation support."""
+        # Daily report has city and include_forecast arguments
         assert daily_swimming_report.arguments is not None
-        assert len(daily_swimming_report.arguments) == 1
-        assert daily_swimming_report.arguments[0].name == "city"
-        assert daily_swimming_report.arguments[0].required is False
+        assert len(daily_swimming_report.arguments) == 2
+        arg_names = [arg.name for arg in daily_swimming_report.arguments]
+        assert "city" in arg_names
+        assert "include_forecast" in arg_names
+        assert all(arg.required is False for arg in daily_swimming_report.arguments)
 
-        # Compare spots has no arguments
+        # Compare spots has min_temperature and safety_only arguments for filtering
         assert compare_swimming_spots.arguments is not None
-        assert len(compare_swimming_spots.arguments) == 0
+        assert len(compare_swimming_spots.arguments) == 2
+        arg_names = [arg.name for arg in compare_swimming_spots.arguments]
+        assert "min_temperature" in arg_names
+        assert "safety_only" in arg_names
 
-        # Weekly analysis has city argument
+        # Weekly analysis has city and days arguments
         assert weekly_trend_analysis.arguments is not None
-        assert len(weekly_trend_analysis.arguments) == 1
-        assert weekly_trend_analysis.arguments[0].name == "city"
+        assert len(weekly_trend_analysis.arguments) == 2
+        arg_names = [arg.name for arg in weekly_trend_analysis.arguments]
+        assert "city" in arg_names
+        assert "days" in arg_names
 
     @pytest.mark.integration
     @pytest.mark.asyncio
