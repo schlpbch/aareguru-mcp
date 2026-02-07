@@ -146,9 +146,9 @@ class TestCompareSwimmingSpotsPrompt:
 
     @pytest.mark.asyncio
     async def test_mentions_list_tool(self):
-        """Test that prompt mentions the list_cities tool."""
+        """Test that prompt mentions the fast comparison tool."""
         result = await get_prompt_text(compare_swimming_spots)
-        assert "list_cities" in result
+        assert "compare_cities_fast" in result
 
     @pytest.mark.asyncio
     async def test_includes_key_sections(self):
@@ -265,9 +265,8 @@ class TestPromptIntegration:
         """Test compare spots prompt provides actionable instructions."""
         result = await get_prompt_text(compare_swimming_spots)
 
-        # Should guide Claude to use list and conditions tools
-        assert "list_cities" in result
-        assert "get_current_conditions" in result
+        # Should guide Claude to use fast parallel comparison tool
+        assert "compare_cities_fast" in result
 
         # Should request structured output
         assert "Table" in result or "ranked" in result.lower()
@@ -305,7 +304,7 @@ class TestPromptIntegration:
 
         # Each should have different primary tool focus
         assert "get_current_conditions" in daily
-        assert "list_cities" in compare or "get_current_conditions" in compare
+        assert "compare_cities_fast" in compare  # Fast parallel tool
         assert "get_historical_data" in weekly
 
     @pytest.mark.integration
@@ -412,15 +411,14 @@ class TestPromptToolIntegration:
         # Get the prompt text to verify tool names
         prompt_text = await get_prompt_text(compare_swimming_spots)
 
-        # Verify referenced tools exist and work
-        assert "list_cities" in prompt_text
+        # Verify referenced fast parallel tool exists
+        assert "compare_cities_fast" in prompt_text
         cities = await tools.list_cities()
         assert isinstance(cities, list)
         assert len(cities) > 0
 
-        assert "get_current_conditions" in prompt_text
-        conditions = await tools.get_current_conditions("bern")
-        assert "city" in conditions
+        # Verify the fast tool can be called
+        # (Full test is in test_parallel_tools.py)
 
     @pytest.mark.integration
     @pytest.mark.asyncio
