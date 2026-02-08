@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Compatible with MCP orchestrator federation scenarios
 
 ### Known Issues
-- **Issue #3: Prompt arguments with typed values** - FastMCP framework issue where boolean/number arguments may fail when passed by orchestrators (investigation pending)
+- **Issue #3: Prompt arguments with typed values** - Prompts fail when called through mcp-orchestrator.io with boolean/number arguments, despite working correctly when called directly. All typed arguments (bool, int, float) work in local tests. This appears to be an argument forwarding issue in the orchestrator rather than FastMCP or aareguru-mcp. See [test_prompt_typed_args.py](tests/test_prompt_typed_args.py) for verification.
 
 ## [3.3.0] - 2026-02-07
 
