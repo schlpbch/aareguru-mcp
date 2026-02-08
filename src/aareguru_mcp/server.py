@@ -402,7 +402,18 @@ async def compare_cities(
         - safe_count (int): Number of cities with safe flow levels
         - total_count (int): Total number of cities compared
     """
-    return await tools.compare_cities(cities)
+    try:
+        return await tools.compare_cities(cities)
+    except Exception as e:
+        logger.error(f"Error comparing cities: {e}", exc_info=True)
+        return {
+            "error": str(e),
+            "cities": [],
+            "warmest": None,
+            "coldest": None,
+            "safe_count": 0,
+            "total_count": 0
+        }
 
 
 @mcp.tool(name="get_forecasts")
@@ -422,7 +433,14 @@ async def get_forecasts(
         - forecasts (dict): Map of city to forecast data with current temp,
                            2-hour forecast, and trend
     """
-    return await tools.get_forecasts(cities)
+    try:
+        return await tools.get_forecasts(cities)
+    except Exception as e:
+        logger.error(f"Error getting forecasts: {e}", exc_info=True)
+        return {
+            "error": str(e),
+            "forecasts": {}
+        }
 
 
 # ============================================================================
