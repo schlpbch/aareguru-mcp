@@ -239,11 +239,12 @@ async def compare_cities(
         async def fetch_conditions(city: str):
             try:
                 result = await client.get_current(city)
-                logger.debug(f"Successfully fetched {city}")
-                return result
+                logger.info(f"✓ Successfully fetched {city}")
+                return {"city": city, "result": result, "error": None}
             except Exception as e:
-                logger.warning(f"Failed to fetch {city}: {type(e).__name__}: {e}")
-                return None
+                error_msg = f"{type(e).__name__}: {str(e)}"
+                logger.error(f"✗ Failed to fetch {city}: {error_msg}", exc_info=True)
+                return {"city": city, "result": None, "error": error_msg}
 
         # Fetch with return_exceptions to handle failures gracefully
         results = await asyncio.gather(
@@ -252,16 +253,30 @@ async def compare_cities(
 
         # Process results
         city_data = []
-        for city, result in zip(cities, results):
-            # Handle exceptions that slipped through
-            if isinstance(result, Exception):
-                logger.warning(f"Failed to fetch {city}: {type(result).__name__}: {result}")
+        errors = []
+        
+        for item in results:
+            # Handle exceptions that escaped the try/except
+            if isinstance(item, Exception):
+                error_msg = f"{type(item).__name__}: {str(item)}"
+                logger.error(f"Unexpected exception in parallel fetch: {error_msg}", exc_info=item)
+                errors.append({"city": "unknown", "error": error_msg})
                 continue
+            
+            city = item["city"]
+            result = item["result"]
+            error = item["error"]
+            
+            if error:
+                errors.append({"city": city, "error": error})
+                continue
+                
             if result is None:
-                logger.debug(f"No data for {city}")
+                errors.append({"city": city, "error": "No data returned"})
                 continue
+                
             if not hasattr(result, "aare") or not result.aare:
-                logger.debug(f"No aare data for {city}")
+                errors.append({"city": city, "error": "No aare data available"})
                 continue
 
             try:
@@ -276,20 +291,36 @@ async def compare_cities(
                     }
                 )
             except Exception as e:
-                logger.warning(f"Error processing {city}: {type(e).__name__}: {e}")
+                error_msg = f"{type(e).__name__}: {str(e)}"
+                logger.error(f"Error processing {city}: {error_msg}", exc_info=True)
+                errors.append({"city": city, "error": error_msg})
                 continue
 
         # Sort by temperature
         if city_data:
             city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
 
-        logger.info(f"Successfully compared {len(city_data)} of {len(cities)} cities")
+        success_count = len(city_data)
+        total_count = len(cities)
+        
+        logger.info(f"Comparison complete: {success_count}/{total_count} cities succeeded")
+        
+        # If ALL cities failed, raise an error with details
+        if success_count == 0 and total_count > 0:
+            error_summary = "; ".join([f"{e['city']}: {e['error']}" for e in errors[:3]])
+            raise RuntimeError(
+                f"Failed to fetch data for all {total_count} cities. "
+                f"Errors: {error_summary}"
+            )
+        
         return {
             "cities": city_data,
             "warmest": city_data[0] if city_data else None,
             "coldest": city_data[-1] if city_data else None,
             "safe_count": sum(1 for c in city_data if c["safe"]),
-            "total_count": len(city_data),
+            "total_count": success_count,
+            "requested_count": total_count,
+            "errors": errors if errors else None,
         }
 
 
@@ -394,8 +425,8 @@ async def get_forecasts(
             try:
                 response = await client.get_current(city)
                 if not response.aare:
-                    logger.debug(f"No aare data for {city}")
-                    return None
+                    logger.warning(f"No aare data for {city}")
+                    return {"city": city, "result": None, "error": "No aare data available"}
 
                 current = response.aare.temperature
                 forecast_2h = response.aare.forecast2h
@@ -409,15 +440,21 @@ async def get_forecasts(
                 else:
                     trend = "stable"
 
+                logger.info(f"✓ Successfully fetched forecast for {city}")
                 return {
-                    "current": current,
-                    "forecast_2h": forecast_2h,
-                    "trend": trend,
-                    "change": forecast_2h - current if (forecast_2h and current) else None,
+                    "city": city,
+                    "result": {
+                        "current": current,
+                        "forecast_2h": forecast_2h,
+                        "trend": trend,
+                        "change": forecast_2h - current if (forecast_2h and current) else None,
+                    },
+                    "error": None,
                 }
             except Exception as e:
-                logger.warning(f"Failed to fetch forecast for {city}: {type(e).__name__}: {e}")
-                return None
+                error_msg = f"{type(e).__name__}: {str(e)}"
+                logger.error(f"✗ Failed to fetch forecast for {city}: {error_msg}", exc_info=True)
+                return {"city": city, "result": None, "error": error_msg}
 
         # Fetch with return_exceptions to handle failures gracefully
         results = await asyncio.gather(
@@ -425,15 +462,43 @@ async def get_forecasts(
         )
 
         forecasts = {}
-        for city, result in zip(cities, results):
-            # Handle exceptions that slipped through
-            if isinstance(result, Exception):
-                logger.warning(
-                    f"Failed to fetch forecast for {city}: {type(result).__name__}: {result}"
-                )
+        errors = []
+        
+        for item in results:
+            # Handle exceptions that escaped the try/except
+            if isinstance(item, Exception):
+                error_msg = f"{type(item).__name__}: {str(item)}"
+                logger.error(f"Unexpected exception in parallel fetch: {error_msg}", exc_info=item)
+                errors.append({"city": "unknown", "error": error_msg})
                 continue
+            
+            city = item["city"]
+            result = item["result"]
+            error = item["error"]
+            
+            if error:
+                errors.append({"city": city, "error": error})
+                continue
+                
             if result is not None:
                 forecasts[city] = result
 
-        logger.info(f"Successfully fetched forecasts for {len(forecasts)} of {len(cities)} cities")
-        return {"forecasts": forecasts}
+        success_count = len(forecasts)
+        total_count = len(cities)
+        
+        logger.info(f"Forecast fetch complete: {success_count}/{total_count} cities succeeded")
+        
+        # If ALL cities failed, raise an error with details
+        if success_count == 0 and total_count > 0:
+            error_summary = "; ".join([f"{e['city']}: {e['error']}" for e in errors[:3]])
+            raise RuntimeError(
+                f"Failed to fetch forecasts for all {total_count} cities. "
+                f"Errors: {error_summary}"
+            )
+        
+        return {
+            "forecasts": forecasts,
+            "success_count": success_count,
+            "requested_count": total_count,
+            "errors": errors if errors else None,
+        }
