@@ -233,10 +233,11 @@ async def compare_cities(
             all_cities = await client.get_cities()
             cities = [city.city for city in all_cities]
 
-        logger.info(f"Comparing {len(cities)} cities in parallel")
+        logger.info(f"Comparing {len(cities)} cities in parallel: {cities}")
 
         # Fetch all city conditions concurrently
         async def fetch_conditions(city: str):
+            logger.info(f"→ Starting fetch for {city}")
             try:
                 result = await client.get_current(city)
                 logger.info(f"✓ Successfully fetched {city}")
@@ -421,7 +422,10 @@ async def get_forecasts(
 
     async with AareguruClient(settings=get_settings()) as client:
 
+        logger.info(f"Fetching forecasts for {len(cities)} cities: {cities}")
+
         async def fetch_forecast(city: str):
+            logger.info(f"→ Starting forecast fetch for {city}")
             try:
                 response = await client.get_current(city)
                 if not response.aare:
