@@ -6,8 +6,8 @@ code in this repository.
 ## Project Overview
 
 Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss
-Aare river data from the Aareguru API to AI assistants. The server provides 7
-MCP tools, 4 MCP resources, and 3 MCP prompts for querying water temperature,
+Aare river data from the Aareguru API to AI assistants. The server provides 6
+MCP tools, 3 MCP resources, and 3 MCP prompts for querying water temperature,
 flow rates, weather conditions, and safety assessments for swimming in the Aare
 river.
 

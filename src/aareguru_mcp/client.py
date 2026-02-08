@@ -279,17 +279,6 @@ class AareguruClient(JsonSerializableMixin):
             logger.error(f"Validation error for current response: {e}")
             raise
 
-    async def get_widget(self) -> dict[str, Any]:
-        """Get current data for all cities.
-
-        Returns:
-            dict: Widget data for all cities
-
-        Raises:
-            httpx.HTTPError: On HTTP errors
-        """
-        return await self._request("/v2018/widget")
-
     async def get_history(
         self,
         city: str,

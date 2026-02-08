@@ -48,7 +48,7 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 | Feature              | Description                                                          |
 | -------------------- | -------------------------------------------------------------------- |
 | **6 MCP Tools**      | Temperature, flow, safety, forecasts, history, comparisons           |
-| **4 MCP Resources**  | Direct data access via `aareguru://` URIs                            |
+| **3 MCP Resources**  | Direct data access via `aareguru://` URIs                            |
 | **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                       |
 | **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                  |
 | **Metrics**          | Prometheus endpoint for monitoring and observability                 |
@@ -86,7 +86,6 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 | `aareguru://cities`         | List of all monitored cities |
 | `aareguru://current/{city}` | Full current data for a city |
 | `aareguru://today/{city}`   | Minimal current data         |
-| `aareguru://widget`         | Overview of all cities       |
 
 ## 💬 Prompts
 

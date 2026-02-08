@@ -213,26 +213,6 @@ class MCPHTTPTester:
             print(f"   ❌ Error: {e}")
             return False
 
-    async def test_resource_widget(self) -> bool:
-        """Test widget resource via Aareguru API."""
-        print("🎨 Testing resource: widget...")
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(
-                    f"{self.api_base}/widget", params={"app": "aareguru-mcp-test"}
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    # Widget response has different structure (HTML or text)
-                    if data:  # Just check it's not empty
-                        print("   ✅ Widget resource available")
-                        return True
-                print(f"   ❌ Failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"   ❌ Error: {e}")
-            return False
-
     async def test_resource_current_city(self) -> bool:
         """Test current/{city} resource via Aareguru API."""
         print("📍 Testing resource: current/Bern...")
@@ -308,8 +288,6 @@ class MCPHTTPTester:
         print("\n📚 Testing MCP Resources")
         print("=" * 60)
         results["resource_cities"] = await self.test_resource_cities()
-        print()
-        results["resource_widget"] = await self.test_resource_widget()
         print()
         results["resource_current_city"] = await self.test_resource_current_city()
         print()
