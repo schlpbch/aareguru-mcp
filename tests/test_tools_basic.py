@@ -21,7 +21,7 @@ class TestGetCurrentTemperature:
         tool = mcp._tool_manager._tools["get_current_temperature"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
             mock_response.aare = MagicMock()
@@ -47,7 +47,7 @@ class TestGetCurrentTemperature:
         tool = mcp._tool_manager._tools["get_current_temperature"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             # Current response has no aare data
@@ -83,7 +83,7 @@ class TestGetCurrentConditions:
         tool = mcp._tool_manager._tools["get_current_conditions"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             mock_response = MagicMock()
@@ -120,7 +120,7 @@ class TestGetCurrentConditions:
         tool = mcp._tool_manager._tools["get_current_conditions"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             mock_response = MagicMock()
@@ -149,7 +149,7 @@ class TestGetFlowDangerLevel:
         tool = mcp._tool_manager._tools["get_flow_danger_level"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
             mock_response.aare = MagicMock()
@@ -173,7 +173,7 @@ class TestGetFlowDangerLevel:
         tool = mcp._tool_manager._tools["get_flow_danger_level"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             mock_response = MagicMock()
@@ -210,7 +210,7 @@ class TestGetHistoricalData:
         tool = mcp._tool_manager._tools["get_historical_data"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_client.get_history = AsyncMock(
                 return_value={"timeseries": [{"timestamp": 123, "temp": 17.0}]}

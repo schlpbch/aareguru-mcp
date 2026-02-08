@@ -1,20 +1,18 @@
 """MCP tools for querying Aareguru data.
 
 Tools allow Claude to dynamically query the Aareguru API based on user requests.
+
+This module provides thin MCP tool wrappers that delegate to AareguruService
+for all business logic. Tools focus on MCP protocol requirements (docstrings,
+type hints, parameter formatting) while the service handles data enrichment,
+client lifecycle, and error handling.
 """
 
 from typing import Any
 
 import structlog
 
-from .client import AareguruClient
-from .config import get_settings
-from .helpers import (
-    _check_safety_warning,
-    _get_seasonal_advice,
-    _get_suggestion,
-    _get_swiss_german_explanation,
-)
+from .service import AareguruService
 
 logger = structlog.get_logger(__name__)
 
@@ -44,55 +42,9 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
         >>> print(f"{result['temperature']}°C - {result['temperature_text']}")
         17.2°C - geil aber chli chalt
     """
-    logger.info(f"Getting current temperature for {city}")
-
-    async with AareguruClient(settings=get_settings()) as client:
-        # Use get_current to get flow data for safety check
-        response = await client.get_current(city)
-
-        if not response.aare:
-            # Fallback to get_today if no aare data (unlikely but safe)
-            response = await client.get_today(city)
-            temp = response.aare
-            text = response.text
-            flow = None
-        else:
-            temp = response.aare.temperature
-            text = response.aare.temperature_text
-            flow = response.aare.flow
-
-        # UX Features
-        warning = _check_safety_warning(flow)
-        explanation = _get_swiss_german_explanation(text)
-        suggestion = await _get_suggestion(city, temp)
-        season_advice = _get_seasonal_advice()
-
-        result = {
-            "city": city,
-            "temperature": temp,
-            "temperature_text": text,
-            "swiss_german_explanation": explanation,
-            "name": (
-                response.aare.location
-                if (response.aare and hasattr(response.aare, "location"))
-                else response.name
-            ),
-            "warning": warning,
-            "suggestion": suggestion,
-            "seasonal_advice": season_advice,
-        }
-
-        # Add legacy fields for backward compatibility
-        if response.aare and hasattr(response.aare, "temperature"):
-            result["temperature_prec"] = response.aare.temperature  # Approximate
-            result["temperature_text_short"] = response.aare.temperature_text_short
-            result["longname"] = response.aare.location_long
-        else:
-            result["temperature_prec"] = response.aare_prec
-            result["temperature_text_short"] = response.text_short
-            result["longname"] = response.longname
-
-        return result
+    logger.info(f"Tool: get_current_temperature for {city}")
+    service = AareguruService()
+    return await service.get_current_temperature(city)
 
 
 async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
@@ -118,49 +70,9 @@ async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
         >>> print(f"Flow: {result['aare']['flow']} m³/s")
         >>> print(f"2h forecast: {result['aare']['forecast2h_text']}")
     """
-    logger.info(f"Getting current conditions for {city}")
-
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
-
-        # Build comprehensive response from nested structure
-        result: dict[str, Any] = {
-            "city": city,
-        }
-
-        # Aare data (nested in response.aare)
-        if response.aare:
-            # UX Features
-            warning = _check_safety_warning(response.aare.flow)
-            explanation = _get_swiss_german_explanation(response.aare.temperature_text)
-
-            result["aare"] = {
-                "location": response.aare.location,
-                "location_long": response.aare.location_long,
-                "temperature": response.aare.temperature,
-                "temperature_text": response.aare.temperature_text,
-                "swiss_german_explanation": explanation,
-                "temperature_text_short": response.aare.temperature_text_short,
-                "flow": response.aare.flow,
-                "flow_text": response.aare.flow_text,
-                "height": response.aare.height,
-                "forecast2h": response.aare.forecast2h,
-                "forecast2h_text": response.aare.forecast2h_text,
-                "warning": warning,
-            }
-
-        # Add seasonal advice at top level
-        result["seasonal_advice"] = _get_seasonal_advice()
-
-        # Weather data
-        if response.weather:
-            result["weather"] = response.weather
-
-        # Forecast
-        if response.weatherprognosis:
-            result["forecast"] = response.weatherprognosis
-
-        return result
+    logger.info(f"Tool: get_current_conditions for {city}")
+    service = AareguruService()
+    return await service.get_current_conditions(city)
 
 
 async def get_historical_data(
@@ -199,11 +111,9 @@ async def get_historical_data(
         ...     "2024-11-07T23:59:59Z"
         ... )
     """
-    logger.info(f"Getting historical data for {city} from {start} to {end}")
-
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_history(city, start, end)
-        return response
+    logger.info(f"Tool: get_historical_data for {city} from {start} to {end}")
+    service = AareguruService()
+    return await service.get_historical_data(city, start, end)
 
 
 async def compare_cities(
@@ -225,104 +135,9 @@ async def compare_cities(
         - safe_count: Number of cities with safe flow conditions
         - total_count: Total cities compared
     """
-    import asyncio
-
-    async with AareguruClient(settings=get_settings()) as client:
-        if cities is None:
-            # Get all cities
-            all_cities = await client.get_cities()
-            cities = [city.city for city in all_cities]
-
-        logger.info(f"Comparing {len(cities)} cities in parallel: {cities}")
-
-        # Fetch all city conditions concurrently
-        async def fetch_conditions(city: str):
-            logger.info(f"→ Starting fetch for {city}")
-            try:
-                result = await client.get_current(city)
-                logger.info(f"✓ Successfully fetched {city}")
-                return {"city": city, "result": result, "error": None}
-            except Exception as e:
-                error_msg = f"{type(e).__name__}: {str(e)}"
-                logger.error(f"✗ Failed to fetch {city}: {error_msg}", exc_info=True)
-                return {"city": city, "result": None, "error": error_msg}
-
-        # Fetch with return_exceptions to handle failures gracefully
-        results = await asyncio.gather(
-            *[fetch_conditions(city) for city in cities], return_exceptions=True
-        )
-
-        # Process results
-        city_data = []
-        errors = []
-        
-        for item in results:
-            # Handle exceptions that escaped the try/except
-            if isinstance(item, Exception):
-                error_msg = f"{type(item).__name__}: {str(item)}"
-                logger.error(f"Unexpected exception in parallel fetch: {error_msg}", exc_info=item)
-                errors.append({"city": "unknown", "error": error_msg})
-                continue
-            
-            city = item["city"]
-            result = item["result"]
-            error = item["error"]
-            
-            if error:
-                errors.append({"city": city, "error": error})
-                continue
-                
-            if result is None:
-                errors.append({"city": city, "error": "No data returned"})
-                continue
-                
-            if not hasattr(result, "aare") or not result.aare:
-                errors.append({"city": city, "error": "No aare data available"})
-                continue
-
-            try:
-                city_data.append(
-                    {
-                        "city": city,
-                        "temperature": result.aare.temperature,
-                        "flow": result.aare.flow,
-                        "safe": result.aare.flow < 150 if result.aare.flow else True,
-                        "temperature_text": result.aare.temperature_text,
-                        "location": result.aare.location,
-                    }
-                )
-            except Exception as e:
-                error_msg = f"{type(e).__name__}: {str(e)}"
-                logger.error(f"Error processing {city}: {error_msg}", exc_info=True)
-                errors.append({"city": city, "error": error_msg})
-                continue
-
-        # Sort by temperature
-        if city_data:
-            city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
-
-        success_count = len(city_data)
-        total_count = len(cities)
-        
-        logger.info(f"Comparison complete: {success_count}/{total_count} cities succeeded")
-        
-        # If ALL cities failed, raise an error with details
-        if success_count == 0 and total_count > 0:
-            error_summary = "; ".join([f"{e['city']}: {e['error']}" for e in errors[:3]])
-            raise RuntimeError(
-                f"Failed to fetch data for all {total_count} cities. "
-                f"Errors: {error_summary}"
-            )
-        
-        return {
-            "cities": city_data,
-            "warmest": city_data[0] if city_data else None,
-            "coldest": city_data[-1] if city_data else None,
-            "safe_count": sum(1 for c in city_data if c["safe"]),
-            "total_count": success_count,
-            "requested_count": total_count,
-            "errors": errors if errors else None,
-        }
+    logger.info(f"Tool: compare_cities for {cities or 'all cities'}")
+    service = AareguruService()
+    return await service.compare_cities(cities)
 
 
 async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
@@ -357,50 +172,9 @@ async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
         Flow: 245 m³/s
         Safety: Moderate - safe for experienced swimmers
     """
-    logger.info(f"Getting flow danger level for {city}")
-
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
-
-        if not response.aare:
-            return {
-                "city": city,
-                "flow": None,
-                "flow_text": None,
-                "safety_assessment": "No data available",
-            }
-
-        # Determine safety based on flow threshold
-        flow = response.aare.flow
-        threshold = response.aare.flow_scale_threshold or 220
-
-        if flow is None:
-            safety = "Unknown - no flow data"
-            danger_level = 0
-        elif flow < 100:
-            safety = "Safe - low flow"
-            danger_level = 1
-        elif flow < threshold:
-            safety = "Moderate - safe for experienced swimmers"
-            danger_level = 2
-        elif flow < 300:
-            safety = "Elevated - caution advised"
-            danger_level = 3
-        elif flow < 430:
-            safety = "High - dangerous conditions"
-            danger_level = 4
-        else:
-            safety = "Very high - extremely dangerous, avoid swimming"
-            danger_level = 5
-
-        return {
-            "city": city,
-            "flow": flow,
-            "flow_text": response.aare.flow_text,
-            "flow_threshold": threshold,
-            "safety_assessment": safety,
-            "danger_level": danger_level,
-        }
+    logger.info(f"Tool: get_flow_danger_level for {city}")
+    service = AareguruService()
+    return await service.get_flow_danger_level(city)
 
 
 async def get_forecasts(
@@ -418,91 +192,6 @@ async def get_forecasts(
         - forecasts (dict): Map of city to forecast data with current temp,
                            2-hour forecast, and trend
     """
-    import asyncio
-
-    async with AareguruClient(settings=get_settings()) as client:
-
-        logger.info(f"Fetching forecasts for {len(cities)} cities: {cities}")
-
-        async def fetch_forecast(city: str):
-            logger.info(f"→ Starting forecast fetch for {city}")
-            try:
-                response = await client.get_current(city)
-                if not response.aare:
-                    logger.warning(f"No aare data for {city}")
-                    return {"city": city, "result": None, "error": "No aare data available"}
-
-                current = response.aare.temperature
-                forecast_2h = response.aare.forecast2h
-
-                if current is None or forecast_2h is None:
-                    trend = "unknown"
-                elif forecast_2h > current:
-                    trend = "rising"
-                elif forecast_2h < current:
-                    trend = "falling"
-                else:
-                    trend = "stable"
-
-                logger.info(f"✓ Successfully fetched forecast for {city}")
-                return {
-                    "city": city,
-                    "result": {
-                        "current": current,
-                        "forecast_2h": forecast_2h,
-                        "trend": trend,
-                        "change": forecast_2h - current if (forecast_2h and current) else None,
-                    },
-                    "error": None,
-                }
-            except Exception as e:
-                error_msg = f"{type(e).__name__}: {str(e)}"
-                logger.error(f"✗ Failed to fetch forecast for {city}: {error_msg}", exc_info=True)
-                return {"city": city, "result": None, "error": error_msg}
-
-        # Fetch with return_exceptions to handle failures gracefully
-        results = await asyncio.gather(
-            *[fetch_forecast(city) for city in cities], return_exceptions=True
-        )
-
-        forecasts = {}
-        errors = []
-        
-        for item in results:
-            # Handle exceptions that escaped the try/except
-            if isinstance(item, Exception):
-                error_msg = f"{type(item).__name__}: {str(item)}"
-                logger.error(f"Unexpected exception in parallel fetch: {error_msg}", exc_info=item)
-                errors.append({"city": "unknown", "error": error_msg})
-                continue
-            
-            city = item["city"]
-            result = item["result"]
-            error = item["error"]
-            
-            if error:
-                errors.append({"city": city, "error": error})
-                continue
-                
-            if result is not None:
-                forecasts[city] = result
-
-        success_count = len(forecasts)
-        total_count = len(cities)
-        
-        logger.info(f"Forecast fetch complete: {success_count}/{total_count} cities succeeded")
-        
-        # If ALL cities failed, raise an error with details
-        if success_count == 0 and total_count > 0:
-            error_summary = "; ".join([f"{e['city']}: {e['error']}" for e in errors[:3]])
-            raise RuntimeError(
-                f"Failed to fetch forecasts for all {total_count} cities. "
-                f"Errors: {error_summary}"
-            )
-        
-        return {
-            "forecasts": forecasts,
-            "success_count": success_count,
-            "requested_count": total_count,
-            "errors": errors if errors else None,
-        }
+    logger.info(f"Tool: get_forecasts for {len(cities)} cities: {cities}")
+    service = AareguruService()
+    return await service.get_forecasts(cities)

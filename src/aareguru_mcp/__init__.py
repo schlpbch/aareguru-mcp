@@ -40,9 +40,11 @@ from .helpers import (  # noqa: E402
     get_warmer_suggestion,
 )
 from .server import app, entry_point, mcp, run_http  # noqa: E402
+from .service import AareguruService  # noqa: E402
 
 __all__ = [
     "AareguruClient",
+    "AareguruService",
     "Settings",
     "get_settings",
     "app",

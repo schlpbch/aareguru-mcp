@@ -19,7 +19,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             # Mock responses for multiple cities
@@ -58,7 +58,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             # Mock get_cities
@@ -95,7 +95,7 @@ class TestCompareCitiesFast:
         tool = mcp._tool_manager._tools["compare_cities"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str, flow: float):
@@ -133,7 +133,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str):
@@ -178,7 +178,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             def make_response(city: str):
@@ -209,7 +209,7 @@ class TestGetForecastsBatch:
         tool = mcp._tool_manager._tools["get_forecasts"]
         fn = tool.fn
 
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+        with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
             response = MagicMock()

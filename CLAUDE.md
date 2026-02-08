@@ -11,9 +11,9 @@ MCP tools, 3 MCP resources, and 3 MCP prompts for querying water temperature,
 flow rates, weather conditions, and safety assessments for swimming in the Aare
 river.
 
-**Status**: Production ready with 210 tests passing, 2 skipped (87% coverage)
+**Status**: Production ready with 209 tests passing (87% coverage)
 **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
-**Features**: Rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
+**Features**: Service layer pattern, rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
 
 ## Development Commands
 
@@ -91,14 +91,89 @@ uv pip install -e ".[dev]"
 
 The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
-**Key Layers:**
+**Key Layers (Top to Bottom):**
 1. **MCP Server** (`server.py`): FastMCP decorators (@mcp.tool, @mcp.resource, @mcp.prompt)
-2. **Business Logic** (`tools.py`, `resources.py`, `helpers.py`): Domain logic and transformations
-3. **HTTP Client** (`client.py`): Async client with caching, rate limiting, context managers
-4. **Models** (`models.py`): Pydantic validation
-5. **Config** (`config.py`): Environment-based settings
+2. **MCP Tools** (`tools.py`): Thin wrappers delegating to service layer for business logic
+3. **Service Layer** (`service.py`): Core domain logic with 7 methods mapping to tools
+4. **Helper Functions** (`helpers.py`): Shared utilities for enrichment and UX
+5. **HTTP Client** (`client.py`): Async client with caching, rate limiting, connection pooling
+6. **Models** (`models.py`): Pydantic validation for API responses
+7. **Config** (`config.py`): Environment-based settings
+
+**Architecture Diagram:**
+```
+server.py (@mcp.tool)
+    ↓ (thin wrapper)
+tools.py (MCP interface)
+    ↓ (delegates to)
+service.py (business logic)
+    ↓ (uses)
+helpers.py (enrichment)
+    ↓ (uses)
+client.py (HTTP + cache + rate limit)
+    ↓ (uses)
+models.py (validation)
+    ↓
+Aareguru API
+```
 
 ### Key Design Patterns
+
+#### Service Layer Pattern (ADR-014)
+
+The `service.py` module provides a clean separation between MCP protocol concerns and domain logic:
+
+**Service Class Structure:**
+```python
+class AareguruService:
+    """Business logic service for Aare river data operations."""
+
+    async def get_current_temperature(self, city: str) -> dict[str, Any]:
+        # 1. Create scoped client
+        async with AareguruClient(settings=self.settings) as client:
+            # 2. Fetch data from API
+            response = await client.get_current(city)
+
+            # 3. Enrich with helpers
+            warning = check_safety_warning(flow)
+            suggestion = await get_warmer_suggestion(city, temp)
+
+            # 4. Return structured dict
+            return {
+                "city": city,
+                "temperature": temp,
+                "warning": warning,
+                "suggestion": suggestion,
+                ...
+            }
+```
+
+**Service Methods (map 1:1 to tools):**
+- `get_current_temperature(city)` - Temperature with enrichment
+- `get_current_conditions(city)` - Comprehensive conditions with all data
+- `get_historical_data(city, start, end)` - Time-series data bypass cache
+- `compare_cities(cities)` - Parallel comparison with ranking
+- `get_forecasts(cities)` - Parallel forecast fetching with trends
+- `get_flow_danger_level(city)` - Flow assessment (FIXES DRY: uses helper)
+- `get_cities_list()` - List all available cities
+
+**Benefits:**
+- ✅ Code reuse: Business logic not duplicated across tools
+- ✅ Testability: Service can be unit tested independently
+- ✅ Extensibility: New APIs (REST, Chat) can reuse service methods
+- ✅ Maintainability: Single place to update domain logic
+- ✅ DRY: Fixed `get_flow_danger_level` to use `get_safety_assessment()` helper
+
+**Thin MCP Tool Wrappers:**
+```python
+async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
+    """Get current water temperature... (MCP docstring for schema)"""
+    service = AareguruService()
+    return await service.get_current_temperature(city)
+```
+
+Tools focus entirely on MCP protocol (docstrings, schemas, type hints) while
+service handles data fetching and enrichment.
 
 #### Helper Functions Module
 
@@ -326,34 +401,60 @@ MIN_REQUEST_INTERVAL_SECONDS=600
 
 ### Adding a New Tool
 
-Add decorator to `server.py`:
+Follow the service layer pattern:
 
+**Step 1: Add service method to `service.py`:**
 ```python
-@mcp.tool()
-async def tool_name(param: str, optional: str = "default") -> dict[str, Any]:
-    """[Use case]. Returns [data structure].
+async def new_tool_name(self, param: str) -> dict[str, Any]:
+    """Domain logic for new tool.
 
-    Use this for [scenarios]. [Context/thresholds/examples].
+    Handles:
+    - API calls via client
+    - Data enrichment with helpers
+    - Error handling and logging
+    """
+    logger.info("service.new_tool_name", param=param)
+
+    async with AareguruClient(settings=self.settings) as client:
+        response = await client.get_endpoint(param)
+
+        # Enrich with helpers
+        enriched = check_safety_warning(response.flow)
+
+        return {
+            "param": param,
+            "data": response.model_dump(),
+            "enrichment": enriched,
+        }
+```
+
+**Step 2: Add thin wrapper in `tools.py`:**
+```python
+async def new_tool_name(param: str) -> dict[str, Any]:
+    """[MCP docstring for schema generation].
+
+    Use this for [scenarios]. [Context/examples].
 
     Args:
         param: Description with examples (e.g., 'value1', 'value2')
-        optional: Optional parameter
     """
-    logger.info("tool_name", param=param)
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_endpoint(param)
-        return response.model_dump()
+    logger.info(f"Tool: new_tool_name for {param}")
+    service = AareguruService()
+    return await service.new_tool_name(param)
 ```
 
 **Guidelines**:
-- Start with use case: "Use this for..."
-- Include concrete examples in Args
+- **Service layer** contains all business logic and enrichment
+- **Tool wrapper** focuses on MCP interface (docstrings, types)
+- Start docstring with use case: "Use this for..."
+- Include concrete examples in Args docs
 - Document thresholds/scales inline
 - Cross-reference related tools
-- Use structured logging
-- FastMCP auto-generates schema from types/docstrings
+- Service methods reusable by future REST/Chat APIs
 
 **Testing**: Add to `tests/test_tools_basic.py` or `tests/test_tools_advanced.py`
+- Mock the service or client layer consistently
+- Verify both service method and tool wrapper work
 
 ### Adding a New API Endpoint
 
