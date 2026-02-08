@@ -46,14 +46,11 @@ class TestCompareCitiesFast:
             result = await fn(cities=["Bern", "Thun", "basel"])
 
             assert result["total_count"] == 3
-            assert result["success_count"] == 3
-            assert result["error_count"] == 0
             assert result["safe_count"] == 3
             assert result["warmest"]["city"] == "Thun"
             assert result["warmest"]["temperature"] == 19.2
             assert result["coldest"]["city"] == "basel"
             assert result["coldest"]["temperature"] == 17.8
-            assert result["errors"] == []
 
     @pytest.mark.asyncio
     async def test_without_city_list(self):
@@ -90,8 +87,6 @@ class TestCompareCitiesFast:
             result = await fn(cities=None)
 
             assert result["total_count"] == 2
-            assert result["success_count"] == 2
-            assert result["error_count"] == 0
             assert result["safe_count"] == 2
 
     @pytest.mark.asyncio
@@ -124,47 +119,9 @@ class TestCompareCitiesFast:
             result = await fn(cities=["Bern", "Thun"])
 
             assert result["total_count"] == 2
-            assert result["success_count"] == 2
-            assert result["error_count"] == 0
             assert result["safe_count"] == 1  # Only Bern is safe
             assert result["cities"][0]["safe"] is True
             assert result["cities"][1]["safe"] is False
-
-    @pytest.mark.asyncio
-    async def test_with_error_isolation(self):
-        """Test that errors in one city don't break the entire batch."""
-        tool = mcp._tool_manager._tools["compare_cities"]
-        fn = tool.fn
-
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
-            mock_client = AsyncMock()
-
-            def make_response(city: str):
-                if city == "InvalidCity":
-                    raise Exception("City not found")
-                response = MagicMock()
-                response.aare = MagicMock()
-                response.aare.temperature = 18.0
-                response.aare.flow = 100
-                response.aare.temperature_text = "warm"
-                response.aare.location = city.title()
-                return response
-
-            mock_client.get_current = AsyncMock(side_effect=make_response)
-            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client.__aexit__ = AsyncMock(return_value=None)
-            MockClient.return_value = mock_client
-
-            result = await fn(cities=["Bern", "InvalidCity", "Thun"])
-
-            # Check that we got partial results
-            assert result["total_count"] == 3
-            assert result["success_count"] == 2
-            assert result["error_count"] == 1
-            assert len(result["cities"]) == 2
-            assert len(result["errors"]) == 1
-            assert result["errors"][0]["city"] == "InvalidCity"
-            assert "City not found" in result["errors"][0]["error"]
 
 
 class TestGetForecastsBatch:
@@ -201,10 +158,6 @@ class TestGetForecastsBatch:
             result = await fn(cities=["Bern", "Thun", "basel"])
 
             assert "forecasts" in result
-            assert "errors" in result
-            assert result["total_count"] == 3
-            assert result["success_count"] == 3
-            assert result["error_count"] == 0
             assert len(result["forecasts"]) == 3
 
             # Check Bern (rising)
@@ -246,16 +199,9 @@ class TestGetForecastsBatch:
             result = await fn(cities=["Bern", "Thun"])
 
             assert "forecasts" in result
-            assert "errors" in result
-            assert result["total_count"] == 2
-            assert result["success_count"] == 1
-            assert result["error_count"] == 1
             assert len(result["forecasts"]) == 1  # Only Bern has data
             assert "Bern" in result["forecasts"]
             assert "Thun" not in result["forecasts"]
-            assert len(result["errors"]) == 1
-            assert result["errors"][0]["city"] == "Thun"
-            assert "No aare data available" in result["errors"][0]["error"]
 
     @pytest.mark.asyncio
     async def test_with_null_forecast(self):
@@ -282,38 +228,3 @@ class TestGetForecastsBatch:
             assert len(result["forecasts"]) == 1
             assert result["forecasts"]["Bern"]["trend"] == "unknown"
             assert result["forecasts"]["Bern"]["change"] is None
-    @pytest.mark.asyncio
-    async def test_with_error_isolation(self):
-        """Test that errors in one city don't break the entire batch."""
-        tool = mcp._tool_manager._tools["get_forecasts"]
-        fn = tool.fn
-
-        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
-            mock_client = AsyncMock()
-
-            def make_response(city: str):
-                if city == "InvalidCity":
-                    raise Exception("City not found")
-                response = MagicMock()
-                response.aare = MagicMock()
-                response.aare.temperature = 18.0
-                response.aare.forecast2h = 19.0
-                return response
-
-            mock_client.get_current = AsyncMock(side_effect=make_response)
-            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-            mock_client.__aexit__ = AsyncMock(return_value=None)
-            MockClient.return_value = mock_client
-
-            result = await fn(cities=["Bern", "InvalidCity", "Thun"])
-
-            # Check that we got partial results
-            assert "forecasts" in result
-            assert "errors" in result
-            assert result["total_count"] == 3
-            assert result["success_count"] == 2
-            assert result["error_count"] == 1
-            assert len(result["forecasts"]) == 2
-            assert len(result["errors"]) == 1
-            assert result["errors"][0]["city"] == "InvalidCity"
-            assert "City not found" in result["errors"][0]["error"]

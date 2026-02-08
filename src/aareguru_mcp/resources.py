@@ -62,12 +62,6 @@ async def read_resource(uri: str) -> str:
     """
     # Convert AnyUrl to string if needed
     uri_str = str(uri)
-    
-    # Strip server prefix if present (e.g., "aareguru-mcp__aareguru://...")
-    # This handles federated gateway scenarios where URIs are prefixed
-    if "__aareguru://" in uri_str:
-        uri_str = "aareguru://" + uri_str.split("__aareguru://")[1]
-    
     logger.info(f"Reading resource: {uri_str}")
 
     # Parse URI
