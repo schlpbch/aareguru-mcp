@@ -11,6 +11,7 @@ Server responsibilities:
 - Provide entry points for stdio and HTTP transports
 """
 
+import functools
 from typing import Any
 
 import structlog
@@ -63,24 +64,21 @@ to users (e.g., "geil aber chli chalt" means "awesome but a bit cold").
 
 
 @mcp.resource("aareguru://cities")
+@functools.wraps(resources.get_cities)
 async def get_cities_resource() -> str:
     return await resources.get_cities()
 
-get_cities_resource.__doc__ = resources.get_cities.__doc__
-
 
 @mcp.resource("aareguru://current/{city}")
+@functools.wraps(resources.get_current)
 async def get_current_resource(city: str) -> str:
     return await resources.get_current(city)
 
-get_current_resource.__doc__ = resources.get_current.__doc__
-
 
 @mcp.resource("aareguru://today/{city}")
+@functools.wraps(resources.get_today)
 async def get_today_resource(city: str) -> str:
     return await resources.get_today(city)
-
-get_today_resource.__doc__ = resources.get_today.__doc__
 
 
 # ============================================================================
@@ -89,26 +87,23 @@ get_today_resource.__doc__ = resources.get_today.__doc__
 
 
 @mcp.prompt(name="daily-swimming-report")
+@functools.wraps(prompts.daily_swimming_report)
 async def daily_swimming_report_prompt(city: str = "Bern", include_forecast: bool = True) -> str:
     return await prompts.daily_swimming_report(city, include_forecast)
 
-daily_swimming_report_prompt.__doc__ = prompts.daily_swimming_report.__doc__
-
 
 @mcp.prompt(name="compare-swimming-spots")
+@functools.wraps(prompts.compare_swimming_spots)
 async def compare_swimming_spots_prompt(
     min_temperature: float | None = None, safety_only: bool = False
 ) -> str:
     return await prompts.compare_swimming_spots(min_temperature, safety_only)
 
-compare_swimming_spots_prompt.__doc__ = prompts.compare_swimming_spots.__doc__
-
 
 @mcp.prompt(name="weekly-trend-analysis")
+@functools.wraps(prompts.weekly_trend_analysis)
 async def weekly_trend_analysis_prompt(city: str = "Bern", days: int = 7) -> str:
     return await prompts.weekly_trend_analysis(city, days)
-
-weekly_trend_analysis_prompt.__doc__ = prompts.weekly_trend_analysis.__doc__
 
 
 # ============================================================================
@@ -117,51 +112,45 @@ weekly_trend_analysis_prompt.__doc__ = prompts.weekly_trend_analysis.__doc__
 
 
 @mcp.tool(name="get_current_temperature")
+@functools.wraps(tools.get_current_temperature)
 async def get_current_temperature_tool(city: str = "Bern") -> TemperatureToolResponse:
     with MetricsCollector.track_tool_call("get_current_temperature"):
         result = await tools.get_current_temperature(city)
         return TemperatureToolResponse(**result)
 
-get_current_temperature_tool.__doc__ = tools.get_current_temperature.__doc__
-
 
 @mcp.tool(name="get_current_conditions")
+@functools.wraps(tools.get_current_conditions)
 async def get_current_conditions_tool(city: str = "Bern") -> ConditionsToolResponse:
     result = await tools.get_current_conditions(city)
     if "aare" in result and result["aare"]:
         result["aare"] = AareConditionsData(**result["aare"])
     return ConditionsToolResponse(**result)
 
-get_current_conditions_tool.__doc__ = tools.get_current_conditions.__doc__
-
 
 @mcp.tool(name="get_historical_data")
+@functools.wraps(tools.get_historical_data)
 async def get_historical_data_tool(city: str, start: str, end: str) -> dict[str, Any]:
     return await tools.get_historical_data(city, start, end)
 
-get_historical_data_tool.__doc__ = tools.get_historical_data.__doc__
-
 
 @mcp.tool(name="get_flow_danger_level")
+@functools.wraps(tools.get_flow_danger_level)
 async def get_flow_danger_level_tool(city: str = "Bern") -> FlowDangerResponse:
     result = await tools.get_flow_danger_level(city)
     return FlowDangerResponse(**result)
 
-get_flow_danger_level_tool.__doc__ = tools.get_flow_danger_level.__doc__
-
 
 @mcp.tool(name="compare_cities")
+@functools.wraps(tools.compare_cities)
 async def compare_cities_tool(cities: list[str] | None = None) -> dict[str, Any]:
     return await tools.compare_cities(cities)
 
-compare_cities_tool.__doc__ = tools.compare_cities.__doc__
-
 
 @mcp.tool(name="get_forecasts")
+@functools.wraps(tools.get_forecasts)
 async def get_forecasts_tool(cities: list[str]) -> dict[str, Any]:
     return await tools.get_forecasts(cities)
-
-get_forecasts_tool.__doc__ = tools.get_forecasts.__doc__
 
 
 # ============================================================================

@@ -8,37 +8,10 @@ from aareguru_mcp import resources
 
 
 @pytest.mark.asyncio
-async def test_list_resources():
-    """Test listing all resources."""
-    resource_list = await resources.list_resources()
-
-    assert len(resource_list) == 4
-
-    uris = [str(r.uri) for r in resource_list]  # Convert AnyUrl to string
-    assert "aareguru://cities" in uris
-    assert "aareguru://widget" in uris
-    # Template variables get URL-encoded
-    assert any("current" in uri and "city" in uri.lower() for uri in uris)
-    assert any("today" in uri and "city" in uri.lower() for uri in uris)
-
-
-@pytest.mark.asyncio
-async def test_list_resources_metadata():
-    """Test resource metadata."""
-    resource_list = await resources.list_resources()
-
-    for resource in resource_list:
-        assert str(resource.uri).startswith("aareguru://")  # Convert to string
-        assert resource.name
-        assert resource.mimeType == "application/json"
-        assert resource.description
-
-
-@pytest.mark.asyncio
 @pytest.mark.integration
-async def test_read_resource_cities():
-    """Test reading cities resource."""
-    content = await resources.read_resource("aareguru://cities")
+async def test_get_cities():
+    """Test getting cities resource."""
+    content = await resources.get_cities()
 
     assert isinstance(content, str)
     data = json.loads(content)
@@ -46,59 +19,96 @@ async def test_read_resource_cities():
     assert isinstance(data, list)
     assert len(data) > 0
     assert "city" in data[0]
+    assert "name" in data[0]
+    assert "aare" in data[0]
 
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_read_resource_widget():
-    """Test reading widget resource."""
-    content = await resources.read_resource("aareguru://widget")
+async def test_get_current():
+    """Test getting current resource for a city."""
+    city = "Bern"
+    content = await resources.get_current(city)
 
     assert isinstance(content, str)
     data = json.loads(content)
     assert isinstance(data, dict)
-
-
-@pytest.mark.asyncio
-@pytest.mark.integration
-async def test_read_resource_current_Bern():
-    """Test reading current resource for Bern."""
-    content = await resources.read_resource("aareguru://current/Bern")
-
-    assert isinstance(content, str)
-    data = json.loads(content)
     # Current endpoint has nested aare object
     assert "aare" in data
 
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_read_resource_today_Bern():
-    """Test reading today resource for Bern."""
-    content = await resources.read_resource("aareguru://today/Bern")
+async def test_get_current_different_city():
+    """Test getting current resource for different city."""
+    city = "Thun"
+    content = await resources.get_current(city)
 
     assert isinstance(content, str)
     data = json.loads(content)
+    assert isinstance(data, dict)
+    assert "aare" in data
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_get_today():
+    """Test getting today resource for a city."""
+    city = "Bern"
+    content = await resources.get_today(city)
+
+    assert isinstance(content, str)
+    data = json.loads(content)
+    assert isinstance(data, dict)
     # Today endpoint has flat structure
     assert "aare" in data or "text" in data
 
 
 @pytest.mark.asyncio
-async def test_read_resource_invalid_uri():
-    """Test error handling for invalid URI."""
-    with pytest.raises(ValueError, match="Invalid URI scheme"):
-        await resources.read_resource("http://invalid")
+@pytest.mark.integration
+async def test_get_today_different_city():
+    """Test getting today resource for different city."""
+    city = "Thun"
+    content = await resources.get_today(city)
+
+    assert isinstance(content, str)
+    data = json.loads(content)
+    assert isinstance(data, dict)
+    assert "aare" in data or "text" in data
 
 
 @pytest.mark.asyncio
-async def test_read_resource_unknown_path():
-    """Test error handling for unknown resource path."""
-    with pytest.raises(ValueError, match="Unknown resource path"):
-        await resources.read_resource("aareguru://unknown")
+@pytest.mark.integration
+async def test_cities_returns_valid_json():
+    """Test that cities resource returns valid JSON."""
+    content = await resources.get_cities()
+    data = json.loads(content)
+
+    # Verify structure
+    for city in data:
+        assert "city" in city
+        assert "longname" in city
+        assert isinstance(city["aare"], (int, float)) or city["aare"] is None
 
 
 @pytest.mark.asyncio
-async def test_read_resource_malformed_uri():
-    """Test error handling for malformed URI."""
-    with pytest.raises(ValueError):
-        await resources.read_resource("aareguru://current")  # Missing city
+@pytest.mark.integration
+async def test_current_returns_valid_json():
+    """Test that current resource returns valid JSON."""
+    content = await resources.get_current("Bern")
+    data = json.loads(content)
+
+    # Verify structure
+    assert "aare" in data
+    assert isinstance(data["aare"], dict)
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_today_returns_valid_json():
+    """Test that today resource returns valid JSON."""
+    content = await resources.get_today("Bern")
+    data = json.loads(content)
+
+    # Verify structure
+    assert "aare" in data or "text" in data

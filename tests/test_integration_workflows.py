@@ -56,7 +56,7 @@ class TestMultiToolWorkflows:
         city = "Bern"
 
         tool_result = await tools.get_current_temperature(city)
-        resource_result = await resources.read_resource(f"aareguru://today/{city}")
+        resource_result = await resources.get_today(city)
 
         assert "temperature" in tool_result or "aare" in tool_result
         assert isinstance(resource_result, str)

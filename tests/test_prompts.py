@@ -6,12 +6,13 @@ swimming-related queries.
 
 import pytest
 
-from aareguru_mcp.server import (
-    compare_swimming_spots,
-    daily_swimming_report,
-    mcp,
-    weekly_trend_analysis,
-)
+from aareguru_mcp import prompts
+from aareguru_mcp.server import mcp
+
+# Get registered MCP prompts
+daily_swimming_report = mcp._prompt_manager._prompts["daily-swimming-report"]
+compare_swimming_spots = mcp._prompt_manager._prompts["compare-swimming-spots"]
+weekly_trend_analysis = mcp._prompt_manager._prompts["weekly-trend-analysis"]
 
 # ============================================================================
 # Helper Functions

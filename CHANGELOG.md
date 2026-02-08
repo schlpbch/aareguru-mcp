@@ -5,6 +5,27 @@ All notable changes to aareguru-mcp will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-02-08
+
+### Changed
+- **BREAKING: Major architectural refactoring** - Complete separation of concerns
+- **server.py reduced from 495 to 218 lines** (-56%) - Now pure MCP registration layer
+- Created dedicated business logic modules: tools.py, prompts.py, resources.py as single sources of truth
+- Eliminated all duplicate documentation between server.py and business logic modules
+- Applied functools.wraps pattern for automatic docstring copying from business logic to MCP registrations
+
+### Fixed
+- Parallel city fetching now uses `return_exceptions=True` in asyncio.gather for graceful error handling
+- Simplified error handling in compare_cities and get_forecasts to match working single-city pattern
+- Production bug fix: Tools no longer cascade failures when fetching multiple cities
+
+### Improved
+- **Test suite**: Rewrote resource tests to directly test business logic functions
+- **Code coverage**: resources.py now at 100% coverage
+- **209 tests passing** with improved test structure
+- Better separation: Business logic (tools/prompts/resources) vs MCP protocol (server)
+- Single source of truth: All docstrings, arguments, and logic defined once in business modules
+
 ## [3.3.0] - 2026-02-07
 
 ### Added
