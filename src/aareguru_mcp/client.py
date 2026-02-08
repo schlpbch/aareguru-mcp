@@ -305,7 +305,7 @@ class AareguruClient(JsonSerializableMixin):
             httpx.HTTPError: On HTTP errors
         """
         params = {
-            "city": city,
+            "city": city.lower(),  # Normalize to lowercase for API compatibility
             "start": start,
             "end": end,
         }

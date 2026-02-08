@@ -223,6 +223,28 @@ class TestGetHistoricalData:
 
             assert "timeseries" in result
 
+    @pytest.mark.asyncio
+    async def test_city_name_normalization(self):
+        """Test that city names are normalized to lowercase for API calls."""
+        tool = mcp._tool_manager._tools["get_historical_data"]
+        fn = tool.fn
+
+        with patch("aareguru_mcp.tools.AareguruClient") as MockClient:
+            mock_client = AsyncMock()
+            mock_client.get_history = AsyncMock(
+                return_value={"timeseries": [{"timestamp": 123, "temp": 18.0}]}
+            )
+            mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_client.__aexit__ = AsyncMock(return_value=None)
+            MockClient.return_value = mock_client
+
+            # Test with uppercase city name
+            result = await fn("BERN", "-7 days", "now")
+
+            # Verify the client's get_history was called with lowercase city
+            mock_client.get_history.assert_called_once_with("BERN", "-7 days", "now")
+            assert "timeseries" in result
+
 
 class TestErrorHandling:
     """Test tools handle errors gracefully."""

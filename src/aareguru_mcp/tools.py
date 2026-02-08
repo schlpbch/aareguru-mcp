@@ -238,42 +238,50 @@ async def compare_cities(
 
         logger.info(f"Comparing {len(cities)} cities in parallel")
 
-        # Fetch all city conditions concurrently
+        # Fetch all city conditions concurrently with error isolation
         async def fetch_conditions(city: str):
             try:
-                return await client.get_current(city)
+                result = await client.get_current(city)
+                return (city, result, None)
             except Exception as e:
                 logger.warning(f"Failed to fetch {city}: {e}")
-                return None
+                return (city, None, str(e))
 
         results = await asyncio.gather(*[fetch_conditions(city) for city in cities])
 
-        # Process results
+        # Process results with error tracking
         city_data = []
-        for city, result in zip(cities, results):
-            if result is None or not result.aare:
-                continue
-
-            city_data.append(
-                {
-                    "city": city,
-                    "temperature": result.aare.temperature,
-                    "flow": result.aare.flow,
-                    "safe": result.aare.flow < 150 if result.aare.flow else True,
-                    "temperature_text": result.aare.temperature_text,
-                    "location": result.aare.location,
-                }
-            )
+        errors = []
+        
+        for city, result, error in results:
+            if error:
+                errors.append({"city": city, "error": error})
+            elif result and result.aare:
+                city_data.append(
+                    {
+                        "city": city,
+                        "temperature": result.aare.temperature,
+                        "flow": result.aare.flow,
+                        "safe": result.aare.flow < 150 if result.aare.flow else True,
+                        "temperature_text": result.aare.temperature_text,
+                        "location": result.aare.location,
+                    }
+                )
+            else:
+                errors.append({"city": city, "error": "No aare data available"})
 
         # Sort by temperature
         city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
 
         return {
             "cities": city_data,
+            "errors": errors,
             "warmest": city_data[0] if city_data else None,
             "coldest": city_data[-1] if city_data else None,
             "safe_count": sum(1 for c in city_data if c["safe"]),
-            "total_count": len(city_data),
+            "total_count": len(cities),
+            "success_count": len(city_data),
+            "error_count": len(errors),
         }
 
 
@@ -379,7 +387,7 @@ async def get_forecasts(
             try:
                 response = await client.get_current(city)
                 if not response.aare:
-                    return None
+                    return (city, None, "No aare data available")
 
                 current = response.aare.temperature
                 forecast_2h = response.aare.forecast2h
@@ -393,21 +401,35 @@ async def get_forecasts(
                 else:
                     trend = "stable"
 
-                return {
-                    "current": current,
-                    "forecast_2h": forecast_2h,
-                    "trend": trend,
-                    "change": forecast_2h - current if (forecast_2h and current) else None,
-                }
+                return (
+                    city,
+                    {
+                        "current": current,
+                        "forecast_2h": forecast_2h,
+                        "trend": trend,
+                        "change": forecast_2h - current if (forecast_2h and current) else None,
+                    },
+                    None,
+                )
             except Exception as e:
                 logger.warning(f"Failed to fetch forecast for {city}: {e}")
-                return None
+                return (city, None, str(e))
 
         results = await asyncio.gather(*[fetch_forecast(city) for city in cities])
 
         forecasts = {}
-        for city, result in zip(cities, results):
-            if result is not None:
+        errors = []
+        
+        for city, result, error in results:
+            if error:
+                errors.append({"city": city, "error": error})
+            elif result is not None:
                 forecasts[city] = result
 
-        return {"forecasts": forecasts}
+        return {
+            "forecasts": forecasts,
+            "errors": errors,
+            "total_count": len(cities),
+            "success_count": len(forecasts),
+            "error_count": len(errors),
+        }

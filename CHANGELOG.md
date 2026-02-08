@@ -5,6 +5,26 @@ All notable changes to aareguru-mcp will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.1] - 2026-02-08
+
+### Fixed
+- **Issue #3: Historical data API calls** - Fixed 400 Bad Request errors by normalizing city names to lowercase before API calls ([#3](https://github.com/schlpbch/aareguru-mcp/issues/3))
+- **Issue #3: Batch operation error handling** - `compare_cities` and `get_forecasts` now return partial results with structured error details instead of failing silently
+- **Issue #3: Resource URI handling** - Fixed resource read to handle prefixed URIs from federated gateways (e.g., `aareguru-mcp__aareguru://cities`)
+
+### Changed
+- **Graceful degradation**: Batch operations (`compare_cities`, `get_forecasts`) now isolate failures per city
+- Enhanced error responses include `errors` array with per-city failure details
+- Added `success_count` and `error_count` to batch operation responses for better observability
+
+### Improved
+- Better error propagation from batch operations - no more generic "Error occurred" messages
+- Partial results allow users to see successful data even when some cities fail
+- Compatible with MCP orchestrator federation scenarios
+
+### Known Issues
+- **Issue #3: Prompt arguments with typed values** - FastMCP framework issue where boolean/number arguments may fail when passed by orchestrators (investigation pending)
+
 ## [3.3.0] - 2026-02-07
 
 ### Added
@@ -64,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Seasonal swimming advice
 - Multi-city support across Switzerland
 
+[3.3.1]: https://github.com/schlpbch/aareguru-mcp/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/schlpbch/aareguru-mcp/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/schlpbch/aareguru-mcp/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/schlpbch/aareguru-mcp/releases/tag/v3.1.0

@@ -102,3 +102,28 @@ async def test_read_resource_malformed_uri():
     """Test error handling for malformed URI."""
     with pytest.raises(ValueError):
         await resources.read_resource("aareguru://current")  # Missing city
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_read_resource_with_prefix():
+    """Test reading resource with server prefix (federated gateway scenario)."""
+    # Test with prefix as returned by orchestrator
+    content = await resources.read_resource("aareguru-mcp__aareguru://cities")
+    
+    assert isinstance(content, str)
+    data = json.loads(content)
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert "city" in data[0]
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_read_resource_current_with_prefix():
+    """Test reading current resource with prefix."""
+    content = await resources.read_resource("aareguru-mcp__aareguru://current/Bern")
+    
+    assert isinstance(content, str)
+    data = json.loads(content)
+    assert "aare" in data
