@@ -217,16 +217,16 @@ async def weekly_trend_analysis(city: str = "Bern", days: int = 7) -> str:
 
 Use `get_historical_data` with days={days} to get the past {days} days of data, then provide:
 
-1. **📈 Temperature Trend**: How has water temperature changed?
+1. **Temperature Trend**: How has water temperature changed?
    - Highest and lowest temperatures
    - Current vs. {period_name} average
    - Is it warming or cooling?
 
-2. **🌊 Flow Trend**: How has the flow rate varied?
+2. **Flow Trend**: How has the flow rate varied?
    - Any dangerous periods?
    - Current conditions vs. average
 
-3. **🔮 Outlook**: Based on trends and current forecast, what should swimmers expect?
+3. **Outlook**: Based on trends and current forecast, what should swimmers expect?
 
 Include specific numbers and dates. Make recommendations for the best swimming times."""
 
@@ -238,75 +238,15 @@ Include specific numbers and dates. Make recommendations for the best swimming t
 
 @mcp.tool(name="get_current_temperature")
 async def get_current_temperature(city: str = "Bern") -> TemperatureToolResponse:
-    """Retrieves current water temperature for a single city.
-
-    Takes `city` parameter (optional, default: `Bern`).
-
-    Use this for quick temperature checks and simple "how warm is the water?" questions.
-    Returns temperature in Celsius, Swiss German description (e.g., `geil aber chli chalt`),
-    and swimming suitability.
-
-    **For multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
-
-    **Args:**
-        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities` to discover locations.
-
-    **Returns:**
-        Dictionary containing:
-        - city (str): City identifier
-        - temperature (float): Water temperature in Celsius
-        - temperature_text (str): Swiss German description
-        - swiss_german_explanation (str): English translation of Swiss German phrase
-        - name (str): Location name
-        - warning (str | None): Safety warning if flow is dangerous
-        - suggestion (str): Swimming recommendation based on temperature
-        - seasonal_advice (str): Season-specific swimming guidance
-        - temperature_prec (float): Precise temperature value
-        - temperature_text_short (str): Short temperature description
-        - longname (str): Full location name
-    """
     with MetricsCollector.track_tool_call("get_current_temperature"):
         result = await tools.get_current_temperature(city)
         return TemperatureToolResponse(**result)
 
+get_current_temperature.__doc__ = tools.get_current_temperature.__doc__
+
 
 @mcp.tool(name="get_current_conditions")
 async def get_current_conditions(city: str = "Bern") -> ConditionsToolResponse:
-    """Retrieves comprehensive swimming conditions for a single city.
-
-    Takes `city` parameter (optional, default: `Bern`). Returns water temperature,
-    flow rate, water height, weather conditions, and 2-hour forecast.
-
-    Use this for safety assessments, "is it safe to swim?" questions, and when users
-    need a complete picture before swimming. This is the most detailed single-city tool.
-
-    **For comparing multiple cities:** Use `compare_cities` instead - it's 8-13x faster.
-
-    **Args:**
-        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`,
-              `'olten'`). Use `compare_cities` to discover locations.
-
-    **Returns:**
-        Dictionary containing:
-        - city (str): City identifier
-        - aare (dict): Aare river data with temperature, flow, height, and forecast
-          - location (str): Location name
-          - location_long (str): Full location name
-          - temperature (float): Water temperature in Celsius
-          - temperature_text (str): Swiss German temperature description
-          - swiss_german_explanation (str): English translation
-          - temperature_text_short (str): Short description
-          - flow (float): Flow rate in m³/s
-          - flow_text (str): Flow description
-          - height (float): Water height in meters
-          - forecast2h (float): Temperature forecast for 2 hours
-          - forecast2h_text (str): Forecast description
-          - warning (str | None): Safety warning if applicable
-        - seasonal_advice (str): Season-specific guidance
-        - weather (dict | None): Current weather conditions
-        - forecast (dict | None): Weather forecast
-    """
     result = await tools.get_current_conditions(city)
 
     # Convert aare dict to typed model if present
@@ -315,114 +255,40 @@ async def get_current_conditions(city: str = "Bern") -> ConditionsToolResponse:
 
     return ConditionsToolResponse(**result)
 
+get_current_conditions.__doc__ = tools.get_current_conditions.__doc__
+
 
 @mcp.tool(name="get_historical_data")
 async def get_historical_data(city: str, start: str, end: str) -> dict[str, Any]:
-    """Retrieves historical time-series data for trend analysis.
-
-    Takes `city`, `start`, and `end` parameters (all required).
-    Returns hourly data points for temperature and flow.
-
-    Use this for questions like "how has temperature changed this week?"
-    or "what was the warmest day this month?"
-
-    **Args:**
-        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`)
-        start: Start date/time. Accepts ISO format (`2024-11-01T00:00:00Z`),
-               Unix timestamp, or relative expressions like `'-7 days'`, `'-1 week'`.
-        end: End date/time. Accepts ISO format, Unix timestamp, or `'now'` for current time.
-
-    **Returns:**
-        Dictionary containing:
-        - timestamps (list[str]): ISO 8601 timestamps for each data point
-        - temperatures (list[float]): Water temperatures in Celsius
-        - flows (list[float]): Flow rates in m³/s
-        - city (str): City identifier
-        - start (str): Start timestamp of data range
-        - end (str): End timestamp of data range
-    """
     return await tools.get_historical_data(city, start, end)
+
+get_historical_data.__doc__ = tools.get_historical_data.__doc__
 
 
 @mcp.tool(name="get_flow_danger_level")
 async def get_flow_danger_level(city: str = "Bern") -> FlowDangerResponse:
-    """Retrieves current flow rate and safety assessment.
-
-    Takes `city` parameter (optional, default: `Bern`).
-    Returns flow rate (m³/s), danger level, and safety recommendations
-    based on BAFU thresholds.
-
-    Use this for safety-critical questions about current strength and danger.
-
-    **Flow thresholds:**
-    - `<100`: safe
-    - `100-220`: moderate
-    - `220-300`: elevated
-    - `300-430`: high/dangerous
-    - `>430`: very high/extremely dangerous
-
-    **Args:**
-        city: City identifier (e.g., `'Bern'`, `'Thun'`, `'basel'`, `'olten'`).
-              Use `compare_cities` to discover available locations.
-
-    **Returns:**
-        Dictionary containing:
-        - city (str): City identifier
-        - flow (float | None): Current flow rate in m³/s
-        - flow_text (str | None): Flow description
-        - flow_threshold (float): Danger threshold for this location
-        - safety_assessment (str): Safety evaluation (e.g., 'Safe', 'Dangerous')
-        - danger_level (int): Numeric danger level (1-5, higher is more dangerous)
-    """
     result = await tools.get_flow_danger_level(city)
     return FlowDangerResponse(**result)
+
+get_flow_danger_level.__doc__ = tools.get_flow_danger_level.__doc__
 
 
 @mcp.tool(name="compare_cities")
 async def compare_cities(
     cities: list[str] | None = None,
 ) -> dict[str, Any]:
-    """⚡ FAST: Compare multiple cities with parallel fetching (8-13x faster).
-
-    This is the recommended tool for comparing cities. Fetches all city data
-    concurrently instead of sequentially.
-
-    **Performance:** 10 cities in ~60-100ms vs ~800ms sequential
-
-    **Args:**
-        cities: List of city identifiers (e.g., `['Bern', 'Thun']`).
-                If None, compares all available cities.
-
-    **Returns:**
-        Dictionary with comparison results including temperature ranking,
-        safety status, and recommendations:
-        - cities (list): List of city data with temperature, flow, safety
-        - warmest (dict): City with highest temperature
-        - coldest (dict): City with lowest temperature
-        - safe_count (int): Number of cities with safe flow levels
-        - total_count (int): Total number of cities compared
-    """
     return await tools.compare_cities(cities)
+
+compare_cities.__doc__ = tools.compare_cities.__doc__
 
 
 @mcp.tool(name="get_forecasts")
 async def get_forecasts(
     cities: list[str],
 ) -> dict[str, Any]:
-    """⚡ FAST: Get forecasts for multiple cities in parallel (2-5x faster).
-
-    This is the recommended tool for batch forecast operations.
-    Fetches all forecasts concurrently.
-
-    **Args:**
-        cities: List of city identifiers (e.g., `['Bern', 'Thun']`)
-
-    **Returns:**
-        Dictionary mapping city names to forecast data:
-        - forecasts (dict): Map of city to forecast data with current temp,
-                           2-hour forecast, and trend
-    """
     return await tools.get_forecasts(cities)
+
+get_forecasts.__doc__ = tools.get_forecasts.__doc__
 
 
 # ============================================================================
