@@ -39,9 +39,9 @@ class Settings(BaseSettings):
     )
 
     # Rate Limiting
-    min_request_interval_seconds: int = Field(
-        default=300,
-        description="Minimum interval between requests in seconds (API recommends 5 minutes)",
+    min_request_interval_seconds: float = Field(
+        default=0.1,
+        description="Minimum interval between requests in seconds (0.1s default for parallel support)",
         ge=0,
     )
 

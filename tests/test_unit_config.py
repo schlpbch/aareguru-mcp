@@ -34,7 +34,7 @@ class TestSettingsDefaults:
         """Test default request interval."""
         monkeypatch.delenv("MIN_REQUEST_INTERVAL_SECONDS", raising=False)
         settings = Settings()
-        assert settings.min_request_interval_seconds == 300
+        assert settings.min_request_interval_seconds == 0.1
 
     def test_default_log_level(self, monkeypatch):
         """Test default log level."""

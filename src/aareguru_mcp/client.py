@@ -140,6 +140,8 @@ class AareguruClient(JsonSerializableMixin):
 
     async def _rate_limit(self) -> None:
         """Enforce rate limiting between requests."""
+        wait_time = 0.0
+        
         async with self._request_lock:
             if self._last_request_time is not None:
                 elapsed = (datetime.now() - self._last_request_time).total_seconds()
@@ -147,10 +149,13 @@ class AareguruClient(JsonSerializableMixin):
 
                 if elapsed < min_interval:
                     wait_time = min_interval - elapsed
-                    logger.debug(f"Rate limiting: waiting {wait_time:.1f}s")
-                    await asyncio.sleep(wait_time)
-
+            
             self._last_request_time = datetime.now()
+        
+        # Sleep OUTSIDE the lock to allow parallel requests
+        if wait_time > 0:
+            logger.debug(f"Rate limiting: waiting {wait_time:.2f}s")
+            await asyncio.sleep(wait_time)
 
     async def _request(
         self,
