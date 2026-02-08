@@ -59,16 +59,6 @@ class TestCoreEndpoints:
         response = client.get("/nonexistent")
         assert response.status_code == 404
 
-    @pytest.mark.skip(reason="SSE GET requests establish long-lived connections that hang in tests")
-    def test_sse_endpoint_exists(self, client):
-        """Test SSE endpoint is accessible."""
-        pass
-
-    @pytest.mark.skip(reason="MCP messages endpoint requires valid MCP protocol messages")
-    def test_mcp_endpoint_exists(self, client):
-        """Test that FastMCP MCP endpoint exists."""
-        pass
-
 
 class TestSessionConfiguration:
     """Test session timeout configuration."""
