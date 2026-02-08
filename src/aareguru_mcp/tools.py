@@ -243,11 +243,18 @@ async def compare_cities(
                 logger.warning(f"Failed to fetch {city}: {e}")
                 return None
 
-        results = await asyncio.gather(*[fetch_conditions(city) for city in cities])
+        results = await asyncio.gather(
+            *[fetch_conditions(city) for city in cities],
+            return_exceptions=True
+        )
 
         # Process results
         city_data = []
         for city, result in zip(cities, results):
+            # Handle exceptions that slipped through
+            if isinstance(result, Exception):
+                logger.warning(f"Failed to fetch {city}: {result}")
+                continue
             if result is None or not result.aare:
                 continue
 
@@ -399,10 +406,17 @@ async def get_forecasts(
                 logger.warning(f"Failed to fetch forecast for {city}: {e}")
                 return None
 
-        results = await asyncio.gather(*[fetch_forecast(city) for city in cities])
+        results = await asyncio.gather(
+            *[fetch_forecast(city) for city in cities],
+            return_exceptions=True
+        )
 
         forecasts = {}
         for city, result in zip(cities, results):
+            # Handle exceptions that slipped through
+            if isinstance(result, Exception):
+                logger.warning(f"Failed to fetch forecast for {city}: {result}")
+                continue
             if result is not None:
                 forecasts[city] = result
 
