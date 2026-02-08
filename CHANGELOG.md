@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known Issues
 - **Issue #3: Prompt arguments with typed values** - Prompts fail when called through mcp-orchestrator.io with boolean/number arguments, despite working correctly when called directly. All typed arguments (bool, int, float) work in local tests. This appears to be an argument forwarding issue in the orchestrator rather than FastMCP or aareguru-mcp. See [test_prompt_typed_args.py](tests/test_prompt_typed_args.py) for verification.
+- **Server-side elicitation not implemented** - Tools use default values (e.g., city="Bern") instead of prompting users during execution. This is intentional for better performance. See [ELICITATION_CLARIFICATION.md](docs/ELICITATION_CLARIFICATION.md) for the distinction between prompt arguments (implemented) and server elicitation (not implemented).
 
 ## [3.3.0] - 2026-02-07
 
