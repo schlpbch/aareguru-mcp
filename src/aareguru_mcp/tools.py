@@ -209,12 +209,9 @@ async def get_historical_data(
 async def compare_cities(
     cities: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Compare multiple cities with parallel fetching (8-13x faster).
+    """Compare multiple cities
 
-    This is the recommended tool for comparing cities. Fetches all city data
-    concurrently instead of sequentially.
-
-    **Performance:** 10 cities in ~60-100ms vs ~800ms sequential
+    This is the recommended tool for comparing cities.
 
     **Args:**
         cities: List of city identifiers (e.g., `['Bern', 'Thun']`).
@@ -358,9 +355,8 @@ async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
 async def get_forecasts(
     cities: list[str],
 ) -> dict[str, Any]:
-    """Get forecasts for multiple cities in parallel (2-5x faster).
+    """Get forecasts for multiple cities.
 
-    This is the recommended tool for batch forecast operations.
     Fetches all forecasts concurrently.
 
     **Args:**
