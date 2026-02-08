@@ -227,57 +227,88 @@ async def compare_cities(
     """
     import asyncio
 
-    async with AareguruClient(settings=get_settings()) as client:
-        if cities is None:
-            # Get all cities
-            all_cities = await client.get_cities()
-            cities = [city.city for city in all_cities]
+    try:
+        async with AareguruClient(settings=get_settings()) as client:
+            if cities is None:
+                # Get all cities
+                all_cities = await client.get_cities()
+                cities = [city.city for city in all_cities]
 
-        logger.info(f"Comparing {len(cities)} cities in parallel")
+            logger.info(f"Comparing {len(cities)} cities in parallel")
 
-        # Fetch all city conditions concurrently
-        async def fetch_conditions(city: str):
+            # Fetch all city conditions concurrently
+            async def fetch_conditions(city: str):
+                try:
+                    result = await client.get_current(city)
+                    logger.debug(f"Successfully fetched {city}")
+                    return result
+                except Exception as e:
+                    logger.warning(f"Failed to fetch {city}: {type(e).__name__}: {e}")
+                    return None
+
+            # Add timeout to prevent hanging
             try:
-                return await client.get_current(city)
-            except Exception as e:
-                logger.warning(f"Failed to fetch {city}: {e}")
-                return None
+                results = await asyncio.wait_for(
+                    asyncio.gather(
+                        *[fetch_conditions(city) for city in cities],
+                        return_exceptions=True
+                    ),
+                    timeout=30.0  # 30 second timeout for all cities
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout fetching cities: {cities}")
+                results = [None] * len(cities)
 
-        results = await asyncio.gather(
-            *[fetch_conditions(city) for city in cities],
-            return_exceptions=True
-        )
+            # Process results
+            city_data = []
+            for city, result in zip(cities, results):
+                try:
+                    # Handle exceptions that slipped through
+                    if isinstance(result, Exception):
+                        logger.warning(f"Failed to fetch {city}: {type(result).__name__}: {result}")
+                        continue
+                    if result is None:
+                        logger.debug(f"No data for {city}")
+                        continue
+                    if not hasattr(result, 'aare') or not result.aare:
+                        logger.debug(f"No aare data for {city}")
+                        continue
 
-        # Process results
-        city_data = []
-        for city, result in zip(cities, results):
-            # Handle exceptions that slipped through
-            if isinstance(result, Exception):
-                logger.warning(f"Failed to fetch {city}: {result}")
-                continue
-            if result is None or not result.aare:
-                continue
+                    city_data.append(
+                        {
+                            "city": city,
+                            "temperature": result.aare.temperature,
+                            "flow": result.aare.flow,
+                            "safe": result.aare.flow < 150 if result.aare.flow else True,
+                            "temperature_text": result.aare.temperature_text,
+                            "location": result.aare.location,
+                        }
+                    )
+                except Exception as e:
+                    logger.warning(f"Error processing {city}: {type(e).__name__}: {e}")
+                    continue
 
-            city_data.append(
-                {
-                    "city": city,
-                    "temperature": result.aare.temperature,
-                    "flow": result.aare.flow,
-                    "safe": result.aare.flow < 150 if result.aare.flow else True,
-                    "temperature_text": result.aare.temperature_text,
-                    "location": result.aare.location,
-                }
-            )
+            # Sort by temperature
+            if city_data:
+                city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
 
-        # Sort by temperature
-        city_data.sort(key=lambda x: x["temperature"] or 0, reverse=True)
-
+            logger.info(f"Successfully compared {len(city_data)} of {len(cities)} cities")
+            return {
+                "cities": city_data,
+                "warmest": city_data[0] if city_data else None,
+                "coldest": city_data[-1] if city_data else None,
+                "safe_count": sum(1 for c in city_data if c["safe"]),
+                "total_count": len(city_data),
+            }
+    except Exception as e:
+        logger.error(f"Critical error in compare_cities: {type(e).__name__}: {e}", exc_info=True)
+        # Return empty but valid response structure
         return {
-            "cities": city_data,
-            "warmest": city_data[0] if city_data else None,
-            "coldest": city_data[-1] if city_data else None,
-            "safe_count": sum(1 for c in city_data if c["safe"]),
-            "total_count": len(city_data),
+            "cities": [],
+            "warmest": None,
+            "coldest": None,
+            "safe_count": 0,
+            "total_count": 0,
         }
 
 
@@ -376,48 +407,66 @@ async def get_forecasts(
     """
     import asyncio
 
-    async with AareguruClient(settings=get_settings()) as client:
+    try:
+        async with AareguruClient(settings=get_settings()) as client:
+            async def fetch_forecast(city: str):
+                try:
+                    response = await client.get_current(city)
+                    if not response.aare:
+                        logger.debug(f"No aare data for {city}")
+                        return None
 
-        async def fetch_forecast(city: str):
-            try:
-                response = await client.get_current(city)
-                if not response.aare:
+                    current = response.aare.temperature
+                    forecast_2h = response.aare.forecast2h
+
+                    if current is None or forecast_2h is None:
+                        trend = "unknown"
+                    elif forecast_2h > current:
+                        trend = "rising"
+                    elif forecast_2h < current:
+                        trend = "falling"
+                    else:
+                        trend = "stable"
+
+                    return {
+                        "current": current,
+                        "forecast_2h": forecast_2h,
+                        "trend": trend,
+                        "change": forecast_2h - current if (forecast_2h and current) else None,
+                    }
+                except Exception as e:
+                    logger.warning(f"Failed to fetch forecast for {city}: {type(e).__name__}: {e}")
                     return None
 
-                current = response.aare.temperature
-                forecast_2h = response.aare.forecast2h
+            # Add timeout to prevent hanging
+            try:
+                results = await asyncio.wait_for(
+                    asyncio.gather(
+                        *[fetch_forecast(city) for city in cities],
+                        return_exceptions=True
+                    ),
+                    timeout=30.0  # 30 second timeout
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout fetching forecasts for cities: {cities}")
+                results = [None] * len(cities)
 
-                if current is None or forecast_2h is None:
-                    trend = "unknown"
-                elif forecast_2h > current:
-                    trend = "rising"
-                elif forecast_2h < current:
-                    trend = "falling"
-                else:
-                    trend = "stable"
+            forecasts = {}
+            for city, result in zip(cities, results):
+                try:
+                    # Handle exceptions that slipped through
+                    if isinstance(result, Exception):
+                        logger.warning(f"Failed to fetch forecast for {city}: {type(result).__name__}: {result}")
+                        continue
+                    if result is not None:
+                        forecasts[city] = result
+                except Exception as e:
+                    logger.warning(f"Error processing forecast for {city}: {type(e).__name__}: {e}")
+                    continue
 
-                return {
-                    "current": current,
-                    "forecast_2h": forecast_2h,
-                    "trend": trend,
-                    "change": forecast_2h - current if (forecast_2h and current) else None,
-                }
-            except Exception as e:
-                logger.warning(f"Failed to fetch forecast for {city}: {e}")
-                return None
-
-        results = await asyncio.gather(
-            *[fetch_forecast(city) for city in cities],
-            return_exceptions=True
-        )
-
-        forecasts = {}
-        for city, result in zip(cities, results):
-            # Handle exceptions that slipped through
-            if isinstance(result, Exception):
-                logger.warning(f"Failed to fetch forecast for {city}: {result}")
-                continue
-            if result is not None:
-                forecasts[city] = result
-
-        return {"forecasts": forecasts}
+            logger.info(f"Successfully fetched forecasts for {len(forecasts)} of {len(cities)} cities")
+            return {"forecasts": forecasts}
+    except Exception as e:
+        logger.error(f"Critical error in get_forecasts: {type(e).__name__}: {e}", exc_info=True)
+        # Return empty but valid response structure
+        return {"forecasts": {}}

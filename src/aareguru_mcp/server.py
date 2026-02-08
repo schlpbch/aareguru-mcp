@@ -405,9 +405,9 @@ async def compare_cities(
     try:
         return await tools.compare_cities(cities)
     except Exception as e:
-        logger.error(f"Error comparing cities: {e}", exc_info=True)
+        logger.error(f"Unexpected error in compare_cities tool: {e}", exc_info=True)
+        # Return empty but valid response structure
         return {
-            "error": str(e),
             "cities": [],
             "warmest": None,
             "coldest": None,
@@ -436,11 +436,9 @@ async def get_forecasts(
     try:
         return await tools.get_forecasts(cities)
     except Exception as e:
-        logger.error(f"Error getting forecasts: {e}", exc_info=True)
-        return {
-            "error": str(e),
-            "forecasts": {}
-        }
+        logger.error(f"Unexpected error in get_forecasts tool: {e}", exc_info=True)
+        # Return empty but valid response structure
+        return {"forecasts": {}}
 
 
 # ============================================================================
