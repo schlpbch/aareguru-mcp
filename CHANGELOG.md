@@ -5,6 +5,48 @@ All notable changes to aareguru-mcp will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2026-02-08
+
+### Added
+- **ADR-014: Service Layer Pattern** - Formalized business logic layer for code reuse
+  - Created `service.py` module with `AareguruService` class
+  - 7 async methods mapping 1:1 to MCP tools
+  - Thin MCP tool wrappers delegate to service for business logic
+  - Enables future REST/Chat API layers to reuse service methods
+  - Fixed DRY violation: `get_flow_danger_level` now uses shared `get_safety_assessment()` helper
+  - ~350 lines of duplicated code eliminated
+
+- **ADR-015: FastMCP Cloud Deployment** - Formalized production deployment with explicit configuration
+  - Created `.fastmcp/config.yaml` with deployment configuration
+    - Auto-scaling (2-10 replicas), health checks, monitoring alerts
+    - Auto-rollback on >5% error rate or P95 >5s latency
+    - eu-west-1 region for low latency to Switzerland
+  - Created `aareguru-mcp.mcpb` bundle file for one-click Claude Desktop installation
+  - Created `docs/DEPLOYMENT.md` comprehensive deployment guide
+    - Deployment process, configuration, monitoring, troubleshooting
+    - Cost optimization and installation instructions
+  - Created GitHub Actions validation workflow (.github/workflows/deploy-validation.yml)
+    - Tests, type checks, linting validation
+    - Configuration file validation
+    - Production health check verification
+
+### Changed
+- **All 15 ADRs now Accepted** - Complete architecture from core to deployment
+- ADR Compendium updated: Version 1.2.0 → 1.3.0
+  - "15 (13 Accepted, 2 Proposed)" → "15 (15 Accepted)"
+  - Reorganized roadmap section: "Future Enhancements" → "Production Ready"
+
+### Documentation
+- Updated README.md with links to DEPLOYMENT.md and ADR_COMPENDIUM.md
+- All architectural decisions now documented and accepted
+- Production deployment fully documented with monitoring and troubleshooting guides
+
+### Quality
+- All 209 tests passing (87% coverage)
+- 0 regressions detected
+- YAML and JSON configuration validation
+- Production deployment remains operational
+
 ## [4.1.0] - 2026-02-08
 
 ### Fixed
