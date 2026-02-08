@@ -1,0 +1,24 @@
+{
+  "name": "aareguru",
+  "version": "4.1.0",
+  "description": "Swiss Aare river data - water temperature, flow rates, safety assessments, and weather forecasts for Aare swimming spots",
+  "url": "https://aareguru.fastmcp.app/mcp",
+  "transport": "http",
+  "auth": {
+    "type": "none"
+  },
+  "metadata": {
+    "author": "Andreas Schlapbach",
+    "homepage": "https://github.com/schlpbch/aareguru-mcp",
+    "license": "MIT",
+    "tags": ["weather", "switzerland", "aare", "swimming", "safety"],
+    "capabilities": {
+      "tools": 6,
+      "resources": 3,
+      "prompts": 3
+    }
+  },
+  "requirements": {
+    "minimum_claude_version": "2.0.0"
+  }
+}

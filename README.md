@@ -238,8 +238,10 @@ uv run ruff check src/ tests/    # Lint
 ## 📖 Documentation
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - Comprehensive architecture guide (design patterns, data flow, deployment)
+- **[DEPLOYMENT.md](docs/DEPLOYMENT.md)** - FastMCP Cloud deployment guide with monitoring and troubleshooting
 - **[CHANGELOG.md](CHANGELOG.md)** - Release history and version details
 - **[CLAUDE.md](CLAUDE.md)** - Development guide for AI assistants
+- **[specs/ADR_COMPENDIUM.md](specs/ADR_COMPENDIUM.md)** - Architecture Decision Records (15 ADRs, all accepted)
 - **[docs/](docs/)** - Additional API documentation and planning
 
 ## 📁 Project Structure

@@ -1,0 +1,73 @@
+name: Deploy Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Setup Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest tests/ --cov=src/aareguru_mcp --cov-report=term
+
+      - name: Type check
+        run: uv run mypy src/
+
+      - name: Lint
+        run: uv run ruff check src/ tests/
+
+      - name: Format check
+        run: uv run black --check src/ tests/
+
+      - name: Validate FastMCP config
+        run: |
+          if [ -f .fastmcp/config.yaml ]; then
+            echo "✓ FastMCP config found"
+            python -c "import yaml; yaml.safe_load(open('.fastmcp/config.yaml'))"
+            echo "✓ YAML validation passed"
+          fi
+
+      - name: Validate MCP bundle
+        run: |
+          if [ -f aareguru-mcp.mcpb ]; then
+            echo "✓ MCP bundle found"
+            python -c "import json; json.load(open('aareguru-mcp.mcpb'))"
+            echo "✓ JSON validation passed"
+          fi
+
+  health-check:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: validate
+    steps:
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Check production health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://aareguru.fastmcp.app/health/)
+          if [ "$response" = "200" ]; then
+            echo "✓ Production health check passed"
+          else
+            echo "✗ Production health check failed (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Check metrics endpoint
+        run: |
+          curl -s https://aareguru.fastmcp.app/metrics | grep -q "aareguru_"
+          echo "✓ Metrics endpoint working"

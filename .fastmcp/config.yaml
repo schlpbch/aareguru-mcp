@@ -1,0 +1,89 @@
+# FastMCP Cloud Configuration for Aareguru MCP
+# Status: Accepted (ADR-015)
+# Last Updated: 2026-02-08
+
+name: aareguru-mcp
+version: "4.1.0"
+python_version: "3.13"
+
+# Deployment configuration
+deployment:
+  region: "eu-west-1"           # Closer to Switzerland for lower latency
+  entry_point: "aareguru-mcp-http"  # HTTP entry point from pyproject.toml
+  replicas: 2                   # Minimum healthy replicas
+  max_replicas: 10              # Auto-scale up to 10 instances
+  timeout: 30s                  # Request timeout (matches client config)
+  memory: 512Mi                 # Memory per replica
+  cpu: "500m"                   # CPU limit (0.5 cores)
+
+# Environment variables (production overrides)
+environment:
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"            # JSON for cloud log aggregation
+  CACHE_TTL_SECONDS: "120"
+  MIN_REQUEST_INTERVAL_SECONDS: "0.1"
+  HTTP_HOST: "0.0.0.0"
+  HTTP_PORT: "8000"
+  CORS_ORIGINS: "*"
+
+# Health check configuration
+health:
+  path: "/health"
+  interval: 30s                 # Check every 30 seconds
+  timeout: 10s                  # Fail if >10s
+  success_threshold: 1
+  failure_threshold: 3          # Mark unhealthy after 3 failures
+
+# Readiness probe (ensure app is ready)
+readiness:
+  path: "/health"
+  initial_delay: 10s            # Wait 10s after start
+  interval: 10s
+  timeout: 5s
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  metrics_path: "/metrics"      # Prometheus endpoint
+  alerts:
+    - name: "High Error Rate"
+      condition: "error_rate > 0.01"    # >1% errors
+      severity: "warning"
+    - name: "Critical Error Rate"
+      condition: "error_rate > 0.05"    # >5% errors
+      severity: "critical"
+    - name: "High Latency"
+      condition: "latency_p95 > 2000"   # P95 >2s
+      severity: "warning"
+    - name: "Critical Latency"
+      condition: "latency_p99 > 5000"   # P99 >5s
+      severity: "critical"
+    - name: "High CPU Usage"
+      condition: "cpu_usage > 80"       # >80% CPU
+      severity: "warning"
+    - name: "High Memory Usage"
+      condition: "memory_usage > 80"    # >80% memory
+      severity: "warning"
+
+# Auto-rollback configuration
+auto_rollback:
+  enabled: true
+  on_error_rate: 0.05           # Rollback if >5% errors
+  on_latency: 5000              # Rollback if P95 >5s
+  grace_period: 60s             # Wait 60s before rollback
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "json"                # Structured JSON logs
+  retention_days: 30            # Keep logs for 30 days
+
+# Scaling rules
+autoscaling:
+  enabled: true
+  min_replicas: 2
+  max_replicas: 10
+  target_cpu_percent: 70        # Scale up at 70% CPU
+  target_memory_percent: 70     # Scale up at 70% memory
+  scale_up_stabilization: 60s   # Wait 60s before scaling up
+  scale_down_stabilization: 300s # Wait 5min before scaling down
