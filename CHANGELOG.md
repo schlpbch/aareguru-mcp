@@ -5,6 +5,23 @@ All notable changes to aareguru-mcp will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-02-08
+
+### Fixed
+- **Critical: Rate limiter was blocking parallel requests** - Root cause of "Error occurred during tool execution" for 2+ cities
+- Rate limiter held asyncio.Lock during 300-second sleep, blocking all parallel requests
+- Second city's fetch never executed because it was waiting for lock held by first request
+
+### Changed
+- Reduced `min_request_interval_seconds` from 300s to 0.1s (100ms) for parallel support
+- Rate limiter now sleeps **outside** the lock, allowing parallel requests to proceed
+- Changed interval type from `int` to `float` for sub-second precision
+
+### Improved  
+- Added verbose debug logging for parallel fetch tracing (`→ Starting fetch for {city}`)
+- Better error surfacing with structured error information in results
+- Errors array in response shows which cities failed and why
+
 ## [4.0.0] - 2026-02-08
 
 ### Changed
