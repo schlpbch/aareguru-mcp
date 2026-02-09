@@ -7,7 +7,7 @@ name = "aareguru-mcp"
 version = "4.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "fastmcp" },
+    { name = "fastmcp" },2
     { name = "httpx" },
     { name = "prometheus-client" },
     { name = "pydantic" },
