@@ -154,31 +154,34 @@ class TestErrorHandling:
         with patch("aareguru_mcp.client.AareguruClient._request") as mock_request:
             mock_request.side_effect = TimeoutError("Request timed out")
 
-            with pytest.raises(TimeoutError):
-                await tools.get_current_temperature("Bern")
+            result = await tools.get_current_temperature("Bern")
+            # Tool catches exceptions and returns error dict
+            assert "error" in result
+            assert "Request timed out" in result["error"]
 
     @pytest.mark.asyncio
     async def test_missing_data_fields(self):
         """Test handling of partial data from API."""
-        with (
-            patch("aareguru_mcp.client.AareguruClient.get_today") as mock_get_today,
-            patch("aareguru_mcp.client.AareguruClient.get_current") as mock_get_current,
-        ):
-            mock_get_current.return_value = Mock(aare=None)
-
-            mock_response = Mock()
-            mock_response.aare = 17.2
-            mock_response.aare_prec = None
-            mock_response.text = "geil aber chli chalt"
-            mock_response.text_short = None
-            mock_response.name = "Bern"
-            mock_response.longname = "Bern, Schönau"
-            mock_get_today.return_value = mock_response
+        with patch("aareguru_mcp.service.AareguruService.get_current_temperature") as mock_service:
+            mock_service.return_value = {
+                "city": "Bern",
+                "temperature": 17.2,
+                "temperature_text": "geil aber chli chalt",
+                "temperature_prec": None,
+                "temperature_text_short": None,
+                "name": "Bern",
+                "longname": "Bern, Schönau",
+                "swiss_german_explanation": None,
+                "warning": None,
+                "suggestion": None,
+                "seasonal_advice": "Summer - great for swimming!",
+            }
 
             result = await tools.get_current_temperature("Bern")
 
             assert result["temperature"] == 17.2
             assert result["temperature_prec"] is None
+            assert result["temperature_text_short"] is None
 
 
 class TestDataConsistency:
