@@ -2,13 +2,13 @@
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlencode
 
 import httpx
 import structlog
 from pydantic import ValidationError
-from swiss_ai_mcp_commons.serialization import JsonSerializableMixin
+from swiss_ai_mcp_commons.serialization import JsonSerializableMixin  # type: ignore[import-untyped]
 
 from .config import get_settings
 from .models import CitiesResponse, CurrentResponse, TodayResponse
@@ -37,7 +37,7 @@ class CacheEntry:
         return f"CacheEntry(data={type(self.data).__name__}, expires_at={self.expires_at!r})"
 
 
-class AareguruClient(JsonSerializableMixin):
+class AareguruClient(JsonSerializableMixin):  # type: ignore[misc]
     """Async HTTP client for Aareguru API.
 
     Features:
@@ -188,7 +188,7 @@ class AareguruClient(JsonSerializableMixin):
         if use_cache:
             cached = self._get_cached(cache_key)
             if cached is not None:
-                return cached
+                return cast(dict[str, Any], cached)
 
         # Rate limiting
         await self._rate_limit()
@@ -200,7 +200,7 @@ class AareguruClient(JsonSerializableMixin):
         try:
             response = await self.http_client.get(url, params=params)
             response.raise_for_status()
-            data = response.json()
+            data = cast(dict[str, Any], response.json())
 
             # Cache successful response
             if use_cache:

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aareguru_mcp.server import mcp
+from aareguru_mcp.server import compare_cities_tool, get_forecasts_tool
 
 
 class TestCompareCitiesFast:
@@ -16,9 +16,6 @@ class TestCompareCitiesFast:
     @pytest.mark.asyncio
     async def test_with_city_list(self):
         """Test with explicit city list."""
-        tool = mcp._tool_manager._tools["compare_cities"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -43,7 +40,7 @@ class TestCompareCitiesFast:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["Bern", "Thun", "basel"])
+            result = await compare_cities_tool(cities=["Bern", "Thun", "basel"])
 
             assert result["total_count"] == 3
             assert result["safe_count"] == 3
@@ -55,9 +52,6 @@ class TestCompareCitiesFast:
     @pytest.mark.asyncio
     async def test_without_city_list(self):
         """Test with automatic city discovery."""
-        tool = mcp._tool_manager._tools["compare_cities"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -86,7 +80,7 @@ class TestCompareCitiesFast:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=None)
+            result = await compare_cities_tool(cities=None)
 
             assert result["total_count"] == 2
             assert result["safe_count"] == 2
@@ -94,9 +88,6 @@ class TestCompareCitiesFast:
     @pytest.mark.asyncio
     async def test_with_unsafe_flow(self):
         """Test with unsafe flow levels."""
-        tool = mcp._tool_manager._tools["compare_cities"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -119,7 +110,7 @@ class TestCompareCitiesFast:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["Bern", "Thun"])
+            result = await compare_cities_tool(cities=["Bern", "Thun"])
 
             assert result["total_count"] == 2
             assert result["safe_count"] == 1  # Only Bern is safe
@@ -133,9 +124,6 @@ class TestGetForecastsBatch:
     @pytest.mark.asyncio
     async def test_with_multiple_cities(self):
         """Test fetching forecasts for multiple cities."""
-        tool = mcp._tool_manager._tools["get_forecasts"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -158,7 +146,7 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["Bern", "Thun", "basel"])
+            result = await compare_cities_tool(cities=["Bern", "Thun", "basel"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 3
@@ -178,9 +166,6 @@ class TestGetForecastsBatch:
     @pytest.mark.asyncio
     async def test_with_missing_data(self):
         """Test handling cities with missing data."""
-        tool = mcp._tool_manager._tools["get_forecasts"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -199,7 +184,7 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["Bern", "Thun"])
+            result = await get_forecasts_tool(cities=["Bern", "Thun"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 1  # Only Bern has data
@@ -209,8 +194,6 @@ class TestGetForecastsBatch:
     @pytest.mark.asyncio
     async def test_with_null_forecast(self):
         """Test handling null forecast values."""
-        tool = mcp._tool_manager._tools["get_forecasts"]
-        fn = tool.fn
 
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
@@ -225,7 +208,7 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn(cities=["Bern"])
+            result = await get_forecasts_tool(cities=["Bern"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 1

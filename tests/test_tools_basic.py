@@ -9,7 +9,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from aareguru_mcp import tools
-from aareguru_mcp.server import mcp
+from aareguru_mcp.server import (
+    get_current_conditions_tool,
+    get_current_temperature_tool,
+    get_flow_danger_level_tool,
+    get_historical_data_tool,
+)
 
 
 class TestGetCurrentTemperature:
@@ -18,9 +23,6 @@ class TestGetCurrentTemperature:
     @pytest.mark.asyncio
     async def test_with_mocked_client(self):
         """Test with mocked client."""
-        tool = mcp._tool_manager._tools["get_current_temperature"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
@@ -36,7 +38,7 @@ class TestGetCurrentTemperature:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_current_temperature_tool("Bern")
 
             assert result.city == "Bern"
             assert result.temperature == 17.2
@@ -44,9 +46,6 @@ class TestGetCurrentTemperature:
     @pytest.mark.asyncio
     async def test_fallback_to_today(self):
         """Test fallback to today endpoint when current has no data."""
-        tool = mcp._tool_manager._tools["get_current_temperature"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -69,7 +68,7 @@ class TestGetCurrentTemperature:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_current_temperature_tool("Bern")
             assert result.temperature == 17.5
             mock_client.get_today.assert_called_once()
 
@@ -80,9 +79,6 @@ class TestGetCurrentConditions:
     @pytest.mark.asyncio
     async def test_with_weather_and_forecast(self):
         """Test with mocked weather and forecast data."""
-        tool = mcp._tool_manager._tools["get_current_conditions"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
 
@@ -105,7 +101,7 @@ class TestGetCurrentConditions:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_current_conditions_tool("Bern")
 
             assert result.aare is not None
             assert result.aare.temperature == 17.0
@@ -117,8 +113,6 @@ class TestGetCurrentConditions:
     @pytest.mark.asyncio
     async def test_without_aare_data(self):
         """Test without aare data."""
-        tool = mcp._tool_manager._tools["get_current_conditions"]
-        fn = tool.fn
 
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
@@ -133,7 +127,7 @@ class TestGetCurrentConditions:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_current_conditions_tool("Bern")
 
             assert result.city == "Bern"
             assert result.aare is None
@@ -146,9 +140,6 @@ class TestGetFlowDangerLevel:
     @pytest.mark.asyncio
     async def test_with_mocked_client(self):
         """Test with mocked client."""
-        tool = mcp._tool_manager._tools["get_flow_danger_level"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
@@ -161,7 +152,7 @@ class TestGetFlowDangerLevel:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_flow_danger_level_tool("Bern")
 
             assert result.city == "Bern"
             assert result.flow == 85.0
@@ -170,8 +161,6 @@ class TestGetFlowDangerLevel:
     @pytest.mark.asyncio
     async def test_no_aare_data(self):
         """Test when no aare data is available."""
-        tool = mcp._tool_manager._tools["get_flow_danger_level"]
-        fn = tool.fn
 
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
@@ -184,7 +173,7 @@ class TestGetFlowDangerLevel:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern")
+            result = await get_flow_danger_level_tool("Bern")
 
             assert result.flow is None
             assert "No data available" in result.safety_assessment
@@ -207,9 +196,6 @@ class TestGetHistoricalData:
     @pytest.mark.asyncio
     async def test_with_mocked_client(self):
         """Test with mocked client."""
-        tool = mcp._tool_manager._tools["get_historical_data"]
-        fn = tool.fn
-
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_client.get_history = AsyncMock(
@@ -219,7 +205,7 @@ class TestGetHistoricalData:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await fn("Bern", "-7 days", "now")
+            result = await get_historical_data_tool("Bern", "-7 days", "now")
 
             assert "timeseries" in result
 

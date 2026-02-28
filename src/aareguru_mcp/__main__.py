@@ -4,9 +4,7 @@ Usage:
     python -m aareguru_mcp
 """
 
-import asyncio
-
-from .server import main
+from .server import entry_point
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    entry_point()
