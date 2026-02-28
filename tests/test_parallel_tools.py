@@ -122,7 +122,9 @@ class TestGetForecastsBatch:
     """Test get_forecasts tool."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Forecast logic with multiple cities requires complex multi-step mocking")
+    @pytest.mark.skip(
+        reason="Forecast logic with multiple cities requires complex multi-step mocking"
+    )
     async def test_with_multiple_cities(self):
         """Test fetching forecasts for multiple cities."""
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:

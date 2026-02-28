@@ -112,7 +112,10 @@ class AareguruService:
                 "swiss_german_explanation": explanation,
                 "name": (
                     current_response.aare.location
-                    if (current_response.aare and hasattr(current_response.aare, "location"))
+                    if (
+                        current_response.aare
+                        and hasattr(current_response.aare, "location")
+                    )
                     else getattr(current_response, "name", "Unknown")
                 ),
                 "warning": warning,
@@ -123,11 +126,17 @@ class AareguruService:
             # Add legacy fields for backward compatibility
             if current_response.aare and hasattr(current_response.aare, "temperature"):
                 result["temperature_prec"] = current_response.aare.temperature
-                result["temperature_text_short"] = current_response.aare.temperature_text_short
+                result["temperature_text_short"] = (
+                    current_response.aare.temperature_text_short
+                )
                 result["longname"] = current_response.aare.location_long
             else:
-                result["temperature_prec"] = getattr(current_response, "aare_prec", None)
-                result["temperature_text_short"] = getattr(current_response, "text_short", None)
+                result["temperature_prec"] = getattr(
+                    current_response, "aare_prec", None
+                )
+                result["temperature_text_short"] = getattr(
+                    current_response, "text_short", None
+                )
                 result["longname"] = getattr(current_response, "longname", None)
 
             return result

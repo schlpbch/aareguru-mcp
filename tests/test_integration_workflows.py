@@ -4,7 +4,7 @@ Tests realistic workflows that combine multiple tools and verify
 data consistency across different operations.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -162,7 +162,9 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_missing_data_fields(self):
         """Test handling of partial data from API."""
-        with patch("aareguru_mcp.service.AareguruService.get_current_temperature") as mock_service:
+        with patch(
+            "aareguru_mcp.service.AareguruService.get_current_temperature"
+        ) as mock_service:
             mock_service.return_value = {
                 "city": "Bern",
                 "temperature": 17.2,

@@ -152,7 +152,7 @@ async def compare_cities(
         service = AareguruService()
         return await service.compare_cities(cities)
     except Exception as e:
-        logger.error(f"Tool error: compare_cities", error=str(e))
+        logger.error("Tool error: compare_cities", error=str(e))
         return {"error": str(e)}
 
 
@@ -217,5 +217,5 @@ async def get_forecasts(
         service = AareguruService()
         return await service.get_forecasts(cities)
     except Exception as e:
-        logger.error(f"Tool error: get_forecasts", error=str(e))
+        logger.error("Tool error: get_forecasts", error=str(e))
         return {"error": str(e)}

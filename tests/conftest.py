@@ -196,6 +196,4 @@ def mock_tool_result() -> dict[str, Any]:
 @pytest.fixture
 def mock_error_response() -> dict[str, str]:
     """Create a mock error response for failed tool calls."""
-    return {
-        "error": "Failed to fetch data from API"
-    }
+    return {"error": "Failed to fetch data from API"}
