@@ -1,7 +1,8 @@
 """Prometheus metrics for monitoring MCP server performance."""
 
 import time
-from typing import Any
+from types import TracebackType
+from typing import Any, Literal
 
 from prometheus_client import Counter, Gauge, Histogram, Info
 
@@ -72,20 +73,25 @@ class MetricsCollector:
     """Helper class for collecting metrics with context managers."""
 
     @staticmethod
-    def track_tool_call(tool_name: str):
+    def track_tool_call(tool_name: str) -> Any:
         """Context manager to track tool call metrics."""
 
         class ToolCallTracker:
-            def __init__(self, name: str):
+            def __init__(self, name: str) -> None:
                 self.name = name
                 self.start_time = 0.0
 
-            def __enter__(self):
+            def __enter__(self) -> "ToolCallTracker":
                 self.start_time = time.time()
                 active_requests.inc()
                 return self
 
-            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> Literal[False]:
                 duration = time.time() - self.start_time
                 tool_duration_seconds.labels(tool_name=self.name).observe(duration)
 
@@ -103,24 +109,29 @@ class MetricsCollector:
         return ToolCallTracker(tool_name)
 
     @staticmethod
-    def track_api_request(endpoint: str):
+    def track_api_request(endpoint: str) -> Any:
         """Context manager to track API request metrics."""
 
         class APIRequestTracker:
-            def __init__(self, endpoint: str):
+            def __init__(self, endpoint: str) -> None:
                 self.endpoint = endpoint
                 self.start_time = 0.0
                 self.status_code = 0
 
-            def __enter__(self):
+            def __enter__(self) -> "APIRequestTracker":
                 self.start_time = time.time()
                 return self
 
-            def set_status(self, status_code: int):
+            def set_status(self, status_code: int) -> None:
                 """Set the HTTP status code for the request."""
                 self.status_code = status_code
 
-            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> Literal[False]:
                 duration = time.time() - self.start_time
                 api_request_duration_seconds.labels(endpoint=self.endpoint).observe(
                     duration
@@ -143,18 +154,23 @@ class MetricsCollector:
         return APIRequestTracker(endpoint)
 
     @staticmethod
-    def track_resource_request(resource_uri: str):
+    def track_resource_request(resource_uri: str) -> Any:
         """Track resource request metrics."""
 
         class ResourceRequestTracker:
-            def __init__(self, uri: str):
+            def __init__(self, uri: str) -> None:
                 self.uri = uri
 
-            def __enter__(self):
+            def __enter__(self) -> "ResourceRequestTracker":
                 active_requests.inc()
                 return self
 
-            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> Literal[False]:
                 status = "error" if exc_type else "success"
                 resource_requests_total.labels(
                     resource_uri=self.uri, status=status
@@ -171,18 +187,23 @@ class MetricsCollector:
         return ResourceRequestTracker(resource_uri)
 
     @staticmethod
-    def track_prompt_request(prompt_name: str):
+    def track_prompt_request(prompt_name: str) -> Any:
         """Track prompt request metrics."""
 
         class PromptRequestTracker:
-            def __init__(self, name: str):
+            def __init__(self, name: str) -> None:
                 self.name = name
 
-            def __enter__(self):
+            def __enter__(self) -> "PromptRequestTracker":
                 active_requests.inc()
                 return self
 
-            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc_val: BaseException | None,
+                exc_tb: TracebackType | None,
+            ) -> Literal[False]:
                 status = "error" if exc_type else "success"
                 prompt_requests_total.labels(prompt_name=self.name, status=status).inc()
 

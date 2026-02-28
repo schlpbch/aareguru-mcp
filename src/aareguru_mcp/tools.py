@@ -43,8 +43,12 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
         17.2°C - geil aber chli chalt
     """
     logger.info(f"Tool: get_current_temperature for {city}")
-    service = AareguruService()
-    return await service.get_current_temperature(city)
+    try:
+        service = AareguruService()
+        return await service.get_current_temperature(city)
+    except Exception as e:
+        logger.error(f"Tool error: get_current_temperature for {city}", error=str(e))
+        return {"error": str(e), "city": city}
 
 
 async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
@@ -71,8 +75,12 @@ async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
         >>> print(f"2h forecast: {result['aare']['forecast2h_text']}")
     """
     logger.info(f"Tool: get_current_conditions for {city}")
-    service = AareguruService()
-    return await service.get_current_conditions(city)
+    try:
+        service = AareguruService()
+        return await service.get_current_conditions(city)
+    except Exception as e:
+        logger.error(f"Tool error: get_current_conditions for {city}", error=str(e))
+        return {"error": str(e), "city": city}
 
 
 async def get_historical_data(
@@ -112,8 +120,12 @@ async def get_historical_data(
         ... )
     """
     logger.info(f"Tool: get_historical_data for {city} from {start} to {end}")
-    service = AareguruService()
-    return await service.get_historical_data(city, start, end)
+    try:
+        service = AareguruService()
+        return await service.get_historical_data(city, start, end)
+    except Exception as e:
+        logger.error(f"Tool error: get_historical_data for {city}", error=str(e))
+        return {"error": str(e), "city": city}
 
 
 async def compare_cities(
@@ -136,8 +148,12 @@ async def compare_cities(
         - total_count: Total cities compared
     """
     logger.info(f"Tool: compare_cities for {cities or 'all cities'}")
-    service = AareguruService()
-    return await service.compare_cities(cities)
+    try:
+        service = AareguruService()
+        return await service.compare_cities(cities)
+    except Exception as e:
+        logger.error(f"Tool error: compare_cities", error=str(e))
+        return {"error": str(e)}
 
 
 async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
@@ -173,8 +189,12 @@ async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
         Safety: Moderate - safe for experienced swimmers
     """
     logger.info(f"Tool: get_flow_danger_level for {city}")
-    service = AareguruService()
-    return await service.get_flow_danger_level(city)
+    try:
+        service = AareguruService()
+        return await service.get_flow_danger_level(city)
+    except Exception as e:
+        logger.error(f"Tool error: get_flow_danger_level for {city}", error=str(e))
+        return {"error": str(e), "city": city}
 
 
 async def get_forecasts(
@@ -193,5 +213,9 @@ async def get_forecasts(
                            2-hour forecast, and trend
     """
     logger.info(f"Tool: get_forecasts for {len(cities)} cities: {cities}")
-    service = AareguruService()
-    return await service.get_forecasts(cities)
+    try:
+        service = AareguruService()
+        return await service.get_forecasts(cities)
+    except Exception as e:
+        logger.error(f"Tool error: get_forecasts", error=str(e))
+        return {"error": str(e)}

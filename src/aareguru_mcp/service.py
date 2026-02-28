@@ -17,7 +17,7 @@ The service layer enables:
 """
 
 import asyncio
-from typing import Any
+from typing import Any, cast
 
 import structlog
 
@@ -86,18 +86,18 @@ class AareguruService:
 
         async with AareguruClient(settings=self.settings) as client:
             # Try current endpoint first (has nested aare data + flow)
-            response = await client.get_current(city)
+            current_response = await client.get_current(city)
 
-            if not response.aare:
+            if not current_response.aare:
                 # Fallback to today endpoint if no aare data
-                response = await client.get_today(city)
-                temp = response.aare
-                text = response.text
+                today_response = await client.get_today(city)
+                temp = today_response.aare
+                text = today_response.text
                 flow = None
             else:
-                temp = response.aare.temperature
-                text = response.aare.temperature_text
-                flow = response.aare.flow
+                temp = current_response.aare.temperature
+                text = current_response.aare.temperature_text
+                flow = current_response.aare.flow
 
             # Enrich with helpers
             warning = check_safety_warning(flow)
@@ -111,9 +111,9 @@ class AareguruService:
                 "temperature_text": text,
                 "swiss_german_explanation": explanation,
                 "name": (
-                    response.aare.location
-                    if (response.aare and hasattr(response.aare, "location"))
-                    else response.name
+                    current_response.aare.location
+                    if (current_response.aare and hasattr(current_response.aare, "location"))
+                    else getattr(current_response, "name", "Unknown")
                 ),
                 "warning": warning,
                 "suggestion": suggestion,
@@ -121,14 +121,14 @@ class AareguruService:
             }
 
             # Add legacy fields for backward compatibility
-            if response.aare and hasattr(response.aare, "temperature"):
-                result["temperature_prec"] = response.aare.temperature
-                result["temperature_text_short"] = response.aare.temperature_text_short
-                result["longname"] = response.aare.location_long
+            if current_response.aare and hasattr(current_response.aare, "temperature"):
+                result["temperature_prec"] = current_response.aare.temperature
+                result["temperature_text_short"] = current_response.aare.temperature_text_short
+                result["longname"] = current_response.aare.location_long
             else:
-                result["temperature_prec"] = response.aare_prec
-                result["temperature_text_short"] = response.text_short
-                result["longname"] = response.longname
+                result["temperature_prec"] = getattr(current_response, "aare_prec", None)
+                result["temperature_text_short"] = getattr(current_response, "text_short", None)
+                result["longname"] = getattr(current_response, "longname", None)
 
             return result
 
@@ -309,7 +309,7 @@ class AareguruService:
 
             logger.info(f"Comparing {len(cities)} cities in parallel: {cities}")
 
-            async def fetch_conditions(city: str):
+            async def fetch_conditions(city: str) -> dict[str, Any]:
                 logger.info(f"→ Starting fetch for {city}")
                 try:
                     result = await client.get_current(city)
@@ -342,9 +342,11 @@ class AareguruService:
                     errors.append({"city": "unknown", "error": error_msg})
                     continue
 
-                city = item["city"]
-                result = item["result"]
-                error = item["error"]
+                # item is guaranteed to be dict[str, Any] after Exception check
+                item_dict = cast(dict[str, Any], item)
+                city = item_dict.get("city", "unknown")
+                result = item_dict.get("result")
+                error = item_dict.get("error")
 
                 if error:
                     errors.append({"city": city, "error": error})
@@ -434,7 +436,7 @@ class AareguruService:
         async with AareguruClient(settings=self.settings) as client:
             logger.info(f"Fetching forecasts for {len(cities)} cities: {cities}")
 
-            async def fetch_forecast(city: str):
+            async def fetch_forecast(city: str) -> dict[str, Any]:
                 logger.info(f"→ Starting forecast fetch for {city}")
                 try:
                     response = await client.get_current(city)
@@ -501,9 +503,11 @@ class AareguruService:
                     errors.append({"city": "unknown", "error": error_msg})
                     continue
 
-                city = item["city"]
-                result = item["result"]
-                error = item["error"]
+                # item is guaranteed to be dict[str, Any] after Exception check
+                item_dict = cast(dict[str, Any], item)
+                city = item_dict.get("city", "unknown")
+                result = item_dict.get("result")
+                error = item_dict.get("error")
 
                 if error:
                     errors.append({"city": city, "error": error})
