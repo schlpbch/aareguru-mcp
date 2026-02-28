@@ -6,7 +6,7 @@ authors = [
     {name = "Andreas Schlapbach", email = "schlpbch@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = {text = "MIT"}
 
 dependencies = [
@@ -48,7 +48,7 @@ ignore = ["N806"]  # Allow uppercase variable names (common for MockClient in te
 "tests/*" = ["N806"]  # Allow mock naming conventions in tests
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
