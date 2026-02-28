@@ -216,9 +216,7 @@ class AareguruService:
         Raises:
             Any exception from AareguruClient
         """
-        logger.info(
-            "service.get_historical_data", city=city, start=start, end=end
-        )
+        logger.info("service.get_historical_data", city=city, start=start, end=end)
 
         async with AareguruClient(settings=self.settings) as client:
             response = await client.get_history(city, start, end)
@@ -280,9 +278,7 @@ class AareguruService:
                 "danger_level": danger_level,
             }
 
-    async def compare_cities(
-        self, cities: list[str] | None = None
-    ) -> dict[str, Any]:
+    async def compare_cities(self, cities: list[str] | None = None) -> dict[str, Any]:
         """Compare conditions across multiple cities with parallel fetching.
 
         Fetches data for multiple cities concurrently and ranks by temperature.
@@ -321,7 +317,9 @@ class AareguruService:
                     return {"city": city, "result": result, "error": None}
                 except Exception as e:
                     error_msg = f"{type(e).__name__}: {str(e)}"
-                    logger.error(f"✗ Failed to fetch {city}: {error_msg}", exc_info=True)
+                    logger.error(
+                        f"✗ Failed to fetch {city}: {error_msg}", exc_info=True
+                    )
                     return {"city": city, "result": None, "error": error_msg}
 
             # Fetch with return_exceptions to handle failures gracefully
@@ -366,7 +364,9 @@ class AareguruService:
                             "city": city,
                             "temperature": result.aare.temperature,
                             "flow": result.aare.flow,
-                            "safe": result.aare.flow < 150 if result.aare.flow else True,
+                            "safe": (
+                                result.aare.flow < 150 if result.aare.flow else True
+                            ),
                             "temperature_text": result.aare.temperature_text,
                             "location": result.aare.location,
                         }
@@ -466,9 +466,11 @@ class AareguruService:
                             "current": current,
                             "forecast_2h": forecast_2h,
                             "trend": trend,
-                            "change": forecast_2h - current
-                            if (forecast_2h and current)
-                            else None,
+                            "change": (
+                                forecast_2h - current
+                                if (forecast_2h and current)
+                                else None
+                            ),
                         },
                         "error": None,
                     }

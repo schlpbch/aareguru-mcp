@@ -31,7 +31,9 @@ def get_seasonal_advice() -> str:
         return "🍂 Autumn: Water is getting colder. Check daylight hours and bring warm clothes."
 
 
-def check_safety_warning(flow: float | None, threshold: float | None = 220) -> str | None:
+def check_safety_warning(
+    flow: float | None, threshold: float | None = 220
+) -> str | None:
     """Generate a warning if flow rate is dangerous.
 
     Args:
@@ -84,7 +86,9 @@ def get_swiss_german_explanation(text: str | None) -> str | None:
     return None
 
 
-async def get_warmer_suggestion(current_city: str, current_temp: float | None) -> str | None:
+async def get_warmer_suggestion(
+    current_city: str, current_temp: float | None
+) -> str | None:
     """Suggest a warmer city if the current one is cold.
 
     Args:
@@ -121,7 +125,9 @@ async def get_warmer_suggestion(current_city: str, current_temp: float | None) -
     return None
 
 
-def get_safety_assessment(flow: float | None, threshold: float = 220) -> tuple[str, int]:
+def get_safety_assessment(
+    flow: float | None, threshold: float = 220
+) -> tuple[str, int]:
     """Get safety assessment and danger level from flow rate.
 
     Args:

@@ -4,7 +4,9 @@ Prompts provide template-based interaction patterns for common use cases.
 """
 
 
-async def daily_swimming_report(city: str = "Bern", include_forecast: bool = True) -> str:
+async def daily_swimming_report(
+    city: str = "Bern", include_forecast: bool = True
+) -> str:
     """Generates comprehensive daily swimming report combining conditions, safety.
 
     **Args:**
@@ -31,7 +33,7 @@ Include:
 flow rate, and weather
 2. **Safety Assessment**: Use `get_flow_danger_level` to assess if \
 swimming is safe{forecast_instruction}
-{'4' if include_forecast else '3'}. **Recommendation**: Based on all data, \
+{"4" if include_forecast else "3"}. **Recommendation**: Based on all data, \
 give a clear swimming recommendation
 
 Format the report in a friendly way with emojis. Include the Swiss German description if available.
@@ -56,9 +58,13 @@ async def compare_swimming_spots(
     """
     filter_instructions = ""
     if min_temperature is not None:
-        filter_instructions += f"\n- Only include cities with temperature >= {min_temperature}°C"
+        filter_instructions += (
+            f"\n- Only include cities with temperature >= {min_temperature}°C"
+        )
     if safety_only:
-        filter_instructions += "\n- Only include cities with safe flow levels (< 150 m³/s)"
+        filter_instructions += (
+            "\n- Only include cities with safe flow levels (< 150 m³/s)"
+        )
 
     # Use fast parallel comparison tool
     return f"""Please compare all available Aare swimming locations.

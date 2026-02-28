@@ -235,4 +235,6 @@ class TestErrorHandling:
             assert result is not None
         except Exception as e:
             error_msg = str(e).lower()
-            assert "invalid" in error_msg or "not found" in error_msg or len(error_msg) > 0
+            assert (
+                "invalid" in error_msg or "not found" in error_msg or len(error_msg) > 0
+            )

@@ -10,12 +10,20 @@ class AareData(BaseModel):
     """Aare river data model."""
 
     temperature: float | None = Field(None, description="Water temperature in °C")
-    temperature_prec: float | None = Field(None, description="Precise water temperature")
-    temperature_text: str | None = Field(None, description="Swiss German temperature description")
-    temperature_text_short: str | None = Field(None, description="Short temperature description")
+    temperature_prec: float | None = Field(
+        None, description="Precise water temperature"
+    )
+    temperature_text: str | None = Field(
+        None, description="Swiss German temperature description"
+    )
+    temperature_text_short: str | None = Field(
+        None, description="Short temperature description"
+    )
     flow: float | None = Field(None, description="Flow rate in m³/s")
     flow_text: str | None = Field(None, description="Flow description")
-    flow_gefahrenstufe: int | None = Field(None, description="BAFU danger level (1-5)", ge=1, le=5)
+    flow_gefahrenstufe: int | None = Field(
+        None, description="BAFU danger level (1-5)", ge=1, le=5
+    )
     flow_scale_threshold: float | None = Field(None, description="Flow scale threshold")
     height: float | None = Field(None, description="Water height/level")
 
@@ -48,9 +56,13 @@ class SunData(BaseModel):
     """Sun and daylight data model."""
 
     suntotal: int | None = Field(None, description="Total sunshine duration in minutes")
-    suntotalrelative: float | None = Field(None, description="Relative sunshine percentage")
+    suntotalrelative: float | None = Field(
+        None, description="Relative sunshine percentage"
+    )
     ss: str | None = Field(None, description="Sunset time")
-    sunlocations: list[SunLocation] | None = Field(None, description="Nearby sunny locations")
+    sunlocations: list[SunLocation] | None = Field(
+        None, description="Nearby sunny locations"
+    )
 
 
 class ForecastData(BaseModel):
@@ -99,9 +111,13 @@ class AareCurrentData(BaseModel):
     forecast2h: float | None = Field(None, description="2h forecast temp")
     forecast2h_text: str | None = Field(None, description="2h forecast text")
     height: float | None = Field(None, description="Water height")
-    temperature_scale: list[dict[str, Any]] | None = Field(None, description="Temp scale")
+    temperature_scale: list[dict[str, Any]] | None = Field(
+        None, description="Temp scale"
+    )
     flow_scale: list[dict[str, Any]] | None = Field(None, description="Flow scale")
-    historical_temp_max: dict[str, Any] | None = Field(None, description="Historical max")
+    historical_temp_max: dict[str, Any] | None = Field(
+        None, description="Historical max"
+    )
 
     def __str__(self) -> str:
         """String representation of Aare current data."""
@@ -119,7 +135,9 @@ class CurrentResponse(BaseModel):
     aare: AareCurrentData | None = Field(None, description="Aare river data")
     aarepast: list[dict[str, Any]] | None = Field(None, description="Past data points")
     weather: dict[str, Any] | None = Field(None, description="Weather data")
-    weatherprognosis: list[dict[str, Any]] | None = Field(None, description="Weather forecast")
+    weatherprognosis: list[dict[str, Any]] | None = Field(
+        None, description="Weather forecast"
+    )
     sun: dict[str, Any] | None = Field(None, description="Sun data")
 
     def __str__(self) -> str:
@@ -157,7 +175,9 @@ class CityListItem(BaseModel):
     city: str = Field(..., description="City identifier")
     name: str = Field(..., description="Display name")
     longname: str = Field(..., description="Full name")
-    coordinates: dict[str, float] | None = Field(None, description="Lat/lon coordinates")
+    coordinates: dict[str, float] | None = Field(
+        None, description="Lat/lon coordinates"
+    )
     aare: float | None = Field(None, description="Current temperature")
     aare_prec: float | None = Field(None, description="Precise temperature")
     sy: int | None = Field(None, description="Weather symbol")
@@ -214,10 +234,18 @@ class TemperatureToolResponse(BaseModel):
     )
     name: str | None = Field(None, description="Location name")
     warning: str | None = Field(None, description="Safety warning if flow is dangerous")
-    suggestion: str | None = Field(None, description="Swimming recommendation based on temperature")
-    seasonal_advice: str | None = Field(None, description="Season-specific swimming guidance")
-    temperature_prec: float | None = Field(None, description="Precise temperature value")
-    temperature_text_short: str | None = Field(None, description="Short temperature description")
+    suggestion: str | None = Field(
+        None, description="Swimming recommendation based on temperature"
+    )
+    seasonal_advice: str | None = Field(
+        None, description="Season-specific swimming guidance"
+    )
+    temperature_prec: float | None = Field(
+        None, description="Precise temperature value"
+    )
+    temperature_text_short: str | None = Field(
+        None, description="Short temperature description"
+    )
     longname: str | None = Field(None, description="Full location name")
 
 
@@ -227,13 +255,19 @@ class AareConditionsData(BaseModel):
     location: str | None = Field(None, description="Location name")
     location_long: str | None = Field(None, description="Full location name")
     temperature: float | None = Field(None, description="Water temperature in Celsius")
-    temperature_text: str | None = Field(None, description="Swiss German temperature description")
-    swiss_german_explanation: str | None = Field(None, description="English translation")
+    temperature_text: str | None = Field(
+        None, description="Swiss German temperature description"
+    )
+    swiss_german_explanation: str | None = Field(
+        None, description="English translation"
+    )
     temperature_text_short: str | None = Field(None, description="Short description")
     flow: float | None = Field(None, description="Flow rate in m³/s")
     flow_text: str | None = Field(None, description="Flow description")
     height: float | None = Field(None, description="Water height in meters")
-    forecast2h: float | None = Field(None, description="Temperature forecast for 2 hours")
+    forecast2h: float | None = Field(
+        None, description="Temperature forecast for 2 hours"
+    )
     forecast2h_text: str | None = Field(None, description="Forecast description")
     warning: str | None = Field(None, description="Safety warning if applicable")
 
@@ -244,7 +278,9 @@ class ConditionsToolResponse(BaseModel):
     city: str = Field(..., description="City identifier")
     aare: AareConditionsData | None = Field(None, description="Aare river data")
     seasonal_advice: str | None = Field(None, description="Season-specific guidance")
-    weather: dict[str, Any] | None = Field(None, description="Current weather conditions")
+    weather: dict[str, Any] | None = Field(
+        None, description="Current weather conditions"
+    )
     forecast: list[dict[str, Any]] | None = Field(None, description="Weather forecast")
 
 
@@ -257,7 +293,9 @@ class CityListResponse(BaseModel):
     coordinates: dict[str, float] | None = Field(
         None, description="Location coordinates with lat/lon"
     )
-    temperature: float | None = Field(None, description="Current water temperature in Celsius")
+    temperature: float | None = Field(
+        None, description="Current water temperature in Celsius"
+    )
 
 
 class FlowDangerResponse(BaseModel):
@@ -266,7 +304,9 @@ class FlowDangerResponse(BaseModel):
     city: str = Field(..., description="City identifier")
     flow: float | None = Field(None, description="Current flow rate in m³/s")
     flow_text: str | None = Field(None, description="Flow description")
-    flow_threshold: float | None = Field(None, description="Danger threshold for this location")
+    flow_threshold: float | None = Field(
+        None, description="Danger threshold for this location"
+    )
     safety_assessment: str = Field(..., description="Safety evaluation")
     danger_level: int | None = Field(None, description="Numeric danger level (1-5)")
 
@@ -274,8 +314,12 @@ class FlowDangerResponse(BaseModel):
 class CurrentConditionsData(BaseModel):
     """Current conditions data for forecast tool response."""
 
-    temperature: float | None = Field(None, description="Current water temperature in Celsius")
-    temperature_text: str | None = Field(None, description="Swiss German temperature description")
+    temperature: float | None = Field(
+        None, description="Current water temperature in Celsius"
+    )
+    temperature_text: str | None = Field(
+        None, description="Swiss German temperature description"
+    )
     flow: float | None = Field(None, description="Current flow rate in m³/s")
 
 
@@ -283,10 +327,16 @@ class ForecastToolResponse(BaseModel):
     """Response model for get_forecast tool."""
 
     city: str = Field(..., description="City identifier")
-    current: CurrentConditionsData | None = Field(None, description="Current conditions")
-    forecast_2h: float | None = Field(None, description="Forecasted temperature in 2 hours")
+    current: CurrentConditionsData | None = Field(
+        None, description="Current conditions"
+    )
+    forecast_2h: float | None = Field(
+        None, description="Forecasted temperature in 2 hours"
+    )
     forecast_text: str | None = Field(None, description="Forecast description")
-    trend: str = Field(..., description="Temperature trend (rising/falling/stable/unknown)")
+    trend: str = Field(
+        ..., description="Temperature trend (rising/falling/stable/unknown)"
+    )
     temperature_change: float | None = Field(
         None, description="Expected temperature change in degrees"
     )

@@ -67,7 +67,9 @@ class TestCompareCitiesFast:
             mock_city_Thun = MagicMock()
             mock_city_Thun.city = "Thun"
 
-            mock_client.get_cities = AsyncMock(return_value=[mock_city_Bern, mock_city_Thun])
+            mock_client.get_cities = AsyncMock(
+                return_value=[mock_city_Bern, mock_city_Thun]
+            )
 
             # Mock get_current
             def make_response(city: str):
@@ -109,7 +111,8 @@ class TestCompareCitiesFast:
 
             mock_client.get_current = AsyncMock(
                 side_effect=lambda city: make_response(
-                    city, {"Bern": 100, "Thun": 250}[city]  # Thun is unsafe
+                    city,
+                    {"Bern": 100, "Thun": 250}[city],  # Thun is unsafe
                 )
             )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)

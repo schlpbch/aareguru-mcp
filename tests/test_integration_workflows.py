@@ -47,7 +47,9 @@ class TestMultiToolWorkflows:
         assert flow_result["city"] == city
 
         assert isinstance(temp_result["temperature"], (int, float))
-        assert flow_result["flow"] is None or isinstance(flow_result["flow"], (int, float))
+        assert flow_result["flow"] is None or isinstance(
+            flow_result["flow"], (int, float)
+        )
 
     @pytest.mark.integration
     @pytest.mark.asyncio

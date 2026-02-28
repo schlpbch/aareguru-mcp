@@ -88,7 +88,9 @@ async def get_today_resource(city: str) -> str:
 
 @mcp.prompt(name="daily-swimming-report")
 @functools.wraps(prompts.daily_swimming_report)
-async def daily_swimming_report_prompt(city: str = "Bern", include_forecast: bool = True) -> str:
+async def daily_swimming_report_prompt(
+    city: str = "Bern", include_forecast: bool = True
+) -> str:
     return await prompts.daily_swimming_report(city, include_forecast)
 
 

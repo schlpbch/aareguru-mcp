@@ -42,6 +42,7 @@ class TestPromptRegistration:
     def test_prompts_are_async(self):
         """Test that prompt functions are async."""
         import inspect
+
         assert inspect.iscoroutinefunction(daily_swimming_report)
         assert inspect.iscoroutinefunction(compare_swimming_spots)
         assert inspect.iscoroutinefunction(weekly_trend_analysis)
@@ -65,7 +66,7 @@ class TestDailySwimmingReportPrompt:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_default_city_is_Bern(self):
+    async def test_default_city_is_bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(daily_swimming_report)
         assert "bern" in result.lower()
@@ -171,7 +172,7 @@ class TestWeeklyTrendAnalysisPrompt:
         assert len(result) > 0
 
     @pytest.mark.asyncio
-    async def test_default_city_is_Bern(self):
+    async def test_default_city_is_bern(self):
         """Test that default city is Bern."""
         result = await get_prompt_text(weekly_trend_analysis)
         assert "bern" in result.lower()
@@ -299,7 +300,9 @@ class TestPromptIntegration:
             weekly = await get_prompt_text(weekly_trend_analysis, city=city)
 
             assert city.lower() in daily.lower(), f"Daily prompt should include {city}"
-            assert city.lower() in weekly.lower(), f"Weekly prompt should include {city}"
+            assert (
+                city.lower() in weekly.lower()
+            ), f"Weekly prompt should include {city}"
 
 
 class TestPromptToolIntegration:
@@ -371,7 +374,9 @@ class TestPromptToolIntegration:
 
         historical = await tools.get_historical_data("bern", start_str, end_str)
         assert "city" in historical
-        assert "data" in historical or "data_points" in historical or "error" in historical
+        assert (
+            "data" in historical or "data_points" in historical or "error" in historical
+        )
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -451,4 +456,3 @@ class TestPromptToolIntegration:
         assert historical["city"] == city
         # Note: historical data might be limited or unavailable
         # The tool should still return a valid response structure
-

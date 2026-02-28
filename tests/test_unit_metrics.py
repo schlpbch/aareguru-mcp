@@ -27,12 +27,16 @@ class TestToolCallTracking:
         with MetricsCollector.track_tool_call("test_tool"):
             pass  # Successful execution
 
-        final_value = tool_calls_total.labels(tool_name="test_tool", status="success")._value.get()
+        final_value = tool_calls_total.labels(
+            tool_name="test_tool", status="success"
+        )._value.get()
         assert final_value > initial_value
 
     def test_failed_tool_call_increments_error_counter(self):
         """Test that failed tool calls increment the error counter."""
-        initial_value = tool_calls_total.labels(tool_name="test_tool", status="error")._value.get()
+        initial_value = tool_calls_total.labels(
+            tool_name="test_tool", status="error"
+        )._value.get()
 
         try:
             with MetricsCollector.track_tool_call("test_tool"):
@@ -40,7 +44,9 @@ class TestToolCallTracking:
         except ValueError:
             pass
 
-        final_value = tool_calls_total.labels(tool_name="test_tool", status="error")._value.get()
+        final_value = tool_calls_total.labels(
+            tool_name="test_tool", status="error"
+        )._value.get()
         assert final_value > initial_value
 
     def test_tool_call_tracks_duration(self):
@@ -48,7 +54,11 @@ class TestToolCallTracking:
         import time
 
         initial_samples = len(
-            list(tool_duration_seconds.labels(tool_name="duration_test").collect()[0].samples)
+            list(
+                tool_duration_seconds.labels(tool_name="duration_test")
+                .collect()[0]
+                .samples
+            )
         )
 
         with MetricsCollector.track_tool_call("duration_test"):
@@ -56,7 +66,11 @@ class TestToolCallTracking:
 
         # Verify histogram was updated (samples should increase)
         final_samples = len(
-            list(tool_duration_seconds.labels(tool_name="duration_test").collect()[0].samples)
+            list(
+                tool_duration_seconds.labels(tool_name="duration_test")
+                .collect()[0]
+                .samples
+            )
         )
         assert final_samples >= initial_samples
 
@@ -107,7 +121,9 @@ class TestToolCallTracking:
             > initial_value_error
         )
         assert (
-            errors_total.labels(error_type="RuntimeError", component="tool")._value.get()
+            errors_total.labels(
+                error_type="RuntimeError", component="tool"
+            )._value.get()
             > initial_runtime_error
         )
 
@@ -117,17 +133,23 @@ class TestAPIRequestTracking:
 
     def test_successful_api_request_tracking(self):
         """Test tracking successful API requests."""
-        initial_value = api_requests_total.labels(endpoint="/test", status_code="200")._value.get()
+        initial_value = api_requests_total.labels(
+            endpoint="/test", status_code="200"
+        )._value.get()
 
         with MetricsCollector.track_api_request("/test") as tracker:
             tracker.set_status(200)
 
-        final_value = api_requests_total.labels(endpoint="/test", status_code="200")._value.get()
+        final_value = api_requests_total.labels(
+            endpoint="/test", status_code="200"
+        )._value.get()
         assert final_value > initial_value
 
     def test_failed_api_request_tracking(self):
         """Test tracking failed API requests."""
-        initial_value = api_requests_total.labels(endpoint="/test", status_code="500")._value.get()
+        initial_value = api_requests_total.labels(
+            endpoint="/test", status_code="500"
+        )._value.get()
 
         try:
             with MetricsCollector.track_api_request("/test"):
@@ -135,17 +157,23 @@ class TestAPIRequestTracking:
         except Exception:
             pass
 
-        final_value = api_requests_total.labels(endpoint="/test", status_code="500")._value.get()
+        final_value = api_requests_total.labels(
+            endpoint="/test", status_code="500"
+        )._value.get()
         assert final_value > initial_value
 
     def test_api_request_custom_status_code(self):
         """Test setting custom status codes."""
-        initial_404 = api_requests_total.labels(endpoint="/test", status_code="404")._value.get()
+        initial_404 = api_requests_total.labels(
+            endpoint="/test", status_code="404"
+        )._value.get()
 
         with MetricsCollector.track_api_request("/test") as tracker:
             tracker.set_status(404)
 
-        final_404 = api_requests_total.labels(endpoint="/test", status_code="404")._value.get()
+        final_404 = api_requests_total.labels(
+            endpoint="/test", status_code="404"
+        )._value.get()
         assert final_404 > initial_404
 
 
@@ -272,7 +300,9 @@ class TestConcurrentMetrics:
         )
 
         # Verify all calls were tracked
-        count = tool_calls_total.labels(tool_name="concurrent_test", status="success")._value.get()
+        count = tool_calls_total.labels(
+            tool_name="concurrent_test", status="success"
+        )._value.get()
         assert count >= 3
 
 
