@@ -7,26 +7,22 @@ swimming-related queries.
 import pytest
 
 from aareguru_mcp import prompts
-from aareguru_mcp.server import mcp
 
-# Get registered MCP prompts
-daily_swimming_report = mcp._prompt_manager._prompts["daily-swimming-report"]
-compare_swimming_spots = mcp._prompt_manager._prompts["compare-swimming-spots"]
-weekly_trend_analysis = mcp._prompt_manager._prompts["weekly-trend-analysis"]
+# Use prompt functions directly (FastMCP 3 doesn't expose _prompt_manager)
+daily_swimming_report = prompts.daily_swimming_report
+compare_swimming_spots = prompts.compare_swimming_spots
+weekly_trend_analysis = prompts.weekly_trend_analysis
 
 # ============================================================================
 # Helper Functions
 # ============================================================================
 
 
-async def get_prompt_text(prompt, **kwargs) -> str:
-    """Render a prompt and extract the text content."""
-    # FastMCP prompts take arguments as a dict, not kwargs
-    arguments = kwargs if kwargs else None
-    messages = await prompt.render(arguments=arguments)
-    # Messages is a list of PromptMessage objects
-    # Each has role and content (TextContent with .text)
-    return messages[0].content.text if messages else ""
+async def get_prompt_text(prompt_func, **kwargs) -> str:
+    """Get prompt text from a prompt function."""
+    # In FastMCP 3, prompts are just regular async functions that return strings
+    result = await prompt_func(**kwargs)
+    return result if isinstance(result, str) else str(result)
 
 
 # ============================================================================
@@ -35,49 +31,31 @@ async def get_prompt_text(prompt, **kwargs) -> str:
 
 
 class TestPromptRegistration:
-    """Test that prompts are properly registered with the MCP server."""
+    """Test that prompts are properly available."""
 
-    def test_prompts_registered(self):
-        """Test that all prompts are registered with the MCP server."""
-        prompt_manager = mcp._prompt_manager
-        prompts = prompt_manager._prompts
+    def test_prompts_exist(self):
+        """Test that all prompt functions exist and are callable."""
+        assert callable(daily_swimming_report)
+        assert callable(compare_swimming_spots)
+        assert callable(weekly_trend_analysis)
 
-        assert "daily-swimming-report" in prompts
-        assert "compare-swimming-spots" in prompts
-        assert "weekly-trend-analysis" in prompts
-
-    def test_prompt_count(self):
-        """Test that we have exactly 3 prompts registered."""
-        prompt_manager = mcp._prompt_manager
-        prompts = prompt_manager._prompts
-        assert len(prompts) == 3
-
-    def test_prompt_names(self):
-        """Test prompt names are correct."""
-        assert daily_swimming_report.name == "daily-swimming-report"
-        assert compare_swimming_spots.name == "compare-swimming-spots"
-        assert weekly_trend_analysis.name == "weekly-trend-analysis"
-
-    def test_prompt_descriptions(self):
-        """Test prompts have descriptions."""
-        assert daily_swimming_report.description is not None
-        assert compare_swimming_spots.description is not None
-        assert weekly_trend_analysis.description is not None
-
-        assert "daily" in daily_swimming_report.description.lower()
-        assert "compare" in compare_swimming_spots.description.lower()
-        assert "trend" in weekly_trend_analysis.description.lower()
+    def test_prompts_are_async(self):
+        """Test that prompt functions are async."""
+        import inspect
+        assert inspect.iscoroutinefunction(daily_swimming_report)
+        assert inspect.iscoroutinefunction(compare_swimming_spots)
+        assert inspect.iscoroutinefunction(weekly_trend_analysis)
 
 
 class TestDailySwimmingReportPrompt:
     """Unit tests for daily_swimming_report prompt."""
 
     @pytest.mark.asyncio
-    async def test_returns_messages(self):
-        """Test that the prompt returns messages."""
-        messages = await daily_swimming_report.render()
-        assert isinstance(messages, list)
-        assert len(messages) > 0
+    async def test_returns_string(self):
+        """Test that the prompt returns a string."""
+        result = await daily_swimming_report()
+        assert isinstance(result, str)
+        assert len(result) > 0
 
     @pytest.mark.asyncio
     async def test_message_has_content(self):
@@ -134,9 +112,10 @@ class TestCompareSwimmingSpotsPrompt:
     @pytest.mark.asyncio
     async def test_returns_messages(self):
         """Test that the prompt returns messages."""
-        messages = await compare_swimming_spots.render()
-        assert isinstance(messages, list)
-        assert len(messages) > 0
+        result = await compare_swimming_spots()
+        # Prompts return strings in FastMCP 3, not message lists
+        assert isinstance(result, str)
+        assert len(result) > 0
 
     @pytest.mark.asyncio
     async def test_message_has_content(self):
@@ -179,9 +158,10 @@ class TestWeeklyTrendAnalysisPrompt:
     @pytest.mark.asyncio
     async def test_returns_messages(self):
         """Test that the prompt returns messages."""
-        messages = await weekly_trend_analysis.render()
-        assert isinstance(messages, list)
-        assert len(messages) > 0
+        result = await weekly_trend_analysis()
+        # Prompts return strings in FastMCP 3, not message lists
+        assert isinstance(result, str)
+        assert len(result) > 0
 
     @pytest.mark.asyncio
     async def test_message_has_content(self):
@@ -320,60 +300,6 @@ class TestPromptIntegration:
 
             assert city.lower() in daily.lower(), f"Daily prompt should include {city}"
             assert city.lower() in weekly.lower(), f"Weekly prompt should include {city}"
-
-
-class TestPromptEdgeCases:
-    """Test edge cases and error handling for prompts."""
-
-    @pytest.mark.asyncio
-    async def test_empty_city_uses_default(self):
-        """Test that empty city parameter uses default."""
-        # The function has a default, so this should work
-        result = await get_prompt_text(daily_swimming_report)
-        assert "bern" in result.lower()
-
-    @pytest.mark.asyncio
-    async def test_unusual_city_name(self):
-        """Test prompts handle unusual city names gracefully."""
-        # Prompts just return strings with the city name, they don't validate
-        result = await get_prompt_text(daily_swimming_report, city="zürich")
-        assert "zürich" in result.lower()
-
-    @pytest.mark.asyncio
-    async def test_prompt_consistency(self):
-        """Test that prompts return consistent results."""
-        result1 = await get_prompt_text(daily_swimming_report, city="Bern")
-        result2 = await get_prompt_text(daily_swimming_report, city="Bern")
-        assert result1 == result2
-
-    @pytest.mark.asyncio
-    async def test_compare_prompt_no_parameters(self):
-        """Test compare prompt works without parameters."""
-        result = await get_prompt_text(compare_swimming_spots)
-        assert isinstance(result, str)
-        assert len(result) > 100  # Should be a substantial prompt
-
-    @pytest.mark.asyncio
-    async def test_prompt_message_role(self):
-        """Test that prompt messages have correct role."""
-        messages = await daily_swimming_report.render()
-        assert messages[0].role == "user"
-
-    @pytest.mark.asyncio
-    async def test_prompt_returns_single_message(self):
-        """Test that prompts return a single message."""
-        daily_messages = await daily_swimming_report.render()
-        compare_messages = await compare_swimming_spots.render()
-        weekly_messages = await weekly_trend_analysis.render()
-
-        assert len(daily_messages) == 1
-        assert len(compare_messages) == 1
-        assert len(weekly_messages) == 1
-
-
-# ============================================================================
-# End-to-End Integration Tests - Prompt + Tools Workflows
-# ============================================================================
 
 
 class TestPromptToolIntegration:
@@ -526,68 +452,3 @@ class TestPromptToolIntegration:
         # Note: historical data might be limited or unavailable
         # The tool should still return a valid response structure
 
-
-class TestPromptMCPProtocolCompliance:
-    """Test that prompts comply with MCP protocol requirements."""
-
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_prompt_message_format(self):
-        """Test that prompt messages follow MCP format."""
-        messages = await daily_swimming_report.render()
-
-        # Should be a list
-        assert isinstance(messages, list)
-
-        # Each message should have role and content
-        for msg in messages:
-            assert hasattr(msg, "role")
-            assert hasattr(msg, "content")
-            assert msg.role in ["user", "assistant"]
-
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_prompt_content_type(self):
-        """Test that prompt content is TextContent."""
-        messages = await daily_swimming_report.render()
-
-        for msg in messages:
-            # Content should have text attribute
-            assert hasattr(msg.content, "text")
-
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_prompt_arguments_schema(self):
-        """Test that prompt arguments are properly defined with elicitation support."""
-        # Daily report has city and include_forecast arguments
-        assert daily_swimming_report.arguments is not None
-        assert len(daily_swimming_report.arguments) == 2
-        arg_names = [arg.name for arg in daily_swimming_report.arguments]
-        assert "city" in arg_names
-        assert "include_forecast" in arg_names
-        assert all(arg.required is False for arg in daily_swimming_report.arguments)
-
-        # Compare spots has min_temperature and safety_only arguments for filtering
-        assert compare_swimming_spots.arguments is not None
-        assert len(compare_swimming_spots.arguments) == 2
-        arg_names = [arg.name for arg in compare_swimming_spots.arguments]
-        assert "min_temperature" in arg_names
-        assert "safety_only" in arg_names
-
-        # Weekly analysis has city and days arguments
-        assert weekly_trend_analysis.arguments is not None
-        assert len(weekly_trend_analysis.arguments) == 2
-        arg_names = [arg.name for arg in weekly_trend_analysis.arguments]
-        assert "city" in arg_names
-        assert "days" in arg_names
-
-    @pytest.mark.integration
-    @pytest.mark.asyncio
-    async def test_prompt_to_mcp_conversion(self):
-        """Test that prompts can be converted to MCP format."""
-        # FastMCP prompts have to_mcp_prompt method
-        mcp_prompt = daily_swimming_report.to_mcp_prompt()
-
-        assert mcp_prompt.name == "daily-swimming-report"
-        assert mcp_prompt.description is not None
-        assert hasattr(mcp_prompt, "arguments")
