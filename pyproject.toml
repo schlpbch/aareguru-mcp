@@ -15,10 +15,20 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
-    "structlog>=23.1.0",        # Structured logging
-    "slowapi>=0.1.9",           # Rate limiting
-    "prometheus-client>=0.20.0", # Metrics and monitoring
+    "structlog>=24.0.0",
+    "slowapi>=0.1.9",
+    "prometheus-client>=0.20.0",
     "swiss-ai-mcp-commons @ git+https://github.com/schlpbch/swiss-ai-mcp-commons.git@v1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+    "black>=24.0.0",
+    "ruff>=0.1.0",
 ]
 
 [project.scripts]
