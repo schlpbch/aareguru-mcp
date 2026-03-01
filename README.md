@@ -1,8 +1,8 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-210%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-181%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-90%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
 [![Version](https://img.shields.io/badge/version-4.2.0-blue)](CHANGELOG.md)
@@ -229,10 +229,22 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (210 tests)
-uv run pytest --cov=aareguru_mcp # With coverage (87%)
-uv run black src/ tests/         # Format
+uv run pytest                    # Run tests (181 tests)
+uv run pytest --cov=aareguru_mcp # With coverage (90%)
+uv run ruff format src/ tests/   # Format (line-length 88)
 uv run ruff check src/ tests/    # Lint
+uv run mypy src/                 # Type check (strict mode, 0 errors)
+```
+
+**Error Handling (Phase 8)**: All 6 tools use consistent error handling with try/except blocks:
+```python
+try:
+    result = await service.get_current_temperature(city)
+    return result
+except ValueError as e:
+    return {"error": f"Invalid city: {str(e)}"}
+except Exception as e:
+    return {"error": f"Temperature lookup failed: {str(e)}"}
 ```
 
 ## 📖 Documentation
