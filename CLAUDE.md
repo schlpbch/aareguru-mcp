@@ -11,7 +11,7 @@ MCP tools, 3 MCP resources, and 3 MCP prompts for querying water temperature,
 flow rates, weather conditions, and safety assessments for swimming in the Aare
 river.
 
-**Status**: Production ready with 209 tests passing (87% coverage)
+**Status**: Production ready with 181 tests passing (90% coverage) - Phase 8 complete
 **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
 **Features**: Service layer pattern, rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
 
@@ -207,6 +207,29 @@ Every tool creates a scoped client instance for proper HTTP connection cleanup.
 
 - **Interval**: 300s minimum between requests (configurable via `MIN_REQUEST_INTERVAL_SECONDS`)
 - **Enforcement**: Lock-based coordination prevents concurrent violations
+
+#### Error Handling (Phase 8)
+
+All tools use consistent error handling with try/except blocks:
+
+```python
+async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
+    """Get current water temperature."""
+    try:
+        service = AareguruService()
+        return await service.get_current_temperature(city)
+    except ValueError as e:
+        return {"error": f"Invalid city: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Failed to get temperature: {str(e)}"}
+```
+
+**Key patterns:**
+- All tools return error dicts instead of raising exceptions
+- Structured error responses with `{"error": "message"}` format
+- Specific exception handling (ValueError, TypeError, HTTPError, etc.)
+- Request-scoped logging with context preservation
+- Proper HTTP status mapping for API errors
 
 ### Data Flow
 
