@@ -1,6 +1,3 @@
-> [!WARNING]
-> This repository has been consolidated into the [swiss-mcp mono-repo](https://github.com/schlpbch/swiss-mcp).
-> New development happens in `packages/aareguru-mcp/`. This repo is kept for historical reference only.
 
 # Aareguru MCP Server
 
