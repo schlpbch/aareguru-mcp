@@ -1,6 +1,6 @@
 """Tests for FastMCP App UIs.
 
-Tests conditions_dashboard, historical_chart, and compare_cities_table.
+Tests all apps and the _safety_badge helper.
 All tests mock AareguruService to avoid real API calls.
 """
 
@@ -11,9 +11,13 @@ from prefab_ui.app import PrefabApp
 
 from aareguru_mcp.apps import (
     _safety_badge,
+    city_finder_view,
     compare_cities_table,
     conditions_dashboard,
+    forecast_view,
     historical_chart,
+    intraday_view,
+    safety_briefing,
 )
 
 # ---------------------------------------------------------------------------
@@ -93,6 +97,31 @@ MOCK_HISTORY = {
         {"time": "2026-04-06T12:00:00", "aare": 17.0, "flow": 85.0},
     ]
 }
+
+MOCK_FORECAST_CONDITIONS = {
+    "city": "Bern",
+    "aare": {
+        "location": "Bern",
+        "location_long": "Bern, Schönau",
+        "temperature": 17.2,
+        "temperature_text": "geil aber chli chalt",
+        "swiss_german_explanation": "awesome but a bit cold",
+        "temperature_text_short": "chalt",
+        "flow": 85.0,
+        "flow_text": "normal",
+        "height": 1.2,
+        "forecast2h": 17.8,
+        "forecast2h_text": "slightly warmer",
+        "warning": None,
+    },
+    "forecast": [
+        {"time": "2026-04-06T10:00:00", "sy": 1, "tt": 18.0, "rr": 0.0},
+        {"time": "2026-04-06T11:00:00", "sy": 2, "tt": 19.0, "rr": 0.2},
+        {"time": "2026-04-06T12:00:00", "sy": 3, "tt": 20.0, "rr": 0.5},
+    ],
+    "seasonal_advice": "Great swimming weather in summer.",
+}
+
 
 MOCK_COMPARE = {
     "cities": [
@@ -322,3 +351,300 @@ class TestCompareCitiesTable:
             result = await compare_cities_table()
         assert isinstance(result, PrefabApp)
         assert result.state["rows"] == []
+
+
+# ---------------------------------------------------------------------------
+# forecast_view tests
+# ---------------------------------------------------------------------------
+
+
+class TestForecastView:
+    @pytest.mark.asyncio
+    async def test_returns_prefab_app(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            result = await forecast_view("Bern")
+        assert isinstance(result, PrefabApp)
+
+    @pytest.mark.asyncio
+    async def test_default_city_is_bern(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            mock_svc = MockService.return_value
+            mock_svc.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            await forecast_view()
+            mock_svc.get_current_conditions.assert_called_once_with("Bern")
+
+    @pytest.mark.asyncio
+    async def test_state_has_current_temp(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            result = await forecast_view("Bern")
+        assert result.state["current_temp"] == 17.2
+
+    @pytest.mark.asyncio
+    async def test_state_has_forecast_2h(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            result = await forecast_view("Bern")
+        assert result.state["forecast_2h"] == 17.8
+
+    @pytest.mark.asyncio
+    async def test_rising_trend(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            result = await forecast_view("Bern")
+        assert result.state["trend"] == "↑"
+
+    @pytest.mark.asyncio
+    async def test_state_has_hour_count(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_FORECAST_CONDITIONS
+            )
+            result = await forecast_view("Bern")
+        assert result.state["hours"] == 3
+
+    @pytest.mark.asyncio
+    async def test_no_forecast_data_does_not_raise(self):
+        empty = {**MOCK_FORECAST_CONDITIONS, "forecast": []}
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=empty
+            )
+            result = await forecast_view("Bern")
+        assert result.state["hours"] == 0
+
+    @pytest.mark.asyncio
+    async def test_stable_trend(self):
+        stable = {
+            **MOCK_FORECAST_CONDITIONS,
+            "aare": {**MOCK_FORECAST_CONDITIONS["aare"], "forecast2h": 17.2},
+        }
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=stable
+            )
+            result = await forecast_view("Bern")
+        assert result.state["trend"] == "→"
+
+
+# ---------------------------------------------------------------------------
+# intraday_view tests
+# ---------------------------------------------------------------------------
+
+MOCK_INTRADAY = {
+    **MOCK_CONDITIONS,
+    "aarepast": [
+        {"time": "2026-04-06T08:00:00", "aare": 15.0},
+        {"time": "2026-04-06T09:00:00", "aare": 16.0},
+        {"time": "2026-04-06T10:00:00", "aare": 17.2},
+    ],
+}
+
+
+class TestIntradayView:
+    @pytest.mark.asyncio
+    async def test_returns_prefab_app(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_INTRADAY
+            )
+            result = await intraday_view("Bern")
+        assert isinstance(result, PrefabApp)
+
+    @pytest.mark.asyncio
+    async def test_state_has_point_count(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_INTRADAY
+            )
+            result = await intraday_view("Bern")
+        assert result.state["points"] == 3
+
+    @pytest.mark.asyncio
+    async def test_state_has_current_temp(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_INTRADAY
+            )
+            result = await intraday_view("Bern")
+        assert result.state["current_temp"] == 17.2
+
+    @pytest.mark.asyncio
+    async def test_delta_computed(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_INTRADAY
+            )
+            result = await intraday_view("Bern")
+        assert abs(result.state["delta"] - 2.2) < 0.01
+
+    @pytest.mark.asyncio
+    async def test_no_past_data_does_not_raise(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value={**MOCK_CONDITIONS, "aarepast": []}
+            )
+            result = await intraday_view("Bern")
+        assert result.state["points"] == 0
+
+    @pytest.mark.asyncio
+    async def test_unix_timestamps_normalised(self):
+        data = {
+            **MOCK_CONDITIONS,
+            "aarepast": [
+                {"time": 1744000000, "aare": 16.0},
+                {"time": 1744003600, "aare": 17.0},
+            ],
+        }
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=data
+            )
+            result = await intraday_view("Bern")
+        assert result.state["points"] == 2
+
+
+# ---------------------------------------------------------------------------
+# city_finder_view tests
+# ---------------------------------------------------------------------------
+
+
+class TestCityFinderView:
+    @pytest.mark.asyncio
+    async def test_returns_prefab_app(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.compare_cities = AsyncMock(
+                return_value=MOCK_COMPARE
+            )
+            result = await city_finder_view()
+        assert isinstance(result, PrefabApp)
+
+    @pytest.mark.asyncio
+    async def test_state_has_total(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.compare_cities = AsyncMock(
+                return_value=MOCK_COMPARE
+            )
+            result = await city_finder_view()
+        assert result.state["total"] == 3
+
+    @pytest.mark.asyncio
+    async def test_default_sort_by_temperature(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.compare_cities = AsyncMock(
+                return_value=MOCK_COMPARE
+            )
+            result = await city_finder_view()
+        assert result.state["sort_by"] == "temperature"
+
+    @pytest.mark.asyncio
+    async def test_sort_by_safety(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.compare_cities = AsyncMock(
+                return_value=MOCK_COMPARE
+            )
+            result = await city_finder_view(sort_by="safety")
+        assert result.state["sort_by"] == "safety"
+
+    @pytest.mark.asyncio
+    async def test_calls_compare_with_none(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            mock_svc = MockService.return_value
+            mock_svc.compare_cities = AsyncMock(return_value=MOCK_COMPARE)
+            await city_finder_view()
+            mock_svc.compare_cities.assert_called_once_with(None)
+
+
+# ---------------------------------------------------------------------------
+# safety_briefing tests
+# ---------------------------------------------------------------------------
+
+MOCK_SAFETY_CONDITIONS = {
+    **MOCK_CONDITIONS,
+    "aare": {
+        **MOCK_CONDITIONS["aare"],
+        "flow": 85.0,
+        "flow_gefahrenstufe": 1,
+        "flow_scale_threshold": 220.0,
+        "height": 1.2,
+    },
+}
+
+MOCK_DANGER_CONDITIONS = {
+    **MOCK_CONDITIONS,
+    "aare": {
+        **MOCK_CONDITIONS["aare"],
+        "flow": 350.0,
+        "flow_gefahrenstufe": 4,
+        "flow_scale_threshold": 220.0,
+        "height": 2.8,
+    },
+}
+
+
+class TestSafetyBriefing:
+    @pytest.mark.asyncio
+    async def test_returns_prefab_app(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_SAFETY_CONDITIONS
+            )
+            result = await safety_briefing("Bern")
+        assert isinstance(result, PrefabApp)
+
+    @pytest.mark.asyncio
+    async def test_state_has_level(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_SAFETY_CONDITIONS
+            )
+            result = await safety_briefing("Bern")
+        assert result.state["level"] == 1
+
+    @pytest.mark.asyncio
+    async def test_api_gefahrenstufe_takes_precedence(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_DANGER_CONDITIONS
+            )
+            result = await safety_briefing("Bern")
+        assert result.state["level"] == 4
+
+    @pytest.mark.asyncio
+    async def test_state_has_flow(self):
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=MOCK_SAFETY_CONDITIONS
+            )
+            result = await safety_briefing("Bern")
+        assert result.state["flow"] == 85.0
+
+    @pytest.mark.asyncio
+    async def test_level_computed_from_flow_when_no_gefahrenstufe(self):
+        no_gef = {
+            **MOCK_CONDITIONS,
+            "aare": {
+                **MOCK_CONDITIONS["aare"],
+                "flow": 260.0,
+                "flow_gefahrenstufe": None,
+                "flow_scale_threshold": None,
+                "height": None,
+            },
+        }
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
+            MockService.return_value.get_current_conditions = AsyncMock(
+                return_value=no_gef
+            )
+            result = await safety_briefing("Bern")
+        assert result.state["level"] == 3  # 220–300 → Erhebliche Gefahr

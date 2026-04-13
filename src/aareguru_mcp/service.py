@@ -188,6 +188,8 @@ class AareguruService:
                     "temperature_text_short": response.aare.temperature_text_short,
                     "flow": response.aare.flow,
                     "flow_text": response.aare.flow_text,
+                    "flow_gefahrenstufe": response.aare.flow_gefahrenstufe,
+                    "flow_scale_threshold": response.aare.flow_scale_threshold,
                     "height": response.aare.height,
                     "forecast2h": response.aare.forecast2h,
                     "forecast2h_text": response.aare.forecast2h_text,
@@ -208,6 +210,10 @@ class AareguruService:
             # Sun data (optional)
             if response.sun:
                 result["sun"] = response.sun
+
+            # Intraday past readings (optional)
+            if response.aarepast:
+                result["aarepast"] = response.aarepast
 
             return result
 

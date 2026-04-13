@@ -107,6 +107,9 @@ class AareCurrentData(BaseModel):
     temperature_text_short: str | None = Field(None, description="Short text")
     flow: float | None = Field(None, description="Flow rate m³/s")
     flow_text: str | None = Field(None, description="Flow description")
+    flow_gefahrenstufe: int | None = Field(
+        None, description="BAFU danger level (1-5)", ge=1, le=5
+    )
     flow_scale_threshold: float | None = Field(None, description="Flow threshold")
     forecast2h: float | None = Field(None, description="2h forecast temp")
     forecast2h_text: str | None = Field(None, description="2h forecast text")
