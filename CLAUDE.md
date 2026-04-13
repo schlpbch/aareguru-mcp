@@ -92,6 +92,7 @@ uv pip install -e ".[dev]"
 The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
 **Key Layers (Top to Bottom):**
+
 1. **MCP Server** (`server.py`): FastMCP decorators (@mcp.tool, @mcp.resource, @mcp.prompt)
 2. **MCP Tools** (`tools.py`): Thin wrappers delegating to service layer for business logic
 3. **Service Layer** (`service.py`): Core domain logic with 7 methods mapping to tools
@@ -101,6 +102,7 @@ The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHIT
 7. **Config** (`config.py`): Environment-based settings
 
 **Architecture Diagram:**
+
 ```
 server.py (@mcp.tool)
     ↓ (thin wrapper)
@@ -149,6 +151,7 @@ class AareguruService:
 ```
 
 **Service Methods (map 1:1 to tools):**
+
 - `get_current_temperature(city)` - Temperature with enrichment
 - `get_current_conditions(city)` - Comprehensive conditions with all data
 - `get_historical_data(city, start, end)` - Time-series data bypass cache
@@ -158,6 +161,7 @@ class AareguruService:
 - `get_cities_list()` - List all available cities
 
 **Benefits:**
+
 - ✅ Code reuse: Business logic not duplicated across tools
 - ✅ Testability: Service can be unit tested independently
 - ✅ Extensibility: New APIs (REST, Chat) can reuse service methods
@@ -165,6 +169,7 @@ class AareguruService:
 - ✅ DRY: Fixed `get_flow_danger_level` to use `get_safety_assessment()` helper
 
 **Thin MCP Tool Wrappers:**
+
 ```python
 async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
     """Get current water temperature... (MCP docstring for schema)"""
@@ -225,6 +230,7 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
 ```
 
 **Key patterns:**
+
 - All tools return error dicts instead of raising exceptions
 - Structured error responses with `{"error": "message"}` format
 - Specific exception handling (ValueError, TypeError, HTTPError, etc.)
@@ -467,6 +473,7 @@ async def new_tool_name(param: str) -> dict[str, Any]:
 ```
 
 **Guidelines**:
+
 - **Service layer** contains all business logic and enrichment
 - **Tool wrapper** focuses on MCP interface (docstrings, types)
 - Start docstring with use case: "Use this for..."
@@ -476,6 +483,7 @@ async def new_tool_name(param: str) -> dict[str, Any]:
 - Service methods reusable by future REST/Chat APIs
 
 **Testing**: Add to `tests/test_tools_basic.py` or `tests/test_tools_advanced.py`
+
 - Mock the service or client layer consistently
 - Verify both service method and tool wrapper work
 
