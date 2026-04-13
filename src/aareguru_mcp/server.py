@@ -20,7 +20,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from . import prompts, resources, tools
+from . import apps, prompts, resources, tools
 from .config import get_settings
 from .metrics import MetricsCollector
 from .models import (
@@ -40,6 +40,11 @@ settings = get_settings()
 # Create FastMCP server instance
 mcp = FastMCP(
     name="aareguru-mcp",
+    providers=[
+        apps.conditions_app,
+        apps.history_app,
+        apps.compare_app,
+    ],
     instructions="""You are an assistant that helps users with Swiss Aare river conditions.
 
 You can provide:

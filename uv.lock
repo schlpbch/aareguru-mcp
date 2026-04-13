@@ -7,7 +7,7 @@ name = "aareguru-mcp"
 version = "4.3.0"
 source = { editable = "." }
 dependencies = [
-    { name = "fastmcp" },
+    { name = "fastmcp", extra = ["apps"] },
     { name = "httpx" },
     { name = "prometheus-client" },
     { name = "pydantic" },
@@ -30,7 +30,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", specifier = ">=3.2.3" },
+    { name = "fastmcp", extras = ["apps"], specifier = ">=3.2.3" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "prometheus-client", specifier = ">=0.20.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
@@ -629,6 +629,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f5/48/84b6dcba793178a44b9d99b4def6cd62f870dcfc5bb7b9153ac390135812/fastmcp-3.2.3-py3-none-any.whl", hash = "sha256:cc50af6eed1f62ed8b6ebf4987286d8d1d006f08d5bec739d5c7fb76160e0911", size = 707260, upload-time = "2026-04-09T22:05:01.225Z" },
 ]
 
+[package.optional-dependencies]
+apps = [
+    { name = "prefab-ui" },
+]
+
 [[package]]
 name = "h11"
 version = "0.16.0"
@@ -1067,6 +1072,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+]
+
+[[package]]
+name = "prefab-ui"
+version = "0.19.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cyclopts" },
+    { name = "pydantic" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/64/d1/c4459a29b85e411846da69c6c96f43d62d8e2ac9f57391186dc668771641/prefab_ui-0.19.0.tar.gz", hash = "sha256:e735b00207e85e3c9de67df22fa8da2073ec158abd6337b6d092b23cf9cbd9f6", size = 4078835, upload-time = "2026-04-10T00:16:34.743Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/03/badf1b950f00353eee2e58c2357533412faa24ed8b3cf6b7643bdd24fc87/prefab_ui-0.19.0-py3-none-any.whl", hash = "sha256:37be5995241de6f5483a670675a764c428897aff4b4cf3ef88ca630c3e119d6e", size = 1848525, upload-time = "2026-04-10T00:16:32.365Z" },
 ]
 
 [[package]]

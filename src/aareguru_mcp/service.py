@@ -205,6 +205,10 @@ class AareguruService:
             if response.weatherprognosis:
                 result["forecast"] = response.weatherprognosis
 
+            # Sun data (optional)
+            if response.sun:
+                result["sun"] = response.sun
+
             return result
 
     async def get_historical_data(
