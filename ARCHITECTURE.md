@@ -10,7 +10,7 @@ Aareguru MCP Server is a production-ready Model Context Protocol (MCP) server bu
 - **Resource-aware**: Context managers ensure proper cleanup
 - **Observable**: Structured logging with structlog
 - **Resilient**: Caching, rate limiting, comprehensive error handling
-- **Testable**: 87% coverage, 210 passing tests
+- **Testable**: 83% coverage, 240 passing tests
 
 ## Design Philosophy
 
@@ -27,10 +27,17 @@ Each layer has a single, well-defined responsibility:
 └─────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────┐
-│  Business Logic (tools.py, resources.py, helpers.py)│
-│  - Domain logic and data transformation             │
+│  MCP Interface (tools.py, resources.py, prompts.py) │
+│  - Thin wrappers delegating to service layer        │
+│  - MCP docstrings and type hints for schema         │
+│  - Error handling (returns dicts, not exceptions)   │
+└─────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────┐
+│  Service Layer (service.py)                         │
+│  - Core domain logic and data transformation        │
 │  - Safety assessments and suggestions               │
-│  - Swiss German translations                        │
+│  - Swiss German translations via helpers.py         │
 └─────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────┐
@@ -98,52 +105,61 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
 
 **Dependencies:** FastMCP framework, tools/resources modules
 
-### Layer 2: Business Logic
+### Layer 2: MCP Interface (tools.py, resources.py, prompts.py)
 
-#### tools.py
+**Responsibility:** Thin MCP wrappers — docstrings, type hints, error handling
 
-**Responsibility:** Core tool implementations
-
-**Pattern:** Pure async functions with context managers
+**Pattern:** Delegates all business logic to service layer
 
 ```python
 async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
-    """Fetch and enrich current temperature data."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_today(city)
-        
-        # Enrich with helpers
-        if response.text:
-            explanation = get_swiss_german_explanation(response.text)
-        
-        return {**response.model_dump(), "explanation": explanation}
+    """Get current water temperature... (MCP docstring for schema)"""
+    try:
+        service = AareguruService()
+        return await service.get_current_temperature(city)
+    except ValueError as e:
+        return {"error": f"Invalid city: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Failed to get temperature: {str(e)}"}
 ```
 
 **Key Features:**
-- Scoped client instances (one per request)
-- Data enrichment with helper functions
-- Consistent error handling
-- Logging with structured context
 
-#### resources.py
+- MCP protocol concerns only (docstrings, schemas, type hints)
+- Returns error dicts instead of raising exceptions
+- No business logic — fully delegated to service.py
 
-**Responsibility:** MCP resource implementations (URI → data)
+### Layer 3: Service Layer (service.py)
 
-**Pattern:** Resource URIs mapped to async functions
+**Responsibility:** Core domain logic — data fetching, enrichment, safety
+
+**Pattern:** Class with async methods, one per tool
 
 ```python
-async def read_resource(uri: str) -> str:
-    """Resolve URI to JSON data."""
-    if uri == "aareguru://cities":
-        async with AareguruClient(settings=get_settings()) as client:
-            cities = await client.get_cities()
-            return json.dumps([c.model_dump() for c in cities], indent=2)
+class AareguruService:
+    async def get_current_temperature(self, city: str) -> dict[str, Any]:
+        async with AareguruClient(settings=self.settings) as client:
+            response = await client.get_today(city)
+            warning = check_safety_warning(response.flow)
+            return {"city": city, "temperature": response.aare, "warning": warning}
 ```
 
+**Service Methods (1:1 mapping to MCP tools):**
+
+- `get_current_temperature(city)` — temperature with enrichment
+- `get_current_conditions(city)` — comprehensive conditions
+- `get_historical_data(city, start, end)` — time-series, bypasses cache
+- `compare_cities(cities)` — parallel comparison with ranking
+- `get_forecasts(cities)` — parallel forecast fetching with trends
+- `get_flow_danger_level(city)` — BAFU flow assessment
+- `get_cities_list()` — list all available cities
+
 **Key Features:**
-- URI-based routing
-- JSON serialization
-- Same client lifecycle as tools
+
+- Reusable by future REST/Chat APIs (not MCP-specific)
+- Scoped client instances (one per request)
+- Data enrichment with helper functions
+- Structured logging with context
 
 #### helpers.py
 
@@ -167,7 +183,7 @@ def get_safety_assessment(flow: float | None, threshold: int) -> str:
 - Easily testable
 - Domain knowledge encapsulation
 
-### Layer 3: HTTP Client (client.py)
+### Layer 4: HTTP Client (client.py)
 
 **Responsibility:** Async HTTP communication with caching and rate limiting
 
@@ -595,7 +611,7 @@ def mock_http_client():
 
 ### Coverage Goals
 
-- **Overall:** 87% (current: 87% ✅)
+- **Overall:** 83% (current: 83% ✅)
 - **Core modules:** 90%+ (client.py, tools.py, helpers.py)
 - **Models:** 95%+ (critical for data integrity)
 - **Server:** 80%+ (some branches only hit in production)
@@ -868,6 +884,6 @@ This architecture prioritizes:
 2. **Performance:** Caching, connection pooling, async I/O
 3. **Maintainability:** Layered design, dependency injection, type safety
 4. **Observability:** Structured logging, health checks, clear data flow
-5. **Testability:** 87% coverage, mockable components, deterministic tests
+5. **Testability:** 83% coverage, mockable components, deterministic tests
 
 The design supports both simple stdio deployment (Claude Desktop) and complex HTTP/SSE deployments (web/cloud) with minimal code changes, demonstrating the flexibility of the layered architecture.

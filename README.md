@@ -2,8 +2,8 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-181%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-90%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-240%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-83%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
 [![Version](https://img.shields.io/badge/version-4.2.0-blue)](CHANGELOG.md)
@@ -56,7 +56,7 @@ Altnernatively, you can add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via 
 | **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")          |
 | **BAFU Safety**      | Official flow danger levels and thresholds                           |
 | **Smart UX**         | Proactive safety warnings, alternative suggestions, seasonal context |
-| **210 Tests**        | 87% coverage, comprehensive test suite                               |
+| **240 Tests**        | 83% coverage, comprehensive test suite                               |
 | **Async-First**      | Context managers, parallel API fetching with asyncio.gather()        |
 
 ## 🛠️ Tools
@@ -230,8 +230,8 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (181 tests)
-uv run pytest --cov=aareguru_mcp # With coverage (90%)
+uv run pytest                    # Run tests (240 tests)
+uv run pytest --cov=aareguru_mcp # With coverage (83%)
 uv run ruff format src/ tests/   # Format (line-length 88)
 uv run ruff check src/ tests/    # Lint
 uv run mypy src/                 # Type check (strict mode, 0 errors)
@@ -262,7 +262,7 @@ except Exception as e:
 ```
 aareguru-mcp/
 ├── src/aareguru_mcp/     # Server, client, models, config
-├── tests/                # 210 tests, 87% coverage
+├── tests/                # 240 tests, 83% coverage
 ├── docs/                 # API docs, testing, implementation
 ├── ARCHITECTURE.md       # Comprehensive architecture documentation
 ├── CLAUDE.md             # AI assistant guidance

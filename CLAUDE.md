@@ -11,7 +11,7 @@ MCP tools, 3 MCP resources, and 3 MCP prompts for querying water temperature,
 flow rates, weather conditions, and safety assessments for swimming in the Aare
 river.
 
-**Status**: Production ready with 181 tests passing (90% coverage) - Phase 8 complete
+**Status**: Production ready with 240 tests passing (83% coverage) - Phase 8 complete
 **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
 **Features**: Service layer pattern, rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
 
@@ -103,7 +103,7 @@ The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHIT
 
 **Architecture Diagram:**
 
-```
+```bash
 server.py (@mcp.tool)
     ↓ (thin wrapper)
 tools.py (MCP interface)
@@ -126,6 +126,7 @@ Aareguru API
 The `service.py` module provides a clean separation between MCP protocol concerns and domain logic:
 
 **Service Class Structure:**
+
 ```python
 class AareguruService:
     """Business logic service for Aare river data operations."""
@@ -386,7 +387,7 @@ time across all question categories.
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **210 passing + 2 skipped = 212 total tests** (87% coverage)
+- **240 passing + 5 skipped = 245 total tests** (83% coverage)
 - **Organization**:
   - `test_unit_*.py`: Models, config, client, helpers
   - `test_tools_*.py`: Tool functionality (basic & advanced)
@@ -433,6 +434,7 @@ MIN_REQUEST_INTERVAL_SECONDS=600
 Follow the service layer pattern:
 
 **Step 1: Add service method to `service.py`:**
+
 ```python
 async def new_tool_name(self, param: str) -> dict[str, Any]:
     """Domain logic for new tool.
@@ -458,6 +460,7 @@ async def new_tool_name(self, param: str) -> dict[str, Any]:
 ```
 
 **Step 2: Add thin wrapper in `tools.py`:**
+
 ```python
 async def new_tool_name(param: str) -> dict[str, Any]:
     """[MCP docstring for schema generation].
@@ -491,11 +494,13 @@ async def new_tool_name(param: str) -> dict[str, Any]:
 
 1. **Define model** in `models.py` matching API response structure
 2. **Add client method** in `client.py`:
+
    ```python
    async def get_new_endpoint(self, params) -> NewModel:
        data = await self._request("/v2018/endpoint", params)
        return NewModel(**data)
    ```
+
 3. **Use in tools/resources** with `@mcp.tool()` or `@mcp.resource()` decorators
 
 ### Adding a New Prompt
