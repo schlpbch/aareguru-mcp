@@ -3,8 +3,8 @@
 # Last Updated: 2026-02-08
 
 name: aareguru-mcp
-version: "4.1.0"
-python_version: "3.13"
+version: "4.3.0"
+python_version: "3.14"
 
 # Deployment configuration
 deployment:

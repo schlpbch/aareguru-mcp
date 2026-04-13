@@ -8,8 +8,8 @@ from urllib.parse import urlencode
 import httpx
 import structlog
 from pydantic import ValidationError
-from swiss_ai_mcp_commons.serialization import (
-    JsonSerializableMixin,  # type: ignore[import-untyped]
+from swiss_ai_mcp_commons.serialization import (  # type: ignore[import-untyped]
+    JsonSerializableMixin,
 )
 
 from .config import get_settings

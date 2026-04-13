@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 license = {text = "MIT"}
 
 dependencies = [
-    "fastmcp>=3.0.0",
+    "fastmcp>=3.2.3",
     "httpx>=0.27.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
@@ -82,4 +82,8 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--cov=aareguru_mcp",
+]
+filterwarnings = [
+    # slowapi uses deprecated asyncio.iscoroutinefunction (Python 3.14+); upstream fix pending
+    "ignore::DeprecationWarning:slowapi",
 ]
