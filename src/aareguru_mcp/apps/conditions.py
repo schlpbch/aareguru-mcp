@@ -1,6 +1,5 @@
 """App 1: Current conditions dashboard."""
 
-from datetime import datetime as _dt
 from typing import Any
 
 import structlog
@@ -34,12 +33,9 @@ from ._constants import (
     _FLOW_ZONES,
 )
 from ._helpers import (
-    _beaufort,
     _fmt_flow,
     _fmt_pct,
-    _fmt_sun,
     _fmt_temp,
-    _fmt_wind,
     _safety_badge,
     _sy_to_emoji,
 )
@@ -214,8 +210,19 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                             )
 
         # ── Weather section (--ag-c-bg-wetter mint green) ──────────────────
+        # API structure: weather.current={tt,rr}, weather.today={v,n,a periods},
+        # weather.forecast=[{day,sy,symt,tx,tn,...}]
         weather: dict[str, Any] = data.get("weather") or {}
-        forecast_list: list[dict[str, Any]] = data.get("forecast") or []
+        weather_current: dict[str, Any] = weather.get("current") or {}
+        weather_today_periods: dict[str, Any] = weather.get("today") or {}
+        # Pick best period: midday (n) preferred, fallback morning (v) or afternoon (a)
+        weather_period: dict[str, Any] = (
+            weather_today_periods.get("n")
+            or weather_today_periods.get("v")
+            or weather_today_periods.get("a")
+            or {}
+        )
+        forecast_list: list[dict[str, Any]] = weather.get("forecast") or []
 
         if weather:
             Separator(cssClass="my-2")
@@ -227,9 +234,9 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
             # Current weather card — mint green background
             with Card(cssClass=f"bg-[{_AG_BG_WETTER}] {_AG_RADIUS} overflow-hidden"):
                 with CardContent(cssClass="p-6"):
-                    # Header row: emoji + description
-                    sy: int | None = weather.get("sy")
-                    syt: str | None = weather.get("syt") or weather.get("symt")
+                    # Header row: emoji + description (from today's midday period)
+                    sy: int | None = weather_period.get("symt")
+                    syt: str | None = weather_period.get("syt")
                     with Row(cssClass="items-center gap-3 mb-4"):
                         Text(
                             _sy_to_emoji(sy),
@@ -243,79 +250,64 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 
                     # Metrics grid: air temp / precipitation / wind
                     with Grid(columns=3, gap=3):
-                        # Air temperature
+                        # Air temperature — current measurement; min/max from forecast
                         with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
                             with CardContent(cssClass="p-3 text-center"):
                                 Text(
-                                    _fmt_temp(weather.get("tt")),
+                                    _fmt_temp(weather_current.get("tt")),
                                     cssClass=f"text-3xl font-black tabular-nums text-[{_AG_AIR_TEMP}]",
                                 )
                                 Muted(
                                     "Lufttemp.",
                                     cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                # Min/max on same card
-                                tn = weather.get("tn")
-                                tx = weather.get("tx")
+                                # Min/max from today's forecast entry
+                                tn = forecast_list[0].get("tn") if forecast_list else None
+                                tx = forecast_list[0].get("tx") if forecast_list else None
                                 if tn is not None or tx is not None:
                                     Muted(
                                         f"{_fmt_temp(tn)} / {_fmt_temp(tx)}",
                                         cssClass=f"text-xs text-[{_AG_AIR_TEMP}]/70 mt-1",
                                     )
 
-                        # Precipitation risk
+                        # Precipitation risk (from today's period)
                         with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
                             with CardContent(cssClass="p-3 text-center"):
                                 Text(
-                                    _fmt_pct(weather.get("rrisk")),
+                                    _fmt_pct(weather_period.get("rrisk")),
                                     cssClass=f"text-3xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Niederschlag",
                                     cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                rr = weather.get("rr")
+                                rr = weather_period.get("rr")
                                 if rr:
                                     Muted(
                                         f"{rr:.1f} mm",
                                         cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-1",
                                     )
 
-                        # Wind speed + Beaufort
+                        # Wind speed — not provided by API, shown as unavailable
                         with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
                             with CardContent(cssClass="p-3 text-center"):
-                                bft_num, bft_label, bft_emoji = _beaufort(
-                                    weather.get("v")
-                                )
                                 Text(
-                                    _fmt_wind(weather.get("v")),
+                                    "—",
                                     cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Wind",
                                     cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                if weather.get("v") is not None:
-                                    Muted(
-                                        f"{bft_emoji} Bft {bft_num} · {bft_label}",
-                                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 mt-1",
-                                    )
 
-            # Forecast row (up to 6 entries)
+            # Forecast row — daily entries from weather.forecast
             if forecast_list:
                 with Row(cssClass="gap-2 overflow-x-auto pb-1 mt-1"):
                     for entry in forecast_list[:6]:
-                        entry_sy: int | None = entry.get("sy")
-                        entry_tt: float | None = entry.get("tt") or entry.get(
-                            "temperature"
-                        )
-                        entry_time: str | None = entry.get("time")
-                        # Format timestamp to HH:MM if it's a unix int
-                        time_label = "—"
-                        if isinstance(entry_time, int):
-                            time_label = _dt.fromtimestamp(entry_time).strftime("%H:%M")
-                        elif isinstance(entry_time, str) and len(entry_time) >= 16:
-                            time_label = entry_time[11:16]
+                        entry_sy: int | None = entry.get("symt")
+                        entry_tt: float | None = entry.get("tx") or entry.get("tn")
+                        # Use short day name (e.g. "Sa.") as time label
+                        time_label = entry.get("dayshort") or "—"
 
                         with Card(
                             cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/60 min-w-[64px] flex-shrink-0"
@@ -335,7 +327,10 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                                 )
 
         # ── Sun section ────────────────────────────────────────────────────
+        # API structure: sun.today={suntotal:"9:46",sunrelative:72},
+        # sun.sunlocations=[{name,sunsetlocal,timeleft,...}]
         sun: dict[str, Any] = data.get("sun") or {}
+        sun_today: dict[str, Any] = sun.get("today") or {}
         if sun:
             Separator(cssClass="my-2")
             Text(
@@ -345,18 +340,23 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
             with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_SUNNY}]"):
                 with CardContent(cssClass="p-4"):
                     # Top row: sunshine hours + sunset time
+                    # suntotal is "H:MM" string; sunsetlocal from first sun location
+                    suntotal_str: str | None = sun_today.get("suntotal")
+                    sun_locs: list[dict[str, Any]] = sun.get("sunlocations") or []
+                    sunset_str: str | None = sun_locs[0].get("sunsetlocal") if sun_locs else None
+
                     with Grid(columns=2, gap=3, cssClass="mb-3"):
                         with Card(cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20"):
                             with CardContent(cssClass="p-3 text-center"):
                                 Text(
-                                    _fmt_sun(sun.get("suntotal")),
+                                    suntotal_str or "—",
                                     cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Sonnenschein",
                                     cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                sun_rel = sun.get("suntotalrelative")
+                                sun_rel = sun_today.get("sunrelative")
                                 if sun_rel is not None:
                                     Muted(
                                         f"{sun_rel:.0f}% des Tages",
@@ -365,7 +365,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                         with Card(cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20"):
                             with CardContent(cssClass="p-3 text-center"):
                                 Text(
-                                    sun.get("ss") or "—",
+                                    sunset_str or "—",
                                     cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
@@ -374,7 +374,6 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                                 )
 
                     # Nearby sunny locations
-                    sun_locs: list[dict[str, Any]] = sun.get("sun_locations") or []
                     if sun_locs:
                         Text(
                             "Sonnige Orte in der Nähe",
@@ -384,9 +383,14 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                             for loc in sun_locs[:5]:
                                 loc_name: str = loc.get("name") or "—"
                                 timeleft: int | None = loc.get("timeleft")
-                                label = (
-                                    f"☀ {loc_name} · {timeleft}min"
+                                timeleft_str = loc.get("timeleftstring") or (
+                                    f"{timeleft // 3600}h {(timeleft % 3600) // 60}m"
                                     if timeleft is not None
+                                    else None
+                                )
+                                label = (
+                                    f"☀ {loc_name} · {timeleft_str}"
+                                    if timeleft_str
                                     else f"☀ {loc_name}"
                                 )
                                 Badge(
