@@ -24,6 +24,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
+    _DK,
 )
 
 logger = structlog.get_logger(__name__)
@@ -107,17 +108,17 @@ async def historical_chart(
         with Row(cssClass="justify-between items-end mb-0"):
             Text(
                 f"Aare — {city}",
-                cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase",
+                cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] uppercase",
             )
             Muted(
                 f"{start} → {end}",
-                cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50",
+                cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
             )
 
         if chart_data:
             # Chart card with subtle Aare cyan border-top
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
                 with CardContent(cssClass="pt-3 pb-2 px-3"):
                     AreaChart(
@@ -130,7 +131,7 @@ async def historical_chart(
                     )
             Muted(
                 f"{len(chart_data)} Datenpunkte",
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
             with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):

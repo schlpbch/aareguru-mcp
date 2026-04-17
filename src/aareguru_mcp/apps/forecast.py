@@ -30,6 +30,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
+    _DK,
 )
 from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_emoji
 
@@ -124,7 +125,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
         # ── Header ──────────────────────────────────────────────────────────
         Text(
             f"Vorhersage — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
@@ -136,38 +137,38 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
 
         # ── Current → 2h water temperature cards ────────────────────────────
         with Grid(columns=2, gap=2):
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] {_AG_RADIUS}"):
+            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         _fmt_temp(temp),
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         "Jetzt",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}]/50 {_AG_RADIUS}"):
+            with Card(cssClass=f"bg-[{_AG_BG_WASSER}]/50 dark:bg-[{_DK.BG_WASSER}]/50 {_AG_RADIUS}"):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         f"{trend_arrow} {_fmt_temp(forecast_2h)}",
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         "in 2 Stunden",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
                     if trend_diff:
                         Muted(
                             trend_diff,
-                            cssClass=f"text-xs font-semibold text-[{_AG_WASSER_TEMP}] mt-0.5",
+                            cssClass=f"text-xs font-semibold text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5",
                         )
                     if forecast_2h_text:
                         Muted(
                             forecast_2h_text,
-                            cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                            cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                         )
 
         # Safety + flow row
@@ -179,7 +180,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             )
             Muted(
                 f"{_fmt_flow(flow)} m³/s",
-                cssClass=f"text-xs text-[{_AG_WASSER_FLOW}] font-semibold",
+                cssClass=f"text-xs text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] font-semibold",
             )
 
         # ── Air temperature chart ────────────────────────────────────────────
@@ -188,10 +189,10 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             Text(
                 "Wettervorhersage",
                 cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                f" text-[{_AG_TXT_PRIMARY}]/50 text-center",
+                f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WETTER}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WETTER}] dark:border-t-[{_DK.BG_WETTER}]"
             ):
                 with CardContent(cssClass="pt-3 pb-2 px-3"):
                     AreaChart(
@@ -220,18 +221,18 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             Text(
                 "Stündliche Vorhersage",
                 cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                f" text-[{_AG_TXT_PRIMARY}]/50 text-center",
+                f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )
             with Row(cssClass="gap-1.5 overflow-x-auto pb-1 flex-nowrap"):
                 for entry in normalised[:24]:
                     with Card(
-                        cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/50"
+                        cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/50 dark:bg-[{_DK.BG_WETTER}]/50"
                         " min-w-[52px] flex-shrink-0"
                     ):
                         with CardContent(cssClass="p-1.5 text-center"):
                             Muted(
                                 entry["time"],
-                                cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50",
+                                cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
                             Text(
                                 _sy_to_emoji(entry["sy"]),
@@ -240,12 +241,12 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                             Text(
                                 _fmt_temp(entry["tt"]),
                                 cssClass=f"text-xs font-bold tabular-nums"
-                                f" text-[{_AG_AIR_TEMP}]",
+                                f" text-[{_AG_AIR_TEMP}] dark:text-[{_DK.AIR_TEMP}]",
                             )
                             if entry["rr"]:
                                 Muted(
                                     f"{entry['rr']:.1f}mm",
-                                    cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                                 )
 
     return PrefabApp(

@@ -23,6 +23,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
+    _DK,
 )
 from ._helpers import _fmt_flow, _safety_badge
 
@@ -97,46 +98,46 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
     with Column(gap=2, cssClass="p-2 max-w-3xl mx-auto") as view:
         Text(
             "Städtefinder",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Summary strip
         with Grid(columns=3, gap=2, cssClass="mb-1"):
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         warmest.get("location") or warmest.get("city") or "—",
-                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     if warmest.get("temperature") is not None:
                         Text(
                             f"{warmest['temperature']:.1f}°",
                             cssClass=f"text-xl font-black tabular-nums"
-                            f" text-[{_AG_WASSER_TEMP}]",
+                            f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
                         "WÄRMSTE STADT",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"):
+            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
-                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}]",
+                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
                         "SICHERE STÄDTE",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}] dark:border-t-[{_DK.WASSER_FLOW}]"
             ):
                 with CardContent(cssClass="p-2 text-center"):
                     sort_label = (
@@ -144,12 +145,12 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
                     )
                     Text(
                         sort_label,
-                        cssClass=f"text-xs font-semibold text-[{_AG_WASSER_FLOW}]",
+                        cssClass=f"text-xs font-semibold text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
                         "SORTIERUNG",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         with Card(cssClass=f"{_AG_RADIUS}"):

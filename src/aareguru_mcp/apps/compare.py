@@ -23,6 +23,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
+    _DK,
 )
 from ._helpers import _fmt_flow, _safety_badge
 
@@ -83,55 +84,55 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
         # Header
         Text(
             "Städtevergleich",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase text-center",
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] uppercase text-center",
         )
 
         # Summary strip — cyan accent top-border cards
         with Grid(columns=3, gap=2, cssClass="mb-1"):
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         warmest.get("location") or warmest.get("city") or "—",
-                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     if warmest.get("temperature") is not None:
                         Text(
                             f"{warmest['temperature']:.1f}°",
-                            cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
+                            cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
                         "WÄRMSTE STADT",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"):
+            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
-                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}]",
+                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
                         "SICHERE STÄDTE",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
                     Muted(
                         "Durchfluss < 150 m³/s",
-                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40",
+                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}] dark:border-t-[{_DK.WASSER_FLOW}]"
             ):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         str(total),
-                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_FLOW}]",
+                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
                         "STÄDTE VERGLICHEN",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         # Main comparison table

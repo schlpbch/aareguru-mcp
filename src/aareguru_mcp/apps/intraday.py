@@ -24,6 +24,7 @@ from ._constants import (
     _AG_RADIUS,
     _AG_TXT_PRIMARY,
     _AG_WASSER_TEMP,
+    _DK,
 )
 from ._helpers import _fmt_temp
 
@@ -86,22 +87,22 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
     with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
         Text(
             f"Tagesverlauf — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Current + delta summary
         with Grid(columns=2, gap=2):
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] {_AG_RADIUS}"):
+            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         _fmt_temp(current_temp),
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         "Aktuell",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
             with Card(cssClass=f"{_AG_RADIUS}"):
                 with CardContent(cssClass="p-3 text-center"):
@@ -113,17 +114,17 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                     Text(
                         delta_str,
                         cssClass=f"text-3xl font-black tabular-nums"
-                        f" text-[{_AG_WASSER_TEMP}]",
+                        f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         "Veränderung heute",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         if points:
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
                 with CardContent(cssClass="pt-3 pb-2 px-3"):
                     AreaChart(
@@ -142,7 +143,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                     )
             Muted(
                 f"{len(points)} Messungen heute",
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
             with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):

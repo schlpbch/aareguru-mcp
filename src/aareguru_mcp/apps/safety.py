@@ -21,6 +21,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_FLOW,
     _BAFU_LEVELS,
+    _DK,
 )
 from ._helpers import _bafu_level, _fmt_flow
 
@@ -67,7 +68,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     with Column(gap=2, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
             f"Sicherheit — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
@@ -80,16 +81,16 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                 )
                 Text(
                     level_label,
-                    cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] mt-0.5",
+                    cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mt-0.5",
                 )
                 Separator(cssClass="my-2")
                 Text(
                     guidance,
-                    cssClass=f"text-sm font-semibold text-[{_AG_TXT_PRIMARY}]",
+                    cssClass=f"text-sm font-semibold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                 )
                 Muted(
                     description,
-                    cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 mt-0.5",
+                    cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60 mt-0.5",
                 )
 
         # Flow + height readings
@@ -99,29 +100,29 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                     Text(
                         f"{_fmt_flow(flow)} m³/s",
                         cssClass=f"text-xl font-black tabular-nums"
-                        f" text-[{_AG_WASSER_FLOW}]",
+                        f" text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
                         "Abfluss",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
                     if threshold is not None:
                         Muted(
                             f"Schwelle: {threshold:.0f} m³/s",
-                            cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 mt-0.5",
+                            cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40 mt-0.5",
                         )
             with Card(cssClass=f"{_AG_RADIUS}"):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         f"{height:.2f} m" if height is not None else "—",
                         cssClass=f"text-xl font-black tabular-nums"
-                        f" text-[{_AG_WASSER_FLOW}]",
+                        f" text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
                         "Pegelstand",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         # Full 5-level scale
@@ -129,7 +130,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
         Text(
             "BAFU Gefahrenstufen",
             cssClass=f"text-xs uppercase tracking-[0.2em]"
-            f" text-[{_AG_TXT_PRIMARY}]/50 text-center",
+            f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
         )
         with Column(gap=2):
             for lvl, lbl, color, swim_guidance, _desc in _BAFU_LEVELS:
@@ -154,12 +155,12 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                                         f"text-sm font-bold text-[{color}]"
                                         if is_current
                                         else f"text-sm font-semibold"
-                                        f" text-[{_AG_TXT_PRIMARY}]"
+                                        f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                                     ),
                                 )
                                 Muted(
                                     swim_guidance,
-                                    cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60",
+                                    cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
                                 )
 
     return PrefabApp(

@@ -13,6 +13,20 @@ _AG_BFU = "#00b2aa"  # BAFU safety accent
 _AG_SUNNY = "#f2e500"  # sunny weather accent
 _AG_RADIUS = "rounded-[3px]"  # angular Swiss border-radius
 
+
+class _DK:
+    """Dark mode equivalents for the aare.guru design tokens."""
+
+    TXT_PRIMARY = "#c8e6f8"  # light sky blue — replaces dark navy
+    BG_WASSER = "#0d4a5c"  # deep teal — dark cyan background
+    BG_WETTER = "#0a3d24"  # dark forest green
+    WASSER_TEMP = "#38bdf8"  # sky-400 — bright blue for dark bg
+    WASSER_FLOW = "#7dd3fc"  # sky-300 — lighter flow color
+    AIR_TEMP = "#38bdf8"  # sky-400
+    BFU = "#2dd4bf"  # teal-400
+    SUNNY = "#fde047"  # yellow-300
+    CARD_BG = "#1a2e3d"  # dark navy card inner
+
 # ---------------------------------------------------------------------------
 # Safety helpers
 # ---------------------------------------------------------------------------
