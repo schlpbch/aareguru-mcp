@@ -1,6 +1,6 @@
 """Shared helper functions for the aare.guru FastMCP Apps."""
 
-from ._constants import _BEAUFORT, _SAFETY_LEVELS, _SY_EMOJI
+from ._constants import _BEAUFORT, _SAFETY_LEVELS, _SY_EMOJI, _WEATHER_ICONS
 
 
 def _safety_badge(flow: float | None) -> tuple[str, str, str]:
@@ -54,6 +54,16 @@ def _sy_to_emoji(sy: int | None) -> str:
     return _SY_EMOJI.get(sy, "🌡")
 
 
+def _sy_to_icon(sy: int | None, cssClass: str = "leading-none") -> None:
+    """Render a MeteoSwiss weather icon (SVG Image) or emoji fallback (Text)."""
+    from prefab_ui.components import Image, Text
+
+    if sy is not None and sy in _WEATHER_ICONS:
+        Image(src=_WEATHER_ICONS[sy], alt=str(sy), cssClass=cssClass)
+    else:
+        Text(_sy_to_emoji(sy), cssClass=cssClass)
+
+
 def _bafu_level(flow: float | None, gefahrenstufe: int | None) -> int:
     """Return BAFU danger level 1–5 from API value or computed from flow."""
     if gefahrenstufe is not None and 1 <= gefahrenstufe <= 5:
@@ -80,5 +90,6 @@ __all__ = [
     "_fmt_sun",
     "_beaufort",
     "_sy_to_emoji",
+    "_sy_to_icon",
     "_bafu_level",
 ]

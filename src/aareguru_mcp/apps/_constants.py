@@ -4,6 +4,16 @@ import base64
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
+# Weather icons — embedded SVGs (base64 data URIs), keyed by MeteoSwiss sy-code
+# ---------------------------------------------------------------------------
+_WEATHER_ICON_DIR = Path(__file__).parent / "assets" / "img" / "weather"
+_WEATHER_ICONS: dict[int, str] = {
+    int(f.stem): "data:image/svg+xml;base64," + base64.b64encode(f.read_bytes()).decode()
+    for f in _WEATHER_ICON_DIR.glob("*.svg")
+    if f.stem.isdigit()
+}
+
+# ---------------------------------------------------------------------------
 # DIN Next LT Pro — embedded font (base64 woff2)
 # ---------------------------------------------------------------------------
 _FONT_FILE = Path(__file__).parent / "assets" / "fonts" / "DIN-Next-LT-Pro.woff2"

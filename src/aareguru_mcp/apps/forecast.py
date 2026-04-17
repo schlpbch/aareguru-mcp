@@ -33,7 +33,7 @@ from ._constants import (
     _DK,
     _FONT_CSS,
 )
-from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_emoji
+from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_icon
 
 logger = structlog.get_logger(__name__)
 
@@ -235,10 +235,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                                 entry["time"],
                                 cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
-                            Text(
-                                _sy_to_emoji(entry["sy"]),
-                                cssClass="text-base leading-none my-0.5",
-                            )
+                            _sy_to_icon(entry["sy"], cssClass="w-5 h-5 my-0.5")
                             Text(
                                 _fmt_temp(entry["tt"]),
                                 cssClass=f"text-xs font-bold tabular-nums"

@@ -39,7 +39,7 @@ from ._helpers import (
     _fmt_pct,
     _fmt_temp,
     _safety_badge,
-    _sy_to_emoji,
+    _sy_to_icon,
 )
 
 logger = structlog.get_logger(__name__)
@@ -224,7 +224,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                     sy: int | None = weather_period.get("symt")
                     syt: str | None = weather_period.get("syt")
                     with Row(cssClass="items-center gap-2 mb-2"):
-                        Text(_sy_to_emoji(sy), cssClass="text-2xl leading-none")
+                        _sy_to_icon(sy, cssClass="w-8 h-8")
                         if syt:
                             Text(
                                 syt,
@@ -284,7 +284,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                                     time_label,
                                     cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                                 )
-                                Text(_sy_to_emoji(entry_sy), cssClass="text-base leading-none my-0.5")
+                                _sy_to_icon(entry_sy, cssClass="w-5 h-5 my-0.5")
                                 Text(
                                     _fmt_temp(entry_tt),
                                     cssClass=f"text-xs font-bold text-[{_AG_AIR_TEMP}] dark:text-[{_DK.AIR_TEMP}] tabular-nums",
