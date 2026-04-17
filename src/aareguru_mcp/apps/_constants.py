@@ -6,7 +6,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # DIN Next LT Pro — embedded font (base64 woff2)
 # ---------------------------------------------------------------------------
-_FONT_FILE = Path(__file__).parent / "assets" / "webfonts" / "DIN-Next-LT-Pro.woff2"
+_FONT_FILE = Path(__file__).parent / "assets" / "fonts" / "DIN-Next-LT-Pro.woff2"
 _FONT_B64 = base64.b64encode(_FONT_FILE.read_bytes()).decode()
 _FONT_CSS = (
     "@font-face {"
