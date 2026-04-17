@@ -8,8 +8,8 @@ _AG_BG_WETTER = "#aeffda"  # mint green — weather card background
 _AG_TXT_PRIMARY = "#0f405f"  # dark blue — main labels
 _AG_WASSER_TEMP = "#0877ab"  # water temperature values
 _AG_WASSER_FLOW = "#357d9e"  # flow rate values
-_AG_AIR_TEMP = "#0a96d7"  # air temperature values
-_AG_BFU = "#00b2aa"  # BAFU safety accent
+_AG_AIR_TEMP = "#0771a8"  # air temperature values  (darkened from #0a96d7 → 5.1:1 on white)
+_AG_BFU = "#007d76"  # BAFU safety accent  (darkened from #00b2aa → 4.6:1 on white)
 _AG_SUNNY = "#f2e500"  # sunny weather accent
 _AG_RADIUS = "rounded-[3px]"  # angular Swiss border-radius
 
@@ -32,21 +32,23 @@ class _DK:
 # ---------------------------------------------------------------------------
 
 # (max_flow_exclusive, label, badge_variant, hex_color)
+# hex_color is used for text labels — chosen for WCAG AA on white (≥ 4.5:1).
 _SAFETY_LEVELS: list[tuple[float, str, str, str]] = [
-    (100, "Sicher", "success", "#00b2aa"),
-    (220, "Moderat", "info", "#0877ab"),
-    (300, "Erhöht", "warning", "#f59e0b"),
-    (430, "Hoch", "destructive", "#ef4444"),
+    (100, "Sicher",  "success",     "#007d76"),  # 4.6:1  (was #00b2aa → 2.6:1)
+    (220, "Moderat", "info",        "#0877ab"),  # 5.0:1
+    (300, "Erhöht",  "warning",     "#b45309"),  # 4.7:1  (was #f59e0b → 2.2:1)
+    (430, "Hoch",    "destructive", "#dc2626"),  # 4.5:1  (was #ef4444 → 3.8:1)
 ]
 
 # Flow scale bar zones — (lo, hi_or_None, label, hex_color, tailwind_width)
 # Widths are proportional within a 600 m³/s display cap:
 #   100/600=17%, 120/600=20%, 80/600=13%, 130/600=22%, 170/600=28%
+# Colors match _SAFETY_LEVELS (WCAG AA on white).
 _FLOW_ZONES: list[tuple[float, float | None, str, str, str]] = [
-    (0, 100, "Sicher", "#00b2aa", "w-[17%]"),
+    (0, 100, "Sicher", "#007d76", "w-[17%]"),
     (100, 220, "Moderat", "#0877ab", "w-[20%]"),
-    (220, 300, "Erhöht", "#f59e0b", "w-[13%]"),
-    (300, 430, "Hoch", "#ef4444", "w-[22%]"),
+    (220, 300, "Erhöht", "#b45309", "w-[13%]"),
+    (300, 430, "Hoch", "#dc2626", "w-[22%]"),
     (430, None, "Sehr hoch", "#7f1d1d", "w-[28%]"),
 ]
 
@@ -95,40 +97,47 @@ _SY_EMOJI: dict[int, str] = {
     30: "🌦",
 }
 
-# Official BAFU danger levels with German descriptions and swimmer guidance
-_BAFU_LEVELS: list[tuple[int, str, str, str, str]] = [
+# Official BAFU danger levels with German descriptions and swimmer guidance.
+# Tuple: (level, label, light_color, dark_color, guidance, description)
+# dark_color ensures WCAG AA contrast on dark card backgrounds (#1c1c1e).
+_BAFU_LEVELS: list[tuple[int, str, str, str, str, str]] = [
     (
         1,
         "Keine Gefahr",
-        "#00b2aa",
+        "#007d76",  # 4.6:1 on white
+        "#2dd4bf",  # 9.1:1 on dark card
         "Normales Schwimmen möglich",
         "Normale Abflussverhältnisse. Keine erhöhte Gefahr.",
     ),
     (
         2,
         "Mässige Gefahr",
-        "#0877ab",
+        "#0877ab",  # 5.0:1 on white
+        "#38bdf8",  # 7.9:1 on dark card
         "Vorsicht für schwache Schwimmer und Kinder",
         "Leicht erhöhter Abfluss. Ufer teilweise überschwemmt.",
     ),
     (
         3,
         "Erhebliche Gefahr",
-        "#f59e0b",
+        "#b45309",  # amber-700 — 4.7:1 on white (replaces #f59e0b which was 2.2:1)
+        "#fbbf24",  # amber-400 — 9.4:1 on dark card
         "Nur geübte Schwimmer · keine Kinder",
         "Stark erhöhter Abfluss. Überflutungen an Uferbereichen.",
     ),
     (
         4,
         "Grosse Gefahr",
-        "#ef4444",
+        "#dc2626",  # red-600 — 4.5:1 on white (replaces #ef4444 which was 3.8:1)
+        "#f87171",  # red-400 — 5.9:1 on dark card
         "Schwimmen nicht empfohlen",
         "Sehr hoher Abfluss. Grosse Überschwemmungen möglich.",
     ),
     (
         5,
         "Sehr grosse Gefahr",
-        "#7f1d1d",
+        "#7f1d1d",  # red-900 — 10.0:1 on white
+        "#fca5a5",  # red-300 — 8.3:1 on dark card (replaces #7f1d1d which was 1.7:1)
         "Lebensgefahr — Wasser meiden",
         "Ausserordentlich hoher Abfluss. Lebensgefahr im Wasser.",
     ),

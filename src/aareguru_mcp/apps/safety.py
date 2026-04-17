@@ -63,7 +63,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     location: str = aare.get("location_long") or aare.get("location") or city
 
     level = _bafu_level(flow, gefahrenstufe)
-    _, level_label, level_color, guidance, description = _BAFU_LEVELS[level - 1]
+    _, level_label, level_color, level_color_dk, guidance, description = _BAFU_LEVELS[level - 1]
 
     with Column(gap=2, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
@@ -73,11 +73,11 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
         )
 
         # Current level hero card
-        with Card(cssClass=f"{_AG_RADIUS} border-[3px] border-[{level_color}]"):
+        with Card(cssClass=f"{_AG_RADIUS} border-[3px] border-[{level_color}] dark:border-[{level_color_dk}]"):
             with CardContent(cssClass="p-3 text-center"):
                 Text(
                     f"Stufe {level}",
-                    cssClass=f"text-3xl font-black text-[{level_color}]",
+                    cssClass=f"text-3xl font-black text-[{level_color}] dark:text-[{level_color_dk}]",
                 )
                 Text(
                     level_label,
@@ -133,11 +133,11 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
         )
         with Column(gap=2):
-            for lvl, lbl, color, swim_guidance, _desc in _BAFU_LEVELS:
+            for lvl, lbl, color, color_dk, swim_guidance, _desc in _BAFU_LEVELS:
                 is_current = lvl == level
                 with Card(
                     cssClass=(
-                        f"{_AG_RADIUS} border-l-[4px] border-l-[{color}]"
+                        f"{_AG_RADIUS} border-l-[4px] border-l-[{color}] dark:border-l-[{color_dk}]"
                         + (" shadow-md" if is_current else " opacity-50")
                     )
                 ):
@@ -145,14 +145,14 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                         with Row(cssClass="items-center gap-3"):
                             Text(
                                 str(lvl),
-                                cssClass=f"text-xl font-black text-[{color}]"
+                                cssClass=f"text-xl font-black text-[{color}] dark:text-[{color_dk}]"
                                 " w-6 text-center flex-shrink-0",
                             )
                             with Column(cssClass="flex-1"):
                                 Text(
                                     lbl + (" ← aktuell" if is_current else ""),
                                     cssClass=(
-                                        f"text-sm font-bold text-[{color}]"
+                                        f"text-sm font-bold text-[{color}] dark:text-[{color_dk}]"
                                         if is_current
                                         else f"text-sm font-semibold"
                                         f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
