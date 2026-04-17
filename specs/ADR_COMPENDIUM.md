@@ -3,6 +3,7 @@
 **Document Version**: 2.0.0 **Last Updated**: 2026-04-17 **Total ADRs**: 17 (17 Accepted)
 
 **Related Documents**:
+
 - [README.md](../README.md) - User guide and installation
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - Detailed architecture documentation
 - [CLAUDE.md](../CLAUDE.md) - Development guidance and patterns
@@ -691,6 +692,7 @@ monitoring:
 ### [ADR-015] Installation Options
 
 **Direct URL** (Claude Desktop):
+
 ```json
 {"mcpServers": {"aareguru": {"url": "https://aareguru.fastmcp.app/mcp"}}}
 ```
