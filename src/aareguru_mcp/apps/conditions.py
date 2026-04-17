@@ -93,12 +93,12 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
         else:
             trend_text = f"→ {forecast_2h:.1f}° in 2h"
 
-    with Column(gap=4, cssClass="p-4 max-w-2xl mx-auto") as view:
+    with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
 
         # ── Page header ────────────────────────────────────────────────────
         Text(
             f"Aare — {location}",
-            cssClass=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}] text-center uppercase",
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] text-center uppercase",
         )
 
         # ── Safety warning (only if dangerous) ─────────────────────────────
@@ -109,72 +109,63 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 
         # ── Water temperature card (Aare cyan background) ──────────────────
         with Card(cssClass=f"bg-[{_AG_BG_WASSER}] {_AG_RADIUS} overflow-hidden"):
-            with CardContent(cssClass="p-8 text-center"):
-                # Giant temperature number — matches aare.guru XXL font size
+            with CardContent(cssClass="p-4 text-center"):
                 Text(
                     _fmt_temp(temp),
-                    cssClass=f"text-[7rem] font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}]",
+                    cssClass=f"text-5xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}]",
                 )
                 Text(
                     "Wassertemperatur",
-                    cssClass=f"text-xs uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}] mt-1",
+                    cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}] mt-1",
                 )
                 if trend_text:
                     Muted(
                         trend_text,
-                        cssClass=f"text-sm text-[{_AG_WASSER_TEMP}] mt-1 font-semibold",
+                        cssClass=f"text-xs text-[{_AG_WASSER_TEMP}] mt-0.5 font-semibold",
                     )
-
-                # Swiss German phrase with English explanation
                 if temp_text:
-                    Separator(cssClass=f"my-5 border-[{_AG_WASSER_TEMP}]/30")
+                    Separator(cssClass=f"my-2 border-[{_AG_WASSER_TEMP}]/30")
                     Text(
                         f"„{temp_text}\u201c",
-                        cssClass=f"text-xl italic text-[{_AG_TXT_PRIMARY}] font-semibold",
+                        cssClass=f"text-base italic text-[{_AG_TXT_PRIMARY}] font-semibold",
                     )
                     if explanation:
                         Muted(
                             explanation,
-                            cssClass=f"text-sm text-[{_AG_TXT_PRIMARY}]/70 mt-1",
+                            cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/70 mt-0.5",
                         )
 
         # ── Flow rate + BAFU safety (2-column) ─────────────────────────────
-        with Grid(columns=2, gap=4):
+        with Grid(columns=2, gap=2):
 
             # Flow card
             with Card(cssClass=f"{_AG_RADIUS}"):
-                with CardContent(cssClass="p-6 text-center"):
+                with CardContent(cssClass="p-3 text-center"):
                     Text(
                         _fmt_flow(flow),
-                        cssClass=f"text-5xl font-black tabular-nums text-[{_AG_WASSER_FLOW}]",
+                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_FLOW}]",
                     )
                     Text(
-                        "m³/s",
-                        cssClass=f"text-xs uppercase tracking-[0.2em] text-[{_AG_WASSER_FLOW}] mt-1",
-                    )
-                    Muted(
-                        "Wasserstand",
-                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 mt-1",
+                        "m³/s · Wasserstand",
+                        cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_WASSER_FLOW}] mt-0.5",
                     )
 
             # BAFU safety card — thick teal border matches aare.guru BFU panel
-            with Card(cssClass=f"{_AG_RADIUS} border-[5px] border-[{_AG_BFU}]"):
-                with CardContent(cssClass="p-6"):
-                    # Badge + label centred
-                    with Column(cssClass="items-center mb-4"):
+            with Card(cssClass=f"{_AG_RADIUS} border-[4px] border-[{_AG_BFU}]"):
+                with CardContent(cssClass="p-3"):
+                    with Column(cssClass="items-center mb-2"):
                         Badge(
                             label=safety_label,
                             variant=safety_variant,
-                            cssClass="text-base px-4 py-1",
+                            cssClass="text-sm px-3 py-0.5",
                         )
                         Text(
                             "BAFU Sicherheit",
-                            cssClass=f"text-xs uppercase tracking-[0.2em] text-[{_AG_BFU}] mt-2",
+                            cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_BFU}] mt-1",
                         )
 
-                    # ── Flow scale bar ──────────────────────────────────────
-                    # Coloured track: 5 segments proportional to zone widths
-                    with Row(cssClass="overflow-hidden rounded-full gap-0 h-2"):
+                    # Flow scale bar
+                    with Row(cssClass="overflow-hidden rounded-full gap-0 h-1.5"):
                         for lo, hi, _lbl, color, width in _FLOW_ZONES:
                             is_active = (
                                 flow is not None
@@ -184,14 +175,13 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                             Text(
                                 " ",
                                 cssClass=(
-                                    f"block h-3 -mt-0.5 {width} bg-[{color}]"
+                                    f"block h-2 -mt-0.5 {width} bg-[{color}]"
                                     if is_active
-                                    else f"block h-2 {width} bg-[{color}]/35"
+                                    else f"block h-1.5 {width} bg-[{color}]/35"
                                 ),
                             )
 
-                    # Zone labels below the bar
-                    with Row(cssClass="gap-0 mt-1"):
+                    with Row(cssClass="gap-0 mt-0.5"):
                         for lo, hi, lbl, color, width in _FLOW_ZONES:
                             is_active = (
                                 flow is not None
@@ -201,21 +191,17 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                             Text(
                                 f"▲ {lbl}" if is_active else lbl,
                                 cssClass=(
-                                    f"{width} text-center text-[9px] font-bold"
-                                    f" text-[{color}]"
+                                    f"{width} text-center text-[8px] font-bold text-[{color}]"
                                     if is_active
-                                    else f"{width} text-center text-[9px]"
-                                    f" text-[{_AG_TXT_PRIMARY}]/40"
+                                    else f"{width} text-center text-[8px] text-[{_AG_TXT_PRIMARY}]/40"
                                 ),
                             )
 
-        # ── Weather section (--ag-c-bg-wetter mint green) ──────────────────
-        # API structure: weather.current={tt,rr}, weather.today={v,n,a periods},
-        # weather.forecast=[{day,sy,symt,tx,tn,...}]
+        # ── Weather section ─────────────────────────────────────────────────
+        # API: weather.current={tt,rr}, weather.today={v,n,a}, weather.forecast=[]
         weather: dict[str, Any] = data.get("weather") or {}
         weather_current: dict[str, Any] = weather.get("current") or {}
         weather_today_periods: dict[str, Any] = weather.get("today") or {}
-        # Pick best period: midday (n) preferred, fallback morning (v) or afternoon (a)
         weather_period: dict[str, Any] = (
             weather_today_periods.get("n")
             or weather_today_periods.get("v")
@@ -225,161 +211,130 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
         forecast_list: list[dict[str, Any]] = weather.get("forecast") or []
 
         if weather:
-            Separator(cssClass="my-2")
+            Separator(cssClass="my-0")
             Text(
                 "Wetter",
-                cssClass=f"text-xs uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 text-center",
+                cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 text-center",
             )
 
-            # Current weather card — mint green background
             with Card(cssClass=f"bg-[{_AG_BG_WETTER}] {_AG_RADIUS} overflow-hidden"):
-                with CardContent(cssClass="p-6"):
-                    # Header row: emoji + description (from today's midday period)
+                with CardContent(cssClass="p-3"):
                     sy: int | None = weather_period.get("symt")
                     syt: str | None = weather_period.get("syt")
-                    with Row(cssClass="items-center gap-3 mb-4"):
-                        Text(
-                            _sy_to_emoji(sy),
-                            cssClass="text-4xl leading-none",
-                        )
+                    with Row(cssClass="items-center gap-2 mb-2"):
+                        Text(_sy_to_emoji(sy), cssClass="text-2xl leading-none")
                         if syt:
                             Text(
                                 syt,
-                                cssClass=f"text-lg font-semibold text-[{_AG_TXT_PRIMARY}]",
+                                cssClass=f"text-sm font-semibold text-[{_AG_TXT_PRIMARY}]",
                             )
 
-                    # Metrics grid: air temp / precipitation / wind
-                    with Grid(columns=3, gap=3):
-                        # Air temperature — current measurement; min/max from forecast
+                    with Grid(columns=2, gap=2):
+                        # Air temp + min/max
                         with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
-                            with CardContent(cssClass="p-3 text-center"):
+                            with CardContent(cssClass="p-2 text-center"):
+                                tn = forecast_list[0].get("tn") if forecast_list else None
+                                tx = forecast_list[0].get("tx") if forecast_list else None
                                 Text(
                                     _fmt_temp(weather_current.get("tt")),
-                                    cssClass=f"text-3xl font-black tabular-nums text-[{_AG_AIR_TEMP}]",
+                                    cssClass=f"text-xl font-black tabular-nums text-[{_AG_AIR_TEMP}]",
                                 )
                                 Muted(
                                     "Lufttemp.",
-                                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                # Min/max from today's forecast entry
-                                tn = forecast_list[0].get("tn") if forecast_list else None
-                                tx = forecast_list[0].get("tx") if forecast_list else None
                                 if tn is not None or tx is not None:
                                     Muted(
                                         f"{_fmt_temp(tn)} / {_fmt_temp(tx)}",
-                                        cssClass=f"text-xs text-[{_AG_AIR_TEMP}]/70 mt-1",
+                                        cssClass=f"text-[9px] text-[{_AG_AIR_TEMP}]/70",
                                     )
 
-                        # Precipitation risk (from today's period)
+                        # Precipitation
                         with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
-                            with CardContent(cssClass="p-3 text-center"):
+                            with CardContent(cssClass="p-2 text-center"):
                                 Text(
                                     _fmt_pct(weather_period.get("rrisk")),
-                                    cssClass=f"text-3xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
+                                    cssClass=f"text-xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Niederschlag",
-                                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
                                 rr = weather_period.get("rr")
                                 if rr:
                                     Muted(
                                         f"{rr:.1f} mm",
-                                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50",
                                     )
 
-                        # Wind speed — not provided by API, shown as unavailable
-                        with Card(cssClass=f"{_AG_RADIUS} bg-white/60"):
-                            with CardContent(cssClass="p-3 text-center"):
-                                Text(
-                                    "—",
-                                    cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
-                                )
-                                Muted(
-                                    "Wind",
-                                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
-                                )
-
-            # Forecast row — daily entries from weather.forecast
+            # Daily forecast strip
             if forecast_list:
-                with Row(cssClass="gap-2 overflow-x-auto pb-1 mt-1"):
+                with Row(cssClass="gap-1.5 overflow-x-auto pb-0.5"):
                     for entry in forecast_list[:6]:
                         entry_sy: int | None = entry.get("symt")
                         entry_tt: float | None = entry.get("tx") or entry.get("tn")
-                        # Use short day name (e.g. "Sa.") as time label
                         time_label = entry.get("dayshort") or "—"
-
                         with Card(
-                            cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/60 min-w-[64px] flex-shrink-0"
+                            cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/60 min-w-[52px] flex-shrink-0"
                         ):
-                            with CardContent(cssClass="p-2 text-center"):
+                            with CardContent(cssClass="p-1.5 text-center"):
                                 Muted(
                                     time_label,
-                                    cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                Text(
-                                    _sy_to_emoji(entry_sy),
-                                    cssClass="text-xl leading-none my-1",
-                                )
+                                Text(_sy_to_emoji(entry_sy), cssClass="text-base leading-none my-0.5")
                                 Text(
                                     _fmt_temp(entry_tt),
-                                    cssClass=f"text-sm font-bold text-[{_AG_AIR_TEMP}] tabular-nums",
+                                    cssClass=f"text-xs font-bold text-[{_AG_AIR_TEMP}] tabular-nums",
                                 )
 
-        # ── Sun section ────────────────────────────────────────────────────
-        # API structure: sun.today={suntotal:"9:46",sunrelative:72},
+        # ── Sun section ─────────────────────────────────────────────────────
+        # API: sun.today={suntotal:"9:46",sunrelative:72},
         # sun.sunlocations=[{name,sunsetlocal,timeleft,...}]
         sun: dict[str, Any] = data.get("sun") or {}
         sun_today: dict[str, Any] = sun.get("today") or {}
         if sun:
-            Separator(cssClass="my-2")
+            Separator(cssClass="my-0")
             Text(
                 "Sonne",
-                cssClass=f"text-xs uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 text-center",
+                cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 text-center",
             )
-            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_SUNNY}]"):
-                with CardContent(cssClass="p-4"):
-                    # Top row: sunshine hours + sunset time
-                    # suntotal is "H:MM" string; sunsetlocal from first sun location
-                    suntotal_str: str | None = sun_today.get("suntotal")
-                    sun_locs: list[dict[str, Any]] = sun.get("sunlocations") or []
-                    sunset_str: str | None = sun_locs[0].get("sunsetlocal") if sun_locs else None
+            suntotal_str: str | None = sun_today.get("suntotal")
+            sun_locs: list[dict[str, Any]] = sun.get("sunlocations") or []
+            sunset_str: str | None = sun_locs[0].get("sunsetlocal") if sun_locs else None
+            sun_rel = sun_today.get("sunrelative")
 
-                    with Grid(columns=2, gap=3, cssClass="mb-3"):
+            with Card(cssClass=f"{_AG_RADIUS} border-t-[3px] border-t-[{_AG_SUNNY}]"):
+                with CardContent(cssClass="p-3"):
+                    with Grid(columns=2, gap=2, cssClass="mb-2"):
                         with Card(cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20"):
-                            with CardContent(cssClass="p-3 text-center"):
+                            with CardContent(cssClass="p-2 text-center"):
                                 Text(
                                     suntotal_str or "—",
-                                    cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
+                                    cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Sonnenschein",
-                                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
-                                sun_rel = sun_today.get("sunrelative")
                                 if sun_rel is not None:
                                     Muted(
                                         f"{sun_rel:.0f}% des Tages",
-                                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50",
                                     )
                         with Card(cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20"):
-                            with CardContent(cssClass="p-3 text-center"):
+                            with CardContent(cssClass="p-2 text-center"):
                                 Text(
                                     sunset_str or "—",
-                                    cssClass=f"text-2xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
+                                    cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}]",
                                 )
                                 Muted(
                                     "Sonnenuntergang",
-                                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[9px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50",
                                 )
 
-                    # Nearby sunny locations
                     if sun_locs:
-                        Text(
-                            "Sonnige Orte in der Nähe",
-                            cssClass=f"text-xs uppercase tracking-[0.15em] text-[{_AG_TXT_PRIMARY}]/50 mb-2",
-                        )
-                        with Row(cssClass="gap-2 flex-wrap"):
+                        with Row(cssClass="gap-1.5 flex-wrap"):
                             for loc in sun_locs[:5]:
                                 loc_name: str = loc.get("name") or "—"
                                 timeleft: int | None = loc.get("timeleft")
@@ -396,7 +351,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                                 Badge(
                                     label=label,
                                     variant="secondary",
-                                    cssClass=f"bg-[{_AG_SUNNY}]/30 text-[{_AG_TXT_PRIMARY}] {_AG_RADIUS}",
+                                    cssClass=f"bg-[{_AG_SUNNY}]/30 text-[{_AG_TXT_PRIMARY}] {_AG_RADIUS} text-xs",
                                 )
 
         # ── Seasonal advice ─────────────────────────────────────────────────
@@ -404,7 +359,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
         if seasonal:
             Muted(
                 seasonal,
-                cssClass=f"text-center text-sm text-[{_AG_TXT_PRIMARY}]/60 mt-2",
+                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/60",
             )
 
     return PrefabApp(
