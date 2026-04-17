@@ -78,60 +78,60 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
     safe_count = data.get("safe_count", 0)
     total = data.get("total_count", 0)
 
-    with Column(gap=4, cssClass="p-4 max-w-4xl mx-auto") as view:
+    with Column(gap=2, cssClass="p-2 max-w-4xl mx-auto") as view:
 
         # Header
         Text(
             "Städtevergleich",
-            cssClass=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase text-center",
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase text-center",
         )
 
         # Summary strip — cyan accent top-border cards
-        with Grid(columns=3, gap=3, cssClass="mb-4"):
+        with Grid(columns=3, gap=2, cssClass="mb-1"):
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
             ):
-                with CardContent(cssClass="p-4 text-center"):
+                with CardContent(cssClass="p-2 text-center"):
                     Text(
                         warmest.get("location") or warmest.get("city") or "—",
-                        cssClass=f"text-lg font-black text-[{_AG_WASSER_TEMP}]",
+                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}]",
                     )
                     if warmest.get("temperature") is not None:
                         Text(
                             f"{warmest['temperature']:.1f}°",
-                            cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
+                            cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_TEMP}]",
                         )
                     Muted(
                         "WÄRMSTE STADT",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"):
-                with CardContent(cssClass="p-4 text-center"):
+                with CardContent(cssClass="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_BFU}]",
+                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}]",
                     )
                     Muted(
                         "SICHERE STÄDTE",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
                     )
                     Muted(
                         "Durchfluss < 150 m³/s",
-                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/40",
+                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40",
                     )
 
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}]"
             ):
-                with CardContent(cssClass="p-4 text-center"):
+                with CardContent(cssClass="p-2 text-center"):
                     Text(
                         str(total),
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_FLOW}]",
+                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_WASSER_FLOW}]",
                     )
                     Muted(
                         "STÄDTE VERGLICHEN",
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         # Main comparison table

@@ -101,13 +101,13 @@ async def historical_chart(
             )
         )
 
-    with Column(gap=4, cssClass="p-4 max-w-3xl mx-auto") as view:
+    with Column(gap=2, cssClass="p-2 max-w-3xl mx-auto") as view:
 
         # Header — matches aare.guru section title style
-        with Row(cssClass="justify-between items-end mb-2"):
+        with Row(cssClass="justify-between items-end mb-0"):
             Text(
                 f"Aare — {city}",
-                cssClass=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase",
+                cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] uppercase",
             )
             Muted(
                 f"{start} → {end}",
@@ -119,18 +119,18 @@ async def historical_chart(
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
             ):
-                with CardContent(cssClass="pt-6 pb-4 px-4"):
+                with CardContent(cssClass="pt-3 pb-2 px-3"):
                     AreaChart(
                         data=chart_data,
                         series=series,
                         xAxis="time",
                         curve="smooth",
                         showLegend=True,
-                        height=300,
+                        height=220,
                     )
             Muted(
                 f"{len(chart_data)} Datenpunkte",
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
             with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):

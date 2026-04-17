@@ -64,64 +64,64 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     level = _bafu_level(flow, gefahrenstufe)
     _, level_label, level_color, guidance, description = _BAFU_LEVELS[level - 1]
 
-    with Column(gap=4, cssClass="p-4 max-w-xl mx-auto") as view:
+    with Column(gap=2, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
             f"Sicherheit — {location}",
-            cssClass=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Current level hero card
-        with Card(cssClass=f"{_AG_RADIUS} border-[5px] border-[{level_color}]"):
-            with CardContent(cssClass="p-6 text-center"):
+        with Card(cssClass=f"{_AG_RADIUS} border-[3px] border-[{level_color}]"):
+            with CardContent(cssClass="p-3 text-center"):
                 Text(
                     f"Stufe {level}",
-                    cssClass=f"text-5xl font-black text-[{level_color}]",
+                    cssClass=f"text-3xl font-black text-[{level_color}]",
                 )
                 Text(
                     level_label,
-                    cssClass=f"text-xl font-bold text-[{_AG_TXT_PRIMARY}] mt-1",
+                    cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] mt-0.5",
                 )
-                Separator(cssClass="my-3")
+                Separator(cssClass="my-2")
                 Text(
                     guidance,
-                    cssClass=f"text-base font-semibold text-[{_AG_TXT_PRIMARY}]",
+                    cssClass=f"text-sm font-semibold text-[{_AG_TXT_PRIMARY}]",
                 )
                 Muted(
                     description,
-                    cssClass=f"text-sm text-[{_AG_TXT_PRIMARY}]/60 mt-1",
+                    cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/60 mt-0.5",
                 )
 
         # Flow + height readings
-        with Grid(columns=2, gap=4):
+        with Grid(columns=2, gap=2):
             with Card(cssClass=f"{_AG_RADIUS}"):
-                with CardContent(cssClass="p-5 text-center"):
+                with CardContent(cssClass="p-3 text-center"):
                     Text(
                         f"{_fmt_flow(flow)} m³/s",
-                        cssClass=f"text-3xl font-black tabular-nums"
+                        cssClass=f"text-xl font-black tabular-nums"
                         f" text-[{_AG_WASSER_FLOW}]",
                     )
                     Muted(
                         "Abfluss",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
                     )
                     if threshold is not None:
                         Muted(
                             f"Schwelle: {threshold:.0f} m³/s",
-                            cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/40 mt-1",
+                            cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 mt-0.5",
                         )
             with Card(cssClass=f"{_AG_RADIUS}"):
-                with CardContent(cssClass="p-5 text-center"):
+                with CardContent(cssClass="p-3 text-center"):
                     Text(
                         f"{height:.2f} m" if height is not None else "—",
-                        cssClass=f"text-3xl font-black tabular-nums"
+                        cssClass=f"text-xl font-black tabular-nums"
                         f" text-[{_AG_WASSER_FLOW}]",
                     )
                     Muted(
                         "Pegelstand",
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
-                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-1",
+                        f" text-[{_AG_TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         # Full 5-level scale
