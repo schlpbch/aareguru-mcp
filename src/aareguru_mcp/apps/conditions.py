@@ -374,7 +374,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
                                 )
 
                     # Nearby sunny locations
-                    sun_locs: list[dict[str, Any]] = sun.get("sunlocations") or []
+                    sun_locs: list[dict[str, Any]] = sun.get("sun_locations") or []
                     if sun_locs:
                         Text(
                             "Sonnige Orte in der Nähe",

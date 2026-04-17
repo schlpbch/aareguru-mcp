@@ -199,17 +199,10 @@ class AareguruService:
             # Add seasonal advice
             result["seasonal_advice"] = get_seasonal_advice()
 
-            # Weather data (optional)
-            if response.weather:
-                result["weather"] = response.weather
-
-            # Forecast data (optional)
-            if response.weatherprognosis:
-                result["forecast"] = response.weatherprognosis
-
-            # Sun data (optional)
-            if response.sun:
-                result["sun"] = response.sun
+            # Weather, forecast, and sun data — always set (None when not returned by API)
+            result["weather"] = response.weather or None
+            result["forecast"] = response.weatherprognosis or None
+            result["sun"] = response.sun or None
 
             # Intraday past readings (optional)
             if response.aarepast:

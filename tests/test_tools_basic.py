@@ -98,6 +98,7 @@ class TestGetCurrentConditions:
             mock_response.aare.forecast2h_text = "rising"
             mock_response.weather = {"temp": 22.0}
             mock_response.weatherprognosis = [{"day": "Monday"}]
+            mock_response.sun = None
 
             mock_client.get_current.return_value = mock_response
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -124,6 +125,7 @@ class TestGetCurrentConditions:
             mock_response.aare = None
             mock_response.weather = None
             mock_response.weatherprognosis = None
+            mock_response.sun = None
 
             mock_client.get_current.return_value = mock_response
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)

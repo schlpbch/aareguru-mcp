@@ -285,6 +285,7 @@ class ConditionsToolResponse(BaseModel):
         None, description="Current weather conditions"
     )
     forecast: list[dict[str, Any]] | None = Field(None, description="Weather forecast")
+    sun: dict[str, Any] | None = Field(None, description="Sun and daylight data")
 
 
 class CityListResponse(BaseModel):
