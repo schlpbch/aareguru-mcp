@@ -1,5 +1,24 @@
 """Design tokens and lookup tables for the aare.guru visual design system."""
 
+import base64
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# DIN Next LT Pro — embedded font (base64 woff2)
+# ---------------------------------------------------------------------------
+_FONT_FILE = Path(__file__).parent / "assets" / "webfonts" / "DIN-Next-LT-Pro.woff2"
+_FONT_B64 = base64.b64encode(_FONT_FILE.read_bytes()).decode()
+_FONT_CSS = (
+    "@font-face {"
+    "font-family:'DIN Next LT Pro';"
+    "src:url('data:font/woff2;base64," + _FONT_B64 + "') format('woff2');"
+    "font-weight:100 900;"
+    "font-style:normal;"
+    "font-display:swap;"
+    "}"
+    "body,*{font-family:'DIN Next LT Pro',ui-sans-serif,system-ui,sans-serif !important;}"
+)
+
 # ---------------------------------------------------------------------------
 # aare.guru design tokens (light mode)
 # ---------------------------------------------------------------------------

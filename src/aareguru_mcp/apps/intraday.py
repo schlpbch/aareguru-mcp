@@ -25,6 +25,7 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _AG_WASSER_TEMP,
     _DK,
+    _FONT_CSS,
 )
 from ._helpers import _fmt_temp
 
@@ -160,4 +161,5 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
             "delta": delta,
             "points": len(points),
         },
+        stylesheets=[_FONT_CSS],
     )

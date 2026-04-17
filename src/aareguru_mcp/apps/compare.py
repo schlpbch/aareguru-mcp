@@ -24,6 +24,7 @@ from ._constants import (
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
     _DK,
+    _FONT_CSS,
 )
 from ._helpers import _fmt_flow, _safety_badge
 
@@ -167,4 +168,5 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
     return PrefabApp(
         view=view,
         state={"rows": city_rows, "safe_count": safe_count, "total": total},
+        stylesheets=[_FONT_CSS],
     )

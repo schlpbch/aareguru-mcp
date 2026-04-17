@@ -25,6 +25,7 @@ from ._constants import (
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
     _DK,
+    _FONT_CSS,
 )
 
 logger = structlog.get_logger(__name__)
@@ -143,4 +144,5 @@ async def historical_chart(
     return PrefabApp(
         view=view,
         state={"city": city, "start": start, "end": end, "points": len(chart_data)},
+        stylesheets=[_FONT_CSS],
     )

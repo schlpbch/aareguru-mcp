@@ -31,6 +31,7 @@ from ._constants import (
     _AG_WASSER_FLOW,
     _AG_WASSER_TEMP,
     _DK,
+    _FONT_CSS,
 )
 from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_emoji
 
@@ -258,4 +259,5 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             "trend": trend_arrow,
             "hours": len(normalised),
         },
+        stylesheets=[_FONT_CSS],
     )

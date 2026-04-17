@@ -1,6 +1,6 @@
 # Aareguru MCP Server - Architecture Decision Records (ADR) Compendium
 
-**Document Version**: 1.3.0 **Last Updated**: 2026-02-08 **Total ADRs**: 15 (15 Accepted)
+**Document Version**: 2.0.0 **Last Updated**: 2026-04-17 **Total ADRs**: 17 (17 Accepted)
 
 **Related Documents**:
 - [README.md](../README.md) - User guide and installation
@@ -23,10 +23,10 @@
 
 ### Core Architecture
 
-- [ADR-001: Use FastMCP 2.0 for MCP Protocol](#adr-001-use-fastmcp-20-for-mcp-protocol) ✅
+- [ADR-001: Use FastMCP 3.x for MCP Protocol](#adr-001-use-fastmcp-3x-for-mcp-protocol) ✅
 - [ADR-002: Pydantic v2 for Data Models](#adr-002-pydantic-v2-for-data-models) ✅
 - [ADR-003: Async/Await with httpx for API Calls](#adr-003-asyncawait-with-httpx-for-api-calls) ✅
-- [ADR-004: Python 3.13+ as Minimum Version](#adr-004-python-313-as-minimum-version) ✅
+- [ADR-004: Python 3.11+ as Minimum Version](#adr-004-python-311-as-minimum-version) ✅
 - [ADR-005: Layered Architecture Pattern](#adr-005-layered-architecture-pattern) ✅
 
 ### Design Patterns
@@ -51,33 +51,50 @@
 - [ADR-014: Service Layer Pattern](#adr-014-service-layer-pattern) ✅
 - [ADR-015: FastMCP Cloud Deployment](#adr-015-fastmcp-cloud-deployment) ✅
 
+### Interactive UI Layer
+
+- [ADR-016: FastMCP Apps with prefab_ui](#adr-016-fastmcp-apps-with-prefab_ui) ✅
+- [ADR-017: Visual Design System & Embedded Assets](#adr-017-visual-design-system--embedded-assets) ✅
+
 ---
 
-## ADR-001: Use FastMCP 2.0 for MCP Protocol
+## ADR-001: Use FastMCP 3.x for MCP Protocol
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Core Architecture
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Core Architecture
 
 ### [ADR-001] Decision
 
-Use **FastMCP 2.0** (Anthropic's MCP framework) for implementing the Model Context Protocol server.
+Use **FastMCP 3.x** (Anthropic's MCP framework) with the `[apps]` extra for implementing the Model Context Protocol server, including interactive UI apps.
 
 **Rationale**:
 
 - **Minimal Overhead**: Lightweight framework designed specifically for Python MCP servers
 - **Async-First**: Built on Python's async/await for efficient concurrency
-- **Declarative API**: Simple decorators (@mcp.tool, @mcp.resource, @mcp.prompt) for clean definitions
+- **Declarative API**: Simple decorators (`@mcp.tool`, `@mcp.resource`, `@mcp.prompt`, `@app.ui`) for clean definitions
 - **Type Safety**: Integrates seamlessly with Pydantic for automatic validation and schema generation
 - **Protocol Compliance**: Full MCP specification compliance with automatic message handling
-- **Developer Experience**: Minimal boilerplate for implementing MCP features
+- **Apps Extra**: `fastmcp[apps]` enables interactive UI apps rendered directly in conversations via `prefab_ui`
+
+### [ADR-001] Installation
+
+```toml
+# pyproject.toml
+[project]
+dependencies = [
+    "fastmcp[apps]>=3.2.3",   # [apps] extra required for FastMCPApp and prefab_ui
+    "prefab-ui>=0.18.0",
+]
+```
 
 ### [ADR-001] Example
 
 ```python
-from fastmcp import FastMCP
-from aareguru_mcp.client import AareguruClient
+from fastmcp import FastMCP, FastMCPApp
+from prefab_ui.app import PrefabApp
 
 mcp = FastMCP("aareguru")
 
+# Standard MCP tool
 @mcp.tool()
 async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
     """Get current water temperature for an Aare location."""
@@ -85,19 +102,13 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
         response = await client.get_today(city)
         return response.model_dump()
 
-@mcp.resource("aareguru://cities")
-async def get_cities_resource() -> str:
-    """List all available Aare locations with current data."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_cities()
-        return json.dumps([city.model_dump() for city in response], indent=2)
+# Interactive UI app
+conditions_app = FastMCPApp("conditions")
 
-@mcp.prompt()
-async def daily_swimming_report(city: str = "Bern") -> str:
-    """Generate a daily swimming suitability report."""
-    async with AareguruClient(settings=get_settings()) as client:
-        data = await client.get_current(city)
-        return f"Aare conditions in {city}: {data.aare.temperature}°C, {data.aare.flow} m³/s"
+@conditions_app.ui()
+async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
+    """Render interactive conditions dashboard."""
+    ...
 ```
 
 ### [ADR-001] Benefits
@@ -106,11 +117,13 @@ async def daily_swimming_report(city: str = "Bern") -> str:
 - **Automatic Schema Generation**: Type hints generate MCP tool schemas automatically
 - **Standards Alignment**: Follows industry best practices for MCP servers
 - **Community**: Active maintenance from Anthropic with regular updates
+- **UI Apps**: `FastMCPApp` renders rich interactive UIs without a separate frontend
 
 ### [ADR-001] Related ADRs
 
 - [ADR-003](#adr-003-asyncawait-with-httpx-for-api-calls) - Async operations with httpx
 - [ADR-007](#adr-007-async-context-manager-pattern-for-resource-management) - Resource management
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Interactive UI apps layer
 
 ---
 
@@ -135,26 +148,21 @@ Use **Pydantic v2** for all data models, DTOs, and request/response validation a
 
 ```python
 from pydantic import BaseModel, Field
-from typing import Optional
-from datetime import datetime
 
 class AareData(BaseModel):
-    """Current Aare water conditions."""
-    temperature: float = Field(..., ge=-10, le=40, description="Water temperature in °C")
-    flow: int = Field(..., ge=0, description="Flow rate in m³/s")
+    temperature: float = Field(..., ge=-10, le=40)
+    flow: int = Field(..., ge=0)
     location: str
 
 class TodayResponse(BaseModel):
-    """Response from /v2018/today endpoint."""
-    aare: float  # Note: flat structure, not nested
+    aare: float        # Flat structure — temperature at top level
     aare_prec: float
-    text: str  # Swiss German description
+    text: str          # Swiss German description
     name: str
     time: int
 
 class CurrentResponse(BaseModel):
-    """Response from /v2018/current endpoint."""
-    aare: AareData  # Nested structure
+    aare: AareData     # Nested structure
     weather: dict
     weatherprognosis: list[dict]
 ```
@@ -168,13 +176,6 @@ Critical: Different endpoints return different structures:
 | `/v2018/today` | Flat (temperature at top level) | `TodayResponse` |
 | `/v2018/current` | Nested (aare as sub-object) | `CurrentResponse` |
 | `/v2018/cities` | Array (not wrapped) | `list[CityData]` |
-
-### [ADR-002] Benefits
-
-- **Validation**: Automatic validation of API responses on parse
-- **Type Hints**: IDE autocomplete and mypy checking
-- **Documentation**: Field descriptions auto-generate OpenAPI docs
-- **Flexibility**: Easy to evolve models as API changes
 
 ---
 
@@ -198,34 +199,18 @@ Use **async/await pattern with httpx** (async HTTP client) for all Aareguru API 
 
 ```python
 import httpx
-from aareguru_mcp.models import CurrentResponse, TodayResponse
 
 class AareguruClient:
-    """Async Aareguru API client with caching and rate limiting."""
-
-    BASE_URL = "https://aareguru.existenz.ch"
-    TIMEOUT = 30.0
-
     async def __aenter__(self):
-        """Enter async context manager."""
-        self.client = httpx.AsyncClient(timeout=self.TIMEOUT)
+        self.client = httpx.AsyncClient(timeout=30.0)
         return self
 
     async def __aexit__(self, *args):
-        """Exit async context manager, cleanup."""
         await self.client.aclose()
 
     async def get_today(self, city: str = "Bern") -> TodayResponse:
-        """Fetch current conditions asynchronously."""
-        params = {
-            "city": city,
-            "app": "aareguru-mcp",
-            "version": "4.0.0"
-        }
-        response = await self.client.get(
-            f"{self.BASE_URL}/v2018/today",
-            params=params
-        )
+        params = {"city": city, "app": "aareguru-mcp", "version": "4.3.0"}
+        response = await self.client.get(f"{self.BASE_URL}/v2018/today", params=params)
         response.raise_for_status()
         return TodayResponse(**response.json())
 ```
@@ -237,72 +222,41 @@ class AareguruClient:
 - **Error Handling**: Structured exception handling with timeouts
 - **Testing**: Easy to mock async calls with pytest-asyncio
 
-### [ADR-003] Configuration
-
-```python
-# src/aareguru_mcp/client.py
-TIMEOUT = 30.0      # Request timeout in seconds
-RETRIES = 3         # Retry failed requests
-BACKOFF = 1.5       # Exponential backoff multiplier
-```
-
 ---
 
-## ADR-004: Python 3.13+ as Minimum Version
+## ADR-004: Python 3.11+ as Minimum Version
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Core Architecture
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Core Architecture
 
 ### [ADR-004] Decision
 
-Require **Python 3.13+** as the minimum supported version to leverage modern language features.
+Require **Python 3.11+** as the minimum supported version. Production environment currently runs Python 3.14.
 
 **Rationale**:
 
-- **PEP 604 Union Syntax**: Use `X | Y` instead of `Union[X, Y]` (cleaner code)
-- **Type Hints Standard**: Improved typing with `dict[str, float]` (no `Dict` import)
+- **PEP 604 Union Syntax**: `X | Y` instead of `Union[X, Y]`
+- **Type Hints Standard**: `dict[str, float]` without `Dict` import
 - **ExceptionGroup**: Better exception handling for concurrent operations
-- **Performance**: 15-20% faster than Python 3.11
-- **Asyncio Improvements**: Enhanced async/await with better error handling
+- **Asyncio Improvements**: Enhanced async/await support
 - **Security**: Modern cryptography and TLS support
-- **Long-term Support**: Python 3.13 supported until October 2028
-
-### [ADR-004] Example
-
-```python
-# Modern union syntax (Python 3.13+)
-def process_location(location: dict | str | None) -> Location:
-    """Type hints with modern syntax."""
-    ...
-
-# Modern dict type hints
-async def fetch_data() -> dict[str, float]:
-    """Async function with modern dict hints."""
-    ...
-
-# ExceptionGroup for concurrent error handling
-async def fetch_multiple_cities(cities: list[str]):
-    """Fetch data for multiple cities concurrently."""
-    tasks = [get_weather(city) for city in cities]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-```
 
 ### [ADR-004] Configuration
 
 ```toml
 # pyproject.toml
 [project]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 
-[tool.uv]
-python-version = "3.13"
+[tool.mypy]
+python_version = "3.11"
+
+[tool.ruff]
+target-version = "py310"   # Conservative lint target
 ```
 
-### [ADR-004] Benefits
+### [ADR-004] Current Runtime
 
-- **Language Features**: Access to latest Python improvements
-- **Dependency Compatibility**: Modern packages target 3.13+
-- **Support Window**: Extended support (3+ years)
-- **Performance**: Baseline 15%+ performance improvement
+The development and production environment uses Python 3.14 (latest stable). The `>=3.11` minimum ensures broad compatibility while the codebase takes advantage of newer features available on 3.14.
 
 ---
 
@@ -312,38 +266,44 @@ python-version = "3.13"
 
 ### [ADR-005] Decision
 
-Use a **clean layered architecture** with clear separation of concerns across five layers.
-
-**Rationale**:
-
-- **Separation of Concerns**: Each layer has single, well-defined responsibility
-- **Testability**: Each layer can be tested independently
-- **Maintainability**: Changes to one layer don't cascade to others
-- **Reusability**: Business logic decoupled from MCP protocol details
-- **Clarity**: Clear data flow and dependency direction
+Use a **clean layered architecture** with clear separation of concerns across six layers (including the UI apps layer added in v4.x).
 
 ### [ADR-005] Architecture Layers
 
 ```
 ┌─────────────────────────────────────────┐
+│ 0. UI Apps Layer (apps/)                │
+│    FastMCPApp + prefab_ui components    │
+│    - 7 interactive app UIs              │
+│    - Design token system                │
+│    - Embedded fonts & assets            │
+└──────────────┬──────────────────────────┘
+               ↓
+┌─────────────────────────────────────────┐
 │ 1. MCP Server Layer (server.py)         │
-│    @mcp.tool, @mcp.resource, @mcp.prompt
-│    - Tool definitions                    │
-│    - Resource URIs                       │
-│    - Prompt contexts                     │
+│    @mcp.tool, @mcp.resource, @mcp.prompt│
+│    - Tool definitions                   │
+│    - Resource URIs                      │
+│    - Prompt contexts                    │
+│    - App provider registration          │
 └──────────────┬──────────────────────────┘
                ↓
 ┌──────────────────────────────────────────┐
-│ 2. Business Logic Layer                 │
-│    (tools.py, resources.py, helpers.py) │
+│ 2. Business Logic Layer                  │
+│    (tools.py, resources.py, helpers.py)  │
 │    - Domain logic                        │
 │    - Data transformations                │
-│    - Helper functions                    │
 │    - Safety assessments                  │
 └──────────────┬──────────────────────────┘
                ↓
 ┌──────────────────────────────────────────┐
-│ 3. HTTP Client Layer (client.py)        │
+│ 3. Service Layer (service.py)            │
+│    - Orchestrates client + helpers       │
+│    - Reusable by tools, apps, future APIs│
+└──────────────┬──────────────────────────┘
+               ↓
+┌──────────────────────────────────────────┐
+│ 4. HTTP Client Layer (client.py)         │
 │    - API communication                   │
 │    - Caching logic                       │
 │    - Rate limiting                       │
@@ -351,56 +311,34 @@ Use a **clean layered architecture** with clear separation of concerns across fi
 └──────────────┬──────────────────────────┘
                ↓
 ┌──────────────────────────────────────────┐
-│ 4. Models Layer (models.py)              │
+│ 5. Models Layer (models.py)              │
 │    - Pydantic validation                 │
 │    - Request/response structures         │
-│    - Type safety                         │
 └──────────────┬──────────────────────────┘
                ↓
 ┌──────────────────────────────────────────┐
-│ 5. Configuration Layer (config.py)       │
+│ 6. Configuration Layer (config.py)       │
 │    - Environment settings                │
 │    - Constants                           │
-│    - Feature flags                       │
 └──────────────────────────────────────────┘
-```
-
-### [ADR-005] Data Flow Example
-
-```python
-# User/Claude Desktop sends request via MCP protocol
-# ↓
-# server.py @mcp.tool() handler receives request
-# ↓
-# tools.py function prepares parameters, logs intent
-# ↓
-# client.py AareguruClient checks cache, rate limiter
-# ↓
-# client.py makes HTTP request to Aareguru API
-# ↓
-# models.py Pydantic validates response structure
-# ↓
-# helpers.py applies business logic (safety assessment, etc.)
-# ↓
-# Response serialized to JSON and returned via MCP
 ```
 
 ### [ADR-005] Layer Responsibilities
 
-| Layer | Responsibility | Examples |
-|-------|-----------------|----------|
-| MCP Server | Protocol handling, schema generation | Tool decorators, resource URIs |
-| Business Logic | Domain rules, enrichment | Safety assessments, suggestions |
-| HTTP Client | API communication, caching, rate limiting | Request handling, response retrieval |
-| Models | Data validation, type safety | Pydantic BaseModel subclasses |
-| Config | Environment-based settings | Cache TTL, request intervals |
+| Layer | Responsibility | Key Files |
+|-------|-----------------|-----------|
+| UI Apps | Interactive dashboards, charts, tables | `apps/*.py`, `apps/_constants.py` |
+| MCP Server | Protocol handling, schema generation | `server.py` |
+| Business Logic | Domain rules, enrichment | `tools.py`, `helpers.py` |
+| Service | Orchestration, reuse across interfaces | `service.py` |
+| HTTP Client | API communication, caching, rate limiting | `client.py` |
+| Models | Data validation, type safety | `models.py` |
+| Config | Environment-based settings | `config.py` |
 
-### [ADR-005] Benefits
+### [ADR-005] Related ADRs
 
-- **Clear Responsibility**: Each file has obvious purpose
-- **Easy Testing**: Mock each layer independently
-- **Future-Proof**: Easy to swap implementations (e.g., different API client)
-- **Maintainability**: New developers understand structure quickly
+- [ADR-014](#adr-014-service-layer-pattern) - Service layer detail
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - UI apps layer detail
 
 ---
 
@@ -410,99 +348,35 @@ Use a **clean layered architecture** with clear separation of concerns across fi
 
 ### [ADR-006] Decision
 
-Maintain a dedicated **`helpers.py` module** for shared business logic utilities that are used across multiple tools and resources.
+Maintain dedicated helper modules for shared business logic. Two separate helper modules exist:
 
-**Rationale**:
+- **`helpers.py`** (top-level): Domain logic used by tools and service layer (safety assessment, Swiss German translation, suggestions)
+- **`apps/_helpers.py`**: UI-specific formatters and badge generators used exclusively by the apps layer
 
-- **DRY Principle**: Avoid duplicating logic across tools
-- **Consistency**: Same rules applied everywhere
-- **Testability**: Helper functions can be unit tested independently
-- **Maintainability**: Single place to update business rules
-- **Documentation**: Helper functions document domain knowledge
-
-### [ADR-006] Helper Functions
+### [ADR-006] Top-Level Helpers (`helpers.py`)
 
 ```python
-# src/aareguru_mcp/helpers.py
-
-def get_seasonal_advice(month: int) -> str:
-    """Contextual swimming advice by season."""
-    if month in [12, 1, 2]:
-        return "Winter swimming requires cold water preparation"
-    elif month in [3, 4, 5]:
-        return "Spring water is warming, watch for glacial melt"
-    elif month in [6, 7, 8]:
-        return "Summer conditions optimal for swimming"
-    else:
-        return "Autumn water cooling, currents may increase"
-
-def check_safety_warning(flow: int, threshold: int = 220) -> str | None:
-    """Check if flow rate triggers danger warning."""
-    if flow > threshold:
-        return f"⚠️ Warning: High water flow ({flow} m³/s)"
-    return None
-
-def get_safety_assessment(flow: int, threshold: int = 100) -> str:
-    """Return BAFU safety level based on flow."""
-    if flow < 100:
-        return "safe"
-    elif flow < 220:
-        return "moderate"
-    elif flow < 300:
-        return "elevated"
-    elif flow < 430:
-        return "high"
-    else:
-        return "very_high"
-
-def get_suggestion(cities_data: list[dict]) -> str:
-    """Suggest warmer/safer alternative location."""
-    sorted_by_temp = sorted(cities_data, key=lambda c: c['temperature'], reverse=True)
-    best = sorted_by_temp[0]
-    return f"Warmer water at {best['name']}: {best['temperature']}°C"
-
-def get_swiss_german_explanation(text: str) -> str:
-    """Translate Swiss German phrases."""
-    translations = {
-        "geil aber chli chalt": "Cool/nice but a bit cold",
-        "fuggi": "Cold",
-        "ziemlich chalt": "Pretty cold",
-    }
-    return translations.get(text, text)
+def get_seasonal_advice(month: int) -> str: ...
+def check_safety_warning(flow: int, threshold: int = 220) -> str | None: ...
+def get_safety_assessment(flow: int, threshold: int = 100) -> str: ...
+def get_suggestion(cities_data: list[dict]) -> str: ...
+def get_swiss_german_explanation(text: str) -> str: ...
 ```
 
-### [ADR-006] Usage in Tools
+### [ADR-006] Apps Helpers (`apps/_helpers.py`)
 
 ```python
-@mcp.tool()
-async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
-    """Get comprehensive conditions with safety assessment."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
-
-    # Use helper functions for enrichment
-    safety_level = get_safety_assessment(response.aare.flow)
-    warning = check_safety_warning(response.aare.flow)
-    explanation = get_swiss_german_explanation(response.text)
-
-    return {
-        **response.model_dump(),
-        "safety_level": safety_level,
-        "warning": warning,
-        "interpretation": explanation,
-    }
+def _safety_badge(flow: float | None) -> tuple[str, str, str]: ...  # (label, variant, hex_color)
+def _fmt_temp(temp: float | None) -> str: ...    # "17.2°" or "—"
+def _fmt_flow(flow: float | None) -> str: ...    # "245" or "—"
+def _fmt_pct(val: float | None) -> str: ...      # "72%" or "—"
+def _fmt_wind(val: float | None) -> str: ...     # "23 km/h" or "—"
+def _beaufort(v: float | None) -> tuple[int, str, str]: ...
+def _sy_to_emoji(sy: int | None) -> str: ...
+def _bafu_level(flow: float | None, gefahrenstufe: int | None) -> int: ...
 ```
 
-### [ADR-006] Benefits
-
-- **Code Reuse**: Single source of truth for business rules
-- **Consistency**: All tools apply same logic
-- **Testing**: Helper functions easy to unit test
-- **Maintainability**: Update rules once, affects all tools
-
-### [ADR-006] Related ADRs
-
-- [ADR-005](#adr-005-layered-architecture-pattern) - Business logic layer
+The split keeps UI formatting concerns out of the core domain layer and prevents `apps/` imports leaking into `tools.py`.
 
 ---
 
@@ -514,81 +388,13 @@ async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
 
 Use **async context managers** (`async with`) for all HTTP client instantiation to ensure proper connection cleanup.
 
-**Rationale**:
-
-- **Resource Safety**: Guarantees cleanup even if exceptions occur
-- **Connection Pooling**: Efficient reuse of HTTP connections
-- **Memory Efficiency**: Prevents connection leaks
-- **Readability**: Clear acquisition and release points
-- **Best Practice**: Recommended pattern for async resource management
-
-### [ADR-007] Implementation
-
 ```python
-# src/aareguru_mcp/client.py
-
-class AareguruClient:
-    """Async HTTP client with context manager support."""
-
-    def __init__(self, settings: Settings):
-        self.settings = settings
-        self.client: httpx.AsyncClient | None = None
-
-    async def __aenter__(self) -> "AareguruClient":
-        """Enter async context: initialize HTTP client."""
-        self.client = httpx.AsyncClient(timeout=30.0)
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Exit async context: cleanup HTTP client."""
-        if self.client:
-            await self.client.aclose()
-        return False
-
-    async def _request(self, endpoint: str, params: dict) -> dict:
-        """Internal request method."""
-        if not self.client:
-            raise RuntimeError("Client not initialized, use async context manager")
-
-        response = await self.client.get(
-            f"{self.settings.aareguru_base_url}{endpoint}",
-            params=params
-        )
-        response.raise_for_status()
-        return response.json()
+async with AareguruClient(settings=get_settings()) as client:
+    response = await client.get_today(city)
+    return response.model_dump()
 ```
 
-### [ADR-007] Usage in Tools
-
-```python
-@mcp.tool()
-async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
-    """Get current water temperature."""
-    # Context manager ensures cleanup
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_today(city)
-        return response.model_dump()
-
-@mcp.tool()
-async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
-    """Get comprehensive conditions."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_current(city)
-        # Cleanup happens automatically when exiting context
-        return response.model_dump()
-```
-
-### [ADR-007] Benefits
-
-- **Safety**: Connections always cleaned up, even on errors
-- **Performance**: Connection pooling reduces overhead
-- **Clarity**: `async with` makes intent explicit
-- **Testing**: Easy to mock context managers in tests
-
-### [ADR-007] Related ADRs
-
-- [ADR-003](#adr-003-asyncawait-with-httpx-for-api-calls) - httpx async client
-- [ADR-001](#adr-001-use-fastmcp-20-for-mcp-protocol) - Tool decorators
+**Benefits**: Guarantees cleanup even on exceptions, enables connection pooling, clear acquisition/release points, easy to mock in tests.
 
 ---
 
@@ -600,111 +406,18 @@ async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
 
 Implement **time-based caching** in the HTTP client layer with configurable TTL, keyed by endpoint + sorted query parameters.
 
-**Rationale**:
-
-- **Performance**: Avoid redundant API calls within TTL window
-- **Rate Limiting**: Reduces load on Aareguru API
-- **Configurable**: TTL adjustable via environment variables
-- **Transparent**: Clients don't need to know about caching
-- **Simple**: Dictionary-based cache implementation
-
-### [ADR-008] Implementation
-
 ```python
-# src/aareguru_mcp/client.py
-
-from time import time
-from typing import Any
-
-class AareguruClient:
-    """HTTP client with time-based caching."""
-
-    def __init__(self, settings: Settings):
-        self.settings = settings
-        self.cache: dict[str, tuple[float, Any]] = {}  # key -> (timestamp, value)
-
-    def _cache_key(self, endpoint: str, params: dict) -> str:
-        """Generate cache key from endpoint + sorted params."""
-        sorted_params = json.dumps(params, sort_keys=True)
-        return f"{endpoint}:{sorted_params}"
-
-    async def _request(
-        self,
-        endpoint: str,
-        params: dict,
-        use_cache: bool = True
-    ) -> dict:
-        """Internal request with caching."""
-        cache_key = self._cache_key(endpoint, params)
-
-        # Check cache
-        if use_cache and cache_key in self.cache:
-            timestamp, cached_data = self.cache[cache_key]
-            age_seconds = time() - timestamp
-
-            if age_seconds < self.settings.cache_ttl_seconds:
-                return cached_data
-            else:
-                # Remove expired entry
-                del self.cache[cache_key]
-
-        # Make request
-        if not self.client:
-            raise RuntimeError("Client not initialized")
-
-        response = await self.client.get(
-            f"{self.settings.aareguru_base_url}{endpoint}",
-            params=params
-        )
-        response.raise_for_status()
-        data = response.json()
-
-        # Cache response
-        if use_cache:
-            self.cache[cache_key] = (time(), data)
-
-        return data
+# Cache key: endpoint + sorted JSON params
+# TTL: 120s default (CACHE_TTL_SECONDS env var)
+# Bypass: use_cache=False for historical data endpoints
 ```
 
 ### [ADR-008] Configuration
 
-```python
-# src/aareguru_mcp/config.py
-
-class Settings(BaseSettings):
-    """Application settings."""
-
-    aareguru_base_url: str = "https://aareguru.existenz.ch"
-    cache_ttl_seconds: int = 120  # Default: 2 minutes
-    min_request_interval_seconds: int = 300  # Default: 5 minutes
+```bash
+CACHE_TTL_SECONDS=120              # 2 minutes (default)
+MIN_REQUEST_INTERVAL_SECONDS=300   # 5 minutes (default)
 ```
-
-### [ADR-008] Cache Bypass
-
-```python
-@mcp.tool()
-async def get_historical_weather(city: str, days_back: int = 7) -> dict[str, Any]:
-    """Get historical data (bypass cache for fresh data)."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_historical(
-            city,
-            days_back,
-            use_cache=False  # Don't cache historical data
-        )
-        return response.model_dump()
-```
-
-### [ADR-008] Benefits
-
-- **Performance**: Reduces API calls within TTL window
-- **Configurable**: Adjust TTL per environment
-- **Simple**: No external caching infrastructure needed
-- **Transparent**: Clients unaware of caching details
-- **Flexibility**: Can bypass cache when needed
-
-### [ADR-008] Related ADRs
-
-- [ADR-009](#adr-009-rate-limiting-strategy) - Rate limiting complements caching
 
 ---
 
@@ -714,90 +427,24 @@ async def get_historical_weather(city: str, days_back: int = 7) -> dict[str, Any
 
 ### [ADR-009] Decision
 
-Implement **time-based rate limiting** with lock-based coordination to enforce minimum interval between requests to the Aareguru API.
+Implement **two complementary rate limiting layers**:
 
-**Rationale**:
-
-- **API Compliance**: Respects Aareguru's 5-minute recommendation
-- **Reliability**: Prevents overwhelming the API
-- **Non-Commercial**: Aligns with free tier usage guidelines
-- **Lock-Based**: Simple async lock prevents concurrent violations
-- **Configurable**: Adjustable via environment variables
-
-### [ADR-009] Implementation
+1. **Client-side**: `AareguruClient` enforces minimum interval (300s default) between API requests via async lock — respects Aareguru's non-commercial usage guidelines.
+2. **HTTP endpoints**: `slowapi` decorators limit health/metrics endpoint access (60 req/min).
 
 ```python
-# src/aareguru_mcp/client.py
-
-import asyncio
-from time import time
-
+# Client-side rate limiting
 class AareguruClient:
-    """HTTP client with rate limiting."""
-
     _last_request_time: float = 0.0
     _request_lock: asyncio.Lock = asyncio.Lock()
 
     async def _enforce_rate_limit(self) -> None:
-        """Ensure minimum interval between requests."""
         async with self._request_lock:
             elapsed = time() - self._last_request_time
-            min_interval = self.settings.min_request_interval_seconds
-
-            if elapsed < min_interval:
-                wait_time = min_interval - elapsed
-                logger.info(
-                    "rate_limit_wait",
-                    wait_seconds=wait_time
-                )
-                await asyncio.sleep(wait_time)
-
+            if elapsed < self.settings.min_request_interval_seconds:
+                await asyncio.sleep(self.settings.min_request_interval_seconds - elapsed)
             self._last_request_time = time()
-
-    async def _request(self, endpoint: str, params: dict) -> dict:
-        """Internal request with rate limiting."""
-        # Enforce rate limit before making request
-        await self._enforce_rate_limit()
-
-        response = await self.client.get(
-            f"{self.settings.aareguru_base_url}{endpoint}",
-            params=params
-        )
-        response.raise_for_status()
-        return response.json()
 ```
-
-### [ADR-009] Configuration
-
-```bash
-# .env or environment variables
-AAREGURU_BASE_URL=https://aareguru.existenz.ch
-MIN_REQUEST_INTERVAL_SECONDS=300  # 5 minutes (default, respects API recommendation)
-CACHE_TTL_SECONDS=120              # 2 minutes (reduces rate limit impact)
-```
-
-### [ADR-009] Rate Limiting Flow
-
-```
-Request 1: Immediate (no prior requests)
-  ↓ [300 seconds minimum]
-Request 2: Waits if <300 seconds have passed
-  ↓ [300 seconds minimum]
-Request 3: Waits if <300 seconds have passed
-```
-
-### [ADR-009] Benefits
-
-- **API Respect**: Aligns with Aareguru API recommendations
-- **Reliability**: Prevents rate limit errors from API
-- **Configurable**: Adjust interval per environment
-- **Lock-Safe**: Async lock prevents concurrent violations
-- **Transparent**: Automatic, no client code needed
-
-### [ADR-009] Related ADRs
-
-- [ADR-008](#adr-008-caching-strategy) - Caching reduces rate limit impact
-- [ADR-003](#adr-003-asyncawait-with-httpx-for-api-calls) - Async operations
 
 ---
 
@@ -809,299 +456,86 @@ Request 3: Waits if <300 seconds have passed
 
 Use **structlog** for structured JSON logging with contextual information throughout the application.
 
-**Rationale**:
-
-- **Structured Output**: JSON logs easily parsed and analyzed
-- **Context**: Include relevant data with each log entry
-- **Performance**: Zero-cost abstraction with minimal overhead
-- **Debugging**: Rich context makes troubleshooting easier
-- **Integration**: Works with observability platforms (Datadog, ELK, etc.)
-
-### [ADR-010] Configuration
-
 ```python
-# src/aareguru_mcp/logging.py
-
 import structlog
-import logging
+logger = structlog.get_logger(__name__)
 
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
-
-logger = structlog.get_logger()
+logger.info("tool_executed", tool="get_current_temperature", city="Bern")
+logger.info("app.conditions_dashboard", city="Bern")
+logger.error("api_error", endpoint="/v2018/current", status_code=500)
 ```
 
-### [ADR-010] Usage Examples
-
-```python
-from structlog import get_logger
-
-logger = get_logger(__name__)
-
-# Tool execution logging
-@mcp.tool()
-async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
-    """Get current water temperature."""
-    logger.info("tool_called", tool="get_current_temperature", city=city)
-
-    try:
-        async with AareguruClient(settings=get_settings()) as client:
-            response = await client.get_today(city)
-
-            logger.info(
-                "api_response_received",
-                city=city,
-                temperature=response.aare,
-                timestamp=response.time
-            )
-            return response.model_dump()
-    except Exception as e:
-        logger.error(
-            "tool_error",
-            tool="get_current_temperature",
-            city=city,
-            error=str(e),
-            exc_info=True
-        )
-        raise
-
-# Rate limiting logging
-logger.info(
-    "rate_limit_wait",
-    wait_seconds=45,
-    min_interval=300
-)
-
-# API error logging
-logger.error(
-    "api_error",
-    endpoint="/v2018/current",
-    status_code=500,
-    response_text="Internal Server Error"
-)
-
-# Cache hit logging
-logger.debug(
-    "cache_hit",
-    endpoint="/v2018/today",
-    cache_age_seconds=45
-)
-```
-
-### [ADR-010] Log Output
-
-```json
-{
-  "event": "tool_called",
-  "tool": "get_current_temperature",
-  "city": "Bern",
-  "timestamp": "2025-12-01T10:30:45Z",
-  "log_level": "info"
-}
-
-{
-  "event": "api_response_received",
-  "city": "Bern",
-  "temperature": 17.2,
-  "timestamp": 1701423045,
-  "log_level": "info"
-}
-
-{
-  "event": "rate_limit_wait",
-  "wait_seconds": 45,
-  "min_interval": 300,
-  "log_level": "info"
-}
-```
-
-### [ADR-010] Benefits
-
-- **Analysis**: JSON format enables automated log analysis
-- **Observability**: Integrates with monitoring platforms
-- **Debugging**: Rich context makes root cause analysis easier
-- **Performance**: Minimal overhead in production
-
-### [ADR-010] Related ADRs
-
-- [ADR-011](#adr-011-pytest-testing-with-80-coverage) - Testing with logging
+All layers (tools, service, apps, client) use structlog with module-scoped loggers. Log output is JSON-structured for observability platform integration.
 
 ---
 
 ## ADR-011: pytest Testing with 80%+ Coverage
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Quality & Observability
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Quality & Observability
 
 ### [ADR-011] Decision
 
 Use **pytest** as the testing framework with **≥80% code coverage** target and organized test layers.
 
-**Test Layers**:
+### [ADR-011] Current Coverage Status
 
-1. **Unit Tests**: Individual functions and models
-2. **Integration Tests**: Multi-component workflows
-3. **E2E Tests**: End-to-end conversations
-4. **Async Tests**: Async functions with pytest-asyncio
+```
+Total tests: 245 collected (239 passing, 5 skipped, 1 pre-existing stale)
+Coverage: 83% (target ≥80%)
 
-### [ADR-011] Configuration
-
-```toml
-# pyproject.toml
-
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
-minversion = "9.0"
-addopts = "--cov=src/aareguru_mcp --cov-report=html --cov-report=term-missing"
-markers = [
-    "integration: integration tests",
-    "e2e: end-to-end tests",
-]
-
-[tool.coverage.run]
-source = ["src/aareguru_mcp"]
-omit = [
-    "*/tests/*",
-    "**/__main__.py",
-    "**/conftest.py",
-]
-
-[tool.coverage.report]
-fail_under = 80
-precision = 2
+Coverage by module:
+├── client.py          95%
+├── config.py          100%
+├── helpers.py         97%
+├── models.py          94%
+├── rate_limit.py      82%
+├── resources.py       100%
+├── server.py          89%
+├── service.py         74%
+└── tools.py           71%
 ```
 
 ### [ADR-011] Test Organization
 
 ```
 tests/
-├── test_unit_client.py         # Client tests
-├── test_unit_models.py         # Model validation tests
-├── test_unit_helpers.py        # Helper function tests
-├── test_unit_config.py         # Configuration tests
-├── test_tools_basic.py         # Basic tool tests
-├── test_tools_advanced.py      # Advanced tool scenarios
-├── test_integration_workflows.py # Multi-tool workflows
-├── test_http_endpoints.py      # HTTP/SSE transport
-├── test_resources.py           # Resource tests
-├── test_prompts.py             # Prompt tests
-├── test_e2e_conversations.py   # End-to-end conversations
-└── conftest.py                 # Shared fixtures
+├── conftest.py                     # Shared fixtures and mocks
+├── test_apps.py                    # Apps layer tests
+├── test_http_endpoints.py          # HTTP/SSE transport
+├── test_integration_workflows.py   # Multi-tool workflows, caching
+├── test_prompts.py                 # Prompts and E2E workflows
+├── test_resources.py               # Resource listing/reading
+├── test_tools_advanced.py          # Advanced tool scenarios
+├── test_tools_basic.py             # Basic tool functionality
+├── test_unit_client.py             # HTTP client unit tests
+├── test_unit_config.py             # Configuration tests
+├── test_unit_helpers.py            # Helper function tests
+├── test_unit_models.py             # Pydantic model validation
+├── test_unit_server_helpers.py     # Server helper tests
+└── test_unit_service.py            # Service layer unit tests
 ```
 
-### [ADR-011] Example Test
+### [ADR-011] Configuration
 
-```python
-# tests/test_tools_basic.py
+```toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=src/aareguru_mcp --cov-report=term-missing"
+markers = ["integration: integration tests", "e2e: end-to-end tests"]
 
-import pytest
-from unittest.mock import Mock, AsyncMock
-from aareguru_mcp.tools import get_current_temperature
-from aareguru_mcp.models import TodayResponse
-
-@pytest.mark.asyncio
-async def test_get_current_temperature():
-    """Test get_current_temperature tool."""
-    # Arrange
-    mock_response = TodayResponse(
-        aare=17.2,
-        aare_prec=17.23,
-        text="geil aber chli chalt",
-        name="Bern",
-        time=1701423045
-    )
-
-    # Act
-    with patch('aareguru_mcp.client.AareguruClient') as mock_client_class:
-        mock_client = AsyncMock()
-        mock_client.get_today.return_value = mock_response
-        mock_client_class.return_value.__aenter__.return_value = mock_client
-
-        result = await get_current_temperature("Bern")
-
-    # Assert
-    assert result["aare"] == 17.2
-    assert result["name"] == "Bern"
-    assert "chalt" in result["text"]
-
-@pytest.mark.integration
-@pytest.mark.asyncio
-async def test_get_weather_with_cache(monkeypatch):
-    """Test caching behavior across multiple calls."""
-    call_count = 0
-
-    async def mock_get(*args, **kwargs):
-        nonlocal call_count
-        call_count += 1
-        return Mock(json=lambda: {"aare": 17.2})
-
-    # Verify cache hit on second call
-    assert call_count == 1  # First call
-    # Second call within TTL should use cache
-    assert call_count == 1  # Still 1 (cached)
-```
-
-### [ADR-011] Coverage Status
-
-```
-Current Coverage: 87%
-Target: ≥80%
-Total Tests: 210 passing + 2 skipped = 212 total
-
-Coverage by module:
-├── client.py          98%
-├── models.py          100%
-├── helpers.py         95%
-├── server.py          89%
-├── config.py          100%
-├── tools.py           85%
-└── resources.py       80%
+[tool.coverage.report]
+fail_under = 80
 ```
 
 ### [ADR-011] Running Tests
 
 ```bash
-# Run all tests
-uv run pytest
-
-# Run with coverage
-uv run pytest --cov=src/aareguru_mcp
-
-# Run specific test file
-uv run pytest tests/test_unit_client.py
-
-# Run specific test
-uv run pytest tests/test_tools_basic.py::test_get_current_temperature
-
-# Run with markers
-uv run pytest -m integration
-uv run pytest -m e2e
+uv run pytest                           # All tests
+uv run pytest --cov=aareguru_mcp        # With coverage
+uv run pytest tests/test_tools_basic.py # Specific file
+uv run pytest -m integration            # Integration tests only
 ```
-
-### [ADR-011] Benefits
-
-- **Quality**: Catches regressions and edge cases
-- **Confidence**: High coverage enables safe refactoring
-- **Documentation**: Tests serve as code examples
-- **CI/CD**: Automated test runs on every commit
-
-### [ADR-011] Related ADRs
-
-- [ADR-012](#adr-012-mypy-strict-type-checking) - Type checking complements testing
 
 ---
 
@@ -1111,102 +545,20 @@ uv run pytest -m e2e
 
 ### [ADR-012] Decision
 
-Use **MyPy in strict mode** for static type checking of all Python code.
-
-**Rationale**:
-
-- **Bug Prevention**: Catches type errors before runtime
-- **Documentation**: Type hints serve as inline documentation
-- **IDE Support**: Enhanced autocomplete and refactoring
-- **Maintainability**: Easier to understand and modify code
-- **Performance**: Zero runtime overhead (compile-time only)
-
-### [ADR-012] Configuration
+Use **MyPy** for static type checking of all Python code.
 
 ```toml
-# pyproject.toml
-
 [tool.mypy]
-# Strict mode enforcement
+python_version = "3.11"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
-disallow_untyped_decorators = true
-strict_equality = true
 strict_optional = true
-
-# Plugin configuration
-plugins = []
-
-# Ignore patterns
-ignore_errors = false
-ignore_missing_imports = false
-
-# Source paths
-files = ["src/", "tests/"]
-
-# Python version
-python_version = "3.13"
 ```
-
-### [ADR-012] Example
-
-```python
-# ✅ Correct: Full type annotations
-async def get_weather(
-    city: str,
-    days: int = 7
-) -> dict[str, Any]:
-    """Fetch weather data."""
-    async with AareguruClient(settings=get_settings()) as client:
-        response = await client.get_today(city)
-        return response.model_dump()
-
-# ❌ Error: Missing return type
-async def search_location(query: str):  # error: Function is missing a return type annotation
-    """Search locations."""
-    ...
-
-# ✅ Correct: Proper Optional handling
-from typing import Optional
-
-def process_data(value: str | None) -> str:
-    """Handle optional values properly."""
-    if value is None:
-        return ""
-    return value.upper()
-
-# ✅ Correct: Type hints for complex types
-def get_temperature_by_city(
-    cities: list[str]
-) -> dict[str, float]:
-    """Get temperatures for multiple cities."""
-    return {city: 17.2 for city in cities}
-```
-
-### [ADR-012] CI/CD Integration
 
 ```bash
-# Run type checking
-uv run mypy src/
-
-# Generate HTML report
-uv run mypy --html mypy_report src/
-
-# Fail if any errors
-uv run mypy src/ && echo "✓ Type check passed"
+uv run mypy src/    # Run type checking
 ```
-
-### [ADR-012] Benefits
-
-- **Early Detection**: Catches bugs before testing
-- **Better Refactoring**: Type information enables safe changes
-- **Zero Overhead**: Compile-time only, no runtime cost
-- **Team Alignment**: Enforces consistent typing
-
-### [ADR-012] Related ADRs
-
-- [ADR-011](#adr-011-pytest-testing-with-80-coverage) - Testing complements type checking
 
 ---
 
@@ -1216,28 +568,27 @@ uv run mypy src/ && echo "✓ Type check passed"
 
 ### [ADR-013] Decision
 
-Support both **stdio transport** (for Claude Desktop) and **HTTP/SSE transport** (for web/cloud) using FastMCP's built-in transport abstraction.
+Support both **stdio transport** (for Claude Desktop) and **HTTP/SSE transport** (for web/cloud).
 
-**Rationale**:
+### [ADR-013] Entry Points
 
-- **Claude Desktop**: Stdio transport integrates seamlessly with Claude Desktop client
-- **Web Clients**: HTTP/SSE enables browser-based integration
-- **Cloud Deployment**: HTTP transport suitable for FastMCP Cloud
-- **Flexibility**: Users choose transport based on use case
-- **Single Implementation**: Same MCP tools work on both transports
-
-### [ADR-013] Stdio Transport (Claude Desktop)
-
-```python
-# src/aareguru_mcp/server.py - Stdio entry point
-
-def entry_point() -> None:
-    """Run MCP server with stdio transport for Claude Desktop."""
-    from aareguru_mcp.server import mcp
-    mcp.run(transport="stdio")
+```toml
+# pyproject.toml
+[project.scripts]
+aareguru-mcp      = "aareguru_mcp.server:entry_point"   # Stdio transport
+aareguru-mcp-http = "aareguru_mcp.server:run_http"      # HTTP/SSE transport
 ```
 
-Usage in Claude Desktop config:
+### [ADR-013] HTTP Server Routes
+
+The HTTP server exposes additional operational endpoints beyond MCP:
+
+```python
+GET /health    # Health check (rate-limited: 60/min via slowapi)
+GET /metrics   # Prometheus metrics (MetricsCollector tracks tool calls)
+```
+
+### [ADR-013] Claude Desktop Configuration
 
 ```json
 {
@@ -1251,236 +602,56 @@ Usage in Claude Desktop config:
 }
 ```
 
-### [ADR-013] HTTP/SSE Transport (Web/Cloud)
-
-```python
-# src/aareguru_mcp/server.py - HTTP/SSE entry point
-
-async def run_http(host: str = "0.0.0.0", port: int = 8888) -> None:
-    """Run MCP server with HTTP/SSE transport for web clients."""
-    from aareguru_mcp.server import mcp
-
-    # Create HTTP server with SSE transport
-    import uvicorn
-    app = create_app_with_sse_transport(mcp)
-
-    uvicorn.run(app, host=host, port=port)
-```
-
-Console script entry point:
-
-```toml
-# pyproject.toml
-
-[project.scripts]
-aareguru-mcp = "aareguru_mcp.server:entry_point"          # Stdio
-aareguru-mcp-http = "aareguru_mcp.server:run_http"       # HTTP/SSE
-```
-
-Running HTTP server:
-
-```bash
-# Development
-uv run aareguru-mcp-http
-
-# Production with custom host/port
-uv run aareguru-mcp-http --host 0.0.0.0 --port 8888
-```
-
-### [ADR-013] Client Connection Examples
-
-```python
-# Python client (HTTP/SSE)
-from anthropic import Anthropic
-
-client = Anthropic()
-
-# Connect to HTTP/SSE MCP server
-response = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=1024,
-    tools=[
-        {
-            "name": "get_current_temperature",
-            "description": "Get current water temperature",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "city": {"type": "string", "default": "Bern"}
-                }
-            }
-        }
-    ],
-    messages=[
-        {
-            "role": "user",
-            "content": "What's the water temperature in Zurich?"
-        }
-    ]
-)
-```
-
-### [ADR-013] Benefits
-
-- **Dual Support**: Single codebase serves both use cases
-- **Claude Desktop**: Direct integration with native client
-- **Web Integration**: Enables browser-based tools
-- **Cloud Ready**: HTTP transport suitable for cloud deployment
-- **Flexibility**: Users choose based on architecture
-
-### [ADR-013] Related ADRs
-
-- [ADR-001](#adr-001-use-fastmcp-20-for-mcp-protocol) - FastMCP handles transport abstraction
-- [ADR-010](#adr-010-structured-logging-with-structlog) - Logging for all transports
-
 ---
 
 ## ADR-014: Service Layer Pattern
 
-**Status**: 🔄 Proposed **Date**: 2026-02-08 **Context**: Core Architecture
+**Status**: ✅ Accepted **Date**: 2026-02-08 **Context**: Production Ready Enhancements
 
 ### [ADR-014] Decision
 
-Introduce a **service layer** between tools/routes and the API client, providing business logic, data enrichment, and helper function integration.
+Introduce a **service layer** (`service.py`) between the MCP tools and the HTTP client, providing reusable business logic and data enrichment.
 
-**Rationale**:
-
-- **Separation of Concerns**: Tools/routes focus on interface, services handle logic
-- **Reusability**: Services can be called from MCP tools, REST endpoints, and Chat API
-- **Enrichment**: Centralized data interpretation and formatting
-- **Testability**: Service layer can be tested independently
-- **Maintainability**: Easier to modify business logic without touching API code
-
-### [ADR-014] Service Layer Architecture
+### [ADR-014] Service Methods
 
 ```python
-# src/aareguru_mcp/service.py
-
-from aareguru_mcp.client import AareguruClient
-from aareguru_mcp.helpers import (
-    get_safety_assessment,
-    check_safety_warning,
-    get_suggestion,
-    get_seasonal_advice,
-)
-from aareguru_mcp.models import CurrentResponse
-
 class AareguruService:
-    """Business logic service for Aareguru data."""
-
-    def __init__(self, client: AareguruClient | None = None):
-        self.client = client
-
-    async def get_current_conditions(self, city: str = "Bern") -> dict:
-        """Get weather with automatic enrichment."""
-        async with AareguruClient() as client:
-            response = await client.get_current(city)
-
-            # Enrich with interpretation
-            enrichment = {
-                "safety_assessment": get_safety_assessment(response.aare.flow),
-                "safety_warning": check_safety_warning(response.aare.flow),
-                "seasonal_advice": get_seasonal_advice(datetime.now().month),
-            }
-
-            # Return combined
-            return {
-                **response.model_dump(),
-                **enrichment
-            }
-
-    async def get_weather_with_suggestion(self, city: str) -> dict:
-        """Get weather and suggest alternatives if needed."""
-        async with AareguruClient() as client:
-            response = await client.get_today(city)
-            cities = await client.get_cities()
-
-            # Suggest warmer location if cold
-            suggestion = None
-            if response.aare < 15:
-                suggestion = get_suggestion([c.model_dump() for c in cities])
-
-            return {
-                **response.model_dump(),
-                "suggestion": suggestion
-            }
-
-    async def get_historical_analysis(self, city: str, days_back: int = 7) -> dict:
-        """Get historical data with trend analysis."""
-        async with AareguruClient() as client:
-            data = await client.get_historical(city, days_back)
-
-            # Analyze trends
-            temperatures = [d["temperature"] for d in data]
-            avg_temp = sum(temperatures) / len(temperatures)
-            trend = "warming" if temperatures[-1] > temperatures[0] else "cooling"
-
-            return {
-                "city": city,
-                "period": f"Last {days_back} days",
-                "average_temperature": avg_temp,
-                "trend": trend,
-                "data": data
-            }
+    async def get_current_temperature(self, city: str) -> dict[str, Any]: ...
+    async def get_current_conditions(self, city: str) -> dict[str, Any]: ...
+    async def get_historical_data(self, city: str, start: str, end: str) -> dict[str, Any]: ...
+    async def compare_cities(self, cities: list[str]) -> dict[str, Any]: ...
+    async def get_forecasts(self, cities: list[str]) -> dict[str, Any]: ...
+    async def get_flow_danger_level(self, city: str) -> dict[str, Any]: ...
+    async def get_cities_list(self) -> dict[str, Any]: ...
 ```
 
-### [ADR-014] MCP Tool Usage
+Methods map 1:1 to MCP tools. The service is called by both tools (MCP interface) and apps (UI interface), avoiding code duplication.
+
+### [ADR-014] Thin Tool Wrapper Pattern
 
 ```python
-@mcp.tool()
-async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
-    """Get comprehensive conditions with safety assessment."""
-    service = AareguruService()
-    return await service.get_current_conditions(city)
+# tools.py — MCP interface only
+async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
+    """[MCP docstring for schema generation]"""
+    try:
+        service = AareguruService()
+        return await service.get_current_temperature(city)
+    except ValueError as e:
+        return {"error": f"Invalid city: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Failed to get temperature: {str(e)}"}
 ```
-
-### [ADR-014] REST Endpoint Usage
-
-```python
-@app.get("/api/tools/current")
-async def get_current_endpoint(city: str = "Bern") -> dict:
-    """REST endpoint using same service."""
-    service = AareguruService()
-    return await service.get_current_conditions(city)
-```
-
-### [ADR-014] Chat API Usage
-
-```python
-async def execute_tool(tool_name: str, tool_input: dict) -> dict:
-    """Execute MCP tool from chat."""
-    service = AareguruService()
-
-    if tool_name == "get_current_conditions":
-        return await service.get_current_conditions(tool_input.get("city", "Bern"))
-    elif tool_name == "get_weather_with_suggestion":
-        return await service.get_weather_with_suggestion(tool_input["city"])
-    else:
-        raise ValueError(f"Unknown tool: {tool_name}")
-```
-
-### [ADR-014] Service Classes
-
-| Service | Responsibility |
-|---------|-----------------|
-| `AareguruService` | Current conditions, enrichment, interpretation |
-| `HistoricalService` | Historical data queries, trend analysis |
-| `LocationService` | Location search, coordinate validation |
-| `ForecastService` | Weather forecast, trend prediction |
-| `ChatService` | Chat handler, session management, context |
 
 ### [ADR-014] Benefits
 
-- **DRY**: Helper functions applied consistently across APIs
-- **Consistency**: Same data enrichment for all interfaces
-- **Testability**: Service layer can be unit tested independently
-- **Flexibility**: Easy to add new data sources or enhance existing services
-- **Documentation**: Services document business logic clearly
+- **DRY**: Business logic not duplicated between tools and apps
+- **Testability**: Service can be unit tested independently
+- **Extensibility**: New interfaces (REST, Chat) can reuse service methods
 
 ### [ADR-014] Related ADRs
 
-- [ADR-013](#adr-013-httpsse-and-stdio-transports) - HTTP/SSE transport foundation
-- [ADR-006](#adr-006-helper-functions-module-pattern) - Helper functions used by services
+- [ADR-006](#adr-006-helper-functions-module-pattern) - Helpers used by service
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Apps call service methods
 
 ---
 
@@ -1492,208 +663,325 @@ async def execute_tool(tool_name: str, tool_input: dict) -> dict:
 
 Use **FastMCP Cloud** for production deployment with automatic scaling, monitoring, and zero-downtime updates.
 
-**Rationale**:
-
-- **Managed Service**: No infrastructure management required
-- **Auto-Scaling**: Automatically scales based on demand
-- **Zero-Downtime**: Seamless updates and rollbacks
-- **Monitoring**: Built-in observability and alerting
-- **Integration**: Native integration with Claude Desktop and API clients
-- **Cost**: Pay-per-request pricing (no idle costs)
-
-### [ADR-015] Implementation Status
-
-**Deployed**: 2026-02-08
-**Production URL**: `https://aareguru.fastmcp.app/mcp`
-**Configuration**: `.fastmcp/config.yaml`
-**Documentation**: `docs/DEPLOYMENT.md`
-
-The server is production-ready and deployed with:
-- ✅ HTTP/SSE transport configured
-- ✅ Health endpoints at `/health`
-- ✅ Prometheus metrics at `/metrics`
-- ✅ Auto-scaling (2-10 replicas) in EU-West-1
-- ✅ Zero-downtime deployments
-- ✅ Automatic rollback on failures
-- ✅ MCP bundle file (`aareguru-mcp.mcpb`) for easy installation
-
 ### [ADR-015] Configuration
 
-Complete FastMCP Cloud configuration in `.fastmcp/config.yaml`:
-
 ```yaml
-# Deployment settings
+# .fastmcp/config.yaml
 deployment:
-  region: "eu-west-1"           # Closer to Switzerland
-  replicas: 2                   # Minimum healthy replicas
-  max_replicas: 10              # Auto-scale up to 10
-  timeout: 30s                  # Request timeout
-  memory: 512Mi                 # Memory per replica
-  cpu: "500m"                   # CPU limit
+  region: "eu-west-1"
+  replicas: 2
+  max_replicas: 10
+  timeout: 30s
+  memory: 512Mi
 
-# Environment variables
 environment:
   LOG_LEVEL: "INFO"
-  LOG_FORMAT: "json"
   CACHE_TTL_SECONDS: "120"
   MIN_REQUEST_INTERVAL_SECONDS: "0.1"
 
-# Health check configuration
 health:
   path: "/health"
   interval: 30s
-  timeout: 10s
-  failure_threshold: 3
 
-# Monitoring and alerting
 monitoring:
   enabled: true
   metrics_path: "/metrics"
-  alerts:
-    - name: "High Error Rate"
-      condition: "error_rate > 0.01"
-    - name: "Critical Error Rate"
-      condition: "error_rate > 0.05"
-    - name: "High Latency"
-      condition: "latency_p95 > 2000"
-
-# Auto-rollback configuration
-auto_rollback:
-  enabled: true
-  on_error_rate: 0.05           # >5% errors
-  on_latency: 5000              # >5s P95 latency
-  grace_period: 60s
 ```
 
-### [ADR-015] Deployment Process
+### [ADR-015] Installation Options
 
-```bash
-# 1. Build and test locally
-uv sync
-uv run pytest tests/
-uv run mypy src/
-
-# 2. Deploy to FastMCP Cloud (automatic on main branch push)
-# OR manually: fastmcp deploy
-
-# 3. Verify deployment
-curl https://aareguru.fastmcp.app/health/
-
-# 4. Check metrics
-curl https://aareguru.fastmcp.app/metrics
-```
-
-### [ADR-015] Installation
-
-**Option 1: Direct URL Configuration** (Claude Desktop)
+**Direct URL** (Claude Desktop):
 ```json
-{
-  "mcpServers": {
-    "aareguru": {
-      "url": "https://aareguru.fastmcp.app/mcp"
-    }
-  }
-}
+{"mcpServers": {"aareguru": {"url": "https://aareguru.fastmcp.app/mcp"}}}
 ```
 
-**Option 2: Bundle File**
-- Download `aareguru-mcp.mcpb` from repository
-- Drag-and-drop into Claude Desktop
-- One-click installation with metadata
+**Bundle file**: Download `aareguru-mcp.mcpb` and drag into Claude Desktop.
 
-### [ADR-015] Benefits
+---
 
-- **Reliability**: Automatic failover and health checking
-- **Performance**: Auto-scaling handles traffic spikes
-- **Scalability**: 2-10 replicas, handles concurrent requests
-- **Observability**: Built-in metrics and structured JSON logging
-- **Updates**: Zero-downtime deployments with automatic rollback
-- **Cost**: Pay-per-request pricing (~$0.001/request)
-- **Integration**: Native Claude Desktop integration via MCP
+## ADR-016: FastMCP Apps with prefab_ui
 
-### [ADR-015] Monitoring
+**Status**: ✅ Accepted **Date**: 2026-04-17 **Context**: Interactive UI Layer
 
-**Metrics Available**:
-- Request count per tool
-- Response latency (P50, P95, P99)
-- Error rate and types
-- Active connections
-- CPU/memory utilization
+### [ADR-016] Decision
 
-**Available at**: `/metrics` (Prometheus format) or FastMCP Cloud dashboard
+Use **FastMCPApp** with the **prefab_ui** component library to render interactive, data-rich UIs directly within AI conversation contexts — no separate frontend required.
 
-**Logging**:
-- Structured JSON logs
-- 30-day retention
-- Queryable via FastMCP Cloud dashboard
+**Rationale**:
 
-### [ADR-015] Related ADRs
+- **In-Context UI**: Rich dashboards, charts, and tables rendered where the data is requested
+- **Zero Frontend Overhead**: No separate React/Vue app, no deployment pipeline for UI
+- **Component Library**: `prefab_ui` provides Cards, Grids, Charts, DataTables, Alerts, etc.
+- **Server-Rendered**: Apps run on the MCP server, return a `PrefabApp` descriptor that the client renders
+- **Reactive**: Each app has a paired `refresh_*` tool for live data updates from the UI
 
-- [ADR-013](#adr-013-httpsse-and-stdio-transports) - HTTP/SSE transport foundation
-- [ADR-014](#adr-014-service-layer-pattern) - Service layer for tool execution
-- [ADR-010](#adr-010-structured-logging-with-structlog) - Logging for cloud monitoring
+### [ADR-016] App Inventory
+
+Seven apps are registered in `server.py` via `providers=`:
+
+| App | File | UI Pattern | Primary Component |
+|-----|------|-----------|-------------------|
+| `conditions` | `conditions.py` | Card grid dashboard | Cards, Grid, Alert |
+| `history` | `history.py` | Time-series chart | AreaChart |
+| `compare` | `compare.py` | Sortable city table | DataTable |
+| `forecast` | `forecast.py` | 24h forecast + chart | AreaChart, Grid |
+| `intraday` | `intraday.py` | Today's sparkline | AreaChart |
+| `city_finder` | `city_finder.py` | Ranked city table | DataTable |
+| `safety` | `safety.py` | BAFU danger briefing | Card, Grid |
+
+### [ADR-016] App Structure Pattern
+
+Every app follows the same pattern:
+
+```python
+# apps/conditions.py
+
+conditions_app = FastMCPApp("conditions")
+
+# 1. Refresh tool — called from UI button to reload data
+@conditions_app.tool()
+async def refresh_conditions(city: str) -> dict[str, Any]:
+    service = AareguruService()
+    return await service.get_current_conditions(city)
+
+# 2. UI function — returns PrefabApp descriptor
+@conditions_app.ui()
+async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
+    service = AareguruService()
+    data = await service.get_current_conditions(city)
+
+    with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
+        # Build component tree using prefab_ui components
+        Text("Aare — Bern", cssClass="text-lg font-black ...")
+        with Card(...):
+            with CardContent(...):
+                Text(_fmt_temp(temp), cssClass="text-5xl font-black ...")
+
+    return PrefabApp(
+        view=view,
+        state={"city": city, "aare": aare},
+        stylesheets=[_FONT_CSS],       # Embedded DIN Next LT Pro font
+    )
+```
+
+### [ADR-016] Service Layer Integration
+
+Apps call `AareguruService` directly — the same service methods used by MCP tools. No data-fetching logic is duplicated.
+
+```
+UI request → @conditions_app.ui() → AareguruService → AareguruClient → API
+                                  ↑
+Same path as: @mcp.tool() ────────┘
+```
+
+### [ADR-016] Registration in Server
+
+```python
+# server.py
+from aareguru_mcp.apps import (
+    conditions_app, history_app, compare_app,
+    forecast_app, intraday_app, city_finder_app, safety_app,
+)
+
+mcp = FastMCP("aareguru", providers=[
+    conditions_app, history_app, compare_app,
+    forecast_app, intraday_app, city_finder_app, safety_app,
+])
+```
+
+### [ADR-016] Benefits
+
+- **DRY**: Service layer reused by both tools and apps
+- **Isolation**: Each app is a self-contained `FastMCPApp` instance
+- **Testability**: Apps can be tested by calling the `@app.ui()` function directly
+- **Composability**: `prefab_ui` components are declaratively composed using Python context managers
+
+### [ADR-016] Related ADRs
+
+- [ADR-001](#adr-001-use-fastmcp-3x-for-mcp-protocol) - FastMCPApp requires `fastmcp[apps]`
+- [ADR-014](#adr-014-service-layer-pattern) - Service called by apps
+- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Design tokens used by all apps
+
+---
+
+## ADR-017: Visual Design System & Embedded Assets
+
+**Status**: ✅ Accepted **Date**: 2026-04-17 **Context**: Interactive UI Layer
+
+### [ADR-017] Decision
+
+Maintain a **centralised design token system** in `apps/_constants.py` that encodes the aare.guru visual identity, enforces WCAG AA colour contrast, and embeds all UI assets (fonts, icons) as inline base64 data URIs — making every `PrefabApp` fully self-contained with no external network dependency.
+
+**Rationale**:
+
+- **Brand Consistency**: All 7 apps share identical colours, typography, and spacing
+- **WCAG AA Compliance**: Every colour is validated for ≥4.5:1 contrast ratio; dark mode colours validated separately against dark backgrounds
+- **Self-Contained Delivery**: Fonts embedded as base64 WOFF2 data URIs; no CDN or font service required
+- **Single Source of Truth**: Changing a colour in `_constants.py` updates all apps automatically
+- **Offline Capable**: Apps render correctly in sandboxed or network-restricted environments
+
+### [ADR-017] Design Tokens
+
+```python
+# apps/_constants.py — Light mode
+_AG_BG_WASSER  = "#2be6ff"  # Aare cyan — water card background
+_AG_BG_WETTER  = "#aeffda"  # Mint green — weather card background
+_AG_TXT_PRIMARY = "#0f405f"  # Dark blue — main labels
+_AG_WASSER_TEMP = "#0877ab"  # Water temperature values (5.1:1 on white)
+_AG_WASSER_FLOW = "#357d9e"  # Flow rate values
+_AG_AIR_TEMP   = "#0771a8"  # Air temperature (5.1:1 on white)
+_AG_BFU        = "#007d76"  # BAFU safety accent (4.6:1 on white)
+_AG_SUNNY      = "#f2e500"  # Sunny weather accent
+_AG_RADIUS     = "rounded-[3px]"  # Angular Swiss border-radius
+
+class _DK:  # Dark mode equivalents
+    TXT_PRIMARY = "#c8e6f8"
+    BG_WASSER   = "#0d4a5c"
+    BG_WETTER   = "#0a3d24"
+    WASSER_TEMP = "#38bdf8"  # sky-400
+    WASSER_FLOW = "#7dd3fc"  # sky-300
+    AIR_TEMP    = "#38bdf8"
+    BFU         = "#2dd4bf"  # teal-400
+    SUNNY       = "#fde047"  # yellow-300
+    CARD_BG     = "#1a2e3d"
+```
+
+### [ADR-017] WCAG AA Colour Contract
+
+All foreground colours are chosen for ≥4.5:1 contrast ratio:
+
+| Token | Light Hex | Ratio on White | Dark Hex | Ratio on `#1a2e3d` |
+|-------|-----------|----------------|----------|---------------------|
+| BAFU safe | `#007d76` | 4.6:1 | `#2dd4bf` | 9.1:1 |
+| Moderat | `#0877ab` | 5.0:1 | `#38bdf8` | 7.9:1 |
+| Erhöht | `#b45309` | 4.7:1 | `#fbbf24` | 9.4:1 |
+| Hoch | `#dc2626` | 4.5:1 | `#f87171` | 5.9:1 |
+| Sehr hoch | `#7f1d1d` | 10.0:1 | `#fca5a5` | 8.3:1 |
+
+### [ADR-017] Embedded Font (DIN Next LT Pro)
+
+```python
+# apps/_constants.py
+_FONT_FILE = Path(__file__).parent / "assets" / "webfonts" / "DIN-Next-LT-Pro.woff2"
+_FONT_B64  = base64.b64encode(_FONT_FILE.read_bytes()).decode()
+_FONT_CSS  = (
+    "@font-face {"
+    "font-family:'DIN Next LT Pro';"
+    "src:url('data:font/woff2;base64," + _FONT_B64 + "') format('woff2');"
+    "font-weight:100 900;"
+    "font-style:normal;font-display:swap;"
+    "}"
+    "body,*{font-family:'DIN Next LT Pro',ui-sans-serif,system-ui,sans-serif !important;}"
+)
+```
+
+`_FONT_CSS` is passed as `stylesheets=[_FONT_CSS]` to every `PrefabApp`. `PrefabApp` detects `{` in the string and injects it as an inline `<style>` tag — no font service, no CDN.
+
+The font is read once at module import time and cached as a module-level constant. Startup cost is minimal; subsequent app renders have zero I/O overhead.
+
+### [ADR-017] Asset Structure
+
+```
+apps/assets/
+├── webfonts/
+│   └── DIN-Next-LT-Pro.woff2      # Brand typeface — variable weight 100–900
+└── img/
+    └── weather/
+        ├── 1.svg                   # MeteoSwiss sy-code 1 (clear)
+        ├── 2.svg                   # sy-code 2 (mostly clear)
+        ├── 3.svg                   # sy-code 3 (partly cloudy)
+        └── 10.svg                  # sy-code 10 (heavy rain)
+```
+
+Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped by `_sy_to_emoji` in `_helpers.py`). These are available for future replacement of the current emoji fallback.
+
+### [ADR-017] Domain Lookup Tables
+
+`_constants.py` also centralises domain-specific lookup tables:
+
+- **`_SAFETY_LEVELS`**: 5 BAFU flow thresholds → badge label/variant/colour
+- **`_FLOW_ZONES`**: 5 proportional zones for the flow scale bar widget
+- **`_BAFU_LEVELS`**: Official BAFU danger levels 1–5 with German guidance text
+- **`_BEAUFORT`**: Beaufort wind scale 0–12 in German with km/h thresholds
+- **`_SY_EMOJI`**: MeteoSwiss `sy`-code → emoji fallback (codes 1–30)
+
+### [ADR-017] Benefits
+
+- **Zero external requests**: No Google Fonts, no CDN, no font service calls
+- **Consistent rendering**: Same font regardless of network or platform
+- **WCAG compliance**: Contrast ratios enforced in code comments, not just design files
+- **Centralised maintenance**: One file to update for brand changes across all 7 apps
+
+### [ADR-017] Related ADRs
+
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Apps that consume these tokens
+- [ADR-011](#adr-011-pytest-testing-with-80-coverage) - `test_apps.py` covers design token functions
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 1: Core Architecture ✅ (v1.0.0 - v4.0.0)
+### Phase 1: Core Architecture ✅ (v1.0.0 – v4.0.0)
 
-- ✅ ADR-001: FastMCP 2.0 framework
+- ✅ ADR-001: FastMCP 3.x framework (started as 2.0, upgraded)
 - ✅ ADR-002: Pydantic v2 data models
 - ✅ ADR-003: Async/httpx patterns
-- ✅ ADR-004: Python 3.13+ requirement
+- ✅ ADR-004: Python 3.11+ requirement
 - ✅ ADR-005: Layered architecture
-- ✅ ADR-006: Helper functions module
+- ✅ ADR-006: Helper functions module (split into top-level + apps-specific)
 - ✅ ADR-007: Async context managers
 - ✅ ADR-008: Caching strategy
-- ✅ ADR-009: Rate limiting
+- ✅ ADR-009: Rate limiting (client + HTTP layer)
 - ✅ ADR-010: Structured logging
-- ✅ ADR-011: pytest testing (87% coverage)
-- ✅ ADR-012: MyPy strict type checking
+- ✅ ADR-011: pytest testing (83% coverage, 245 tests)
+- ✅ ADR-012: MyPy type checking
 - ✅ ADR-013: HTTP/SSE and Stdio transports
 
-### Phase 2: Production Ready (v4.1.0+)
+### Phase 2: Production Ready ✅ (v4.1.0 – v4.2.x)
 
-- ✅ ADR-014: Service Layer Pattern for code reuse
-- ✅ ADR-015: FastMCP Cloud Deployment for production
-- 🔄 Performance profiling and optimization
-- 🔄 Enhanced monitoring and alerting
+- ✅ ADR-014: Service Layer Pattern
+- ✅ ADR-015: FastMCP Cloud Deployment
+
+### Phase 3: Interactive UI Layer ✅ (v4.3.0)
+
+- ✅ ADR-016: FastMCP Apps with prefab_ui (7 interactive apps)
+- ✅ ADR-017: Visual Design System & Embedded Assets
+
+### Future
+
+- 🔄 ADR-018 (planned): Weather icon SVGs replacing emoji fallback
+- 🔄 Performance profiling and optimisation
+- 🔄 REST/Chat API layer reusing service methods
 
 ---
 
 ## Summary
 
-This ADR compendium establishes **15 architectural decisions** for Aareguru MCP Server:
+This ADR compendium establishes **17 architectural decisions** for Aareguru MCP Server v4.3.0:
 
-**Core Architecture** (5 ADRs - ✅ Accepted):
-- FastMCP 2.0 for MCP protocol
-- Pydantic v2 for type-safe data models
-- Async/await with httpx for API calls
-- Python 3.13+ as minimum version
-- Layered architecture (server → logic → client → models → config)
+**Core Architecture** (5 ADRs):
+FastMCP 3.x · Pydantic v2 · async/httpx · Python 3.11+ · layered architecture
 
-**Design Patterns** (4 ADRs - ✅ Accepted):
-- Helper functions module for shared business logic
-- Async context managers for resource management
-- Time-based caching strategy (120s TTL)
-- Lock-based rate limiting (300s min interval)
+**Design Patterns** (4 ADRs):
+Helper modules (split top-level/apps) · async context managers · time-based caching · dual rate limiting
 
-**Quality & Observability** (3 ADRs - ✅ Accepted):
-- Structured logging with structlog (JSON output)
-- pytest with 87% coverage (target ≥80%, 212 tests)
-- MyPy strict type checking
+**Quality & Observability** (3 ADRs):
+structlog JSON logging · pytest 83% coverage (245 tests) · MyPy type checking
 
-**Transport & Deployment** (3 ADRs - ✅ Accepted):
-- HTTP/SSE and Stdio transports (FastMCP Cloud ready)
-- Service Layer Pattern for code reuse
-- FastMCP Cloud Deployment for production
+**Transport & Deployment** (2 ADRs):
+stdio + HTTP/SSE transports · FastMCP Cloud (eu-west-1, auto-scaling 2–10 replicas)
+
+**Production Enhancements** (2 ADRs):
+Service layer pattern · FastMCP Cloud deployment
+
+**Interactive UI Layer** (2 ADRs):
+FastMCP Apps + prefab_ui (7 apps) · visual design system with embedded assets + WCAG AA compliance
 
 ---
 
-**Document Status**: v1.3.0 - All ADRs Accepted, Production Ready
-**Last Updated**: 2026-02-08
+**Document Status**: v2.0.0 — All 17 ADRs Accepted, Production Ready
+**Last Updated**: 2026-04-17
 **Maintained By**: Aareguru MCP Development Team
 
-**v4.1.0 Status**: Production ready with service layer pattern and FastMCP Cloud deployment (87% test coverage)
-**Future Goals**: Performance profiling, enhanced monitoring, REST/Chat API layers
+**v4.3.0 Status**: Production ready with interactive UI layer, embedded brand font, WCAG AA compliance, service layer, and FastMCP Cloud deployment (83% test coverage, 245 tests)
+**Next**: Weather SVG icon integration (ADR-018 planned)

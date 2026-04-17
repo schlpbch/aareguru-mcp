@@ -32,6 +32,7 @@ from ._constants import (
     _AG_WASSER_TEMP,
     _DK,
     _FLOW_ZONES,
+    _FONT_CSS,
 )
 from ._helpers import (
     _fmt_flow,
@@ -366,4 +367,5 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
     return PrefabApp(
         view=view,
         state={"city": city, "aare": aare, "safety": safety_label},
+        stylesheets=[_FONT_CSS],
     )

@@ -22,6 +22,7 @@ from ._constants import (
     _AG_WASSER_FLOW,
     _BAFU_LEVELS,
     _DK,
+    _FONT_CSS,
 )
 from ._helpers import _bafu_level, _fmt_flow
 
@@ -171,4 +172,5 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
             "flow": flow,
             "height": height,
         },
+        stylesheets=[_FONT_CSS],
     )
