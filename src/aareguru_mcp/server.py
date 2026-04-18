@@ -46,6 +46,7 @@ mcp = FastMCP(
         apps.intraday_app,
         apps.city_finder_app,
         apps.safety_app,
+        apps.map_app,
     ],
     instructions="""You are an assistant that helps users with Swiss Aare river conditions.
 

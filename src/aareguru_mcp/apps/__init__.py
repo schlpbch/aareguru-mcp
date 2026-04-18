@@ -1,6 +1,6 @@
 """FastMCP Apps for interactive Aare river data UIs.
 
-Provides seven FastMCPApps that render interactive UIs directly in conversations,
+Provides eight FastMCPApps that render interactive UIs directly in conversations,
 using the aare.guru visual design system.
 
 Apps:
@@ -11,6 +11,7 @@ Apps:
 - intraday_app:   Today's intraday water temperature sparkline
 - city_finder_app: All cities ranked by temperature or safety
 - safety_app:     BAFU 1-5 danger level briefing
+- map_app:        Interactive Leaflet.js map of all monitoring stations
 """
 
 from ..service import AareguruService
@@ -21,6 +22,7 @@ from .conditions import conditions_app, conditions_dashboard, refresh_conditions
 from .forecast import forecast_app, forecast_view, refresh_forecast
 from .history import fetch_history, historical_chart, history_app
 from .intraday import intraday_app, intraday_view, refresh_intraday
+from .map import aare_map, map_app, refresh_map
 from .safety import refresh_safety, safety_app, safety_briefing
 
 __all__ = [
@@ -32,6 +34,7 @@ __all__ = [
     "intraday_app",
     "city_finder_app",
     "safety_app",
+    "map_app",
     # UI functions (used by tests)
     "conditions_dashboard",
     "historical_chart",
@@ -40,6 +43,7 @@ __all__ = [
     "intraday_view",
     "city_finder_view",
     "safety_briefing",
+    "aare_map",
     # Tool functions
     "refresh_conditions",
     "fetch_history",
@@ -48,6 +52,7 @@ __all__ = [
     "refresh_intraday",
     "refresh_cities",
     "refresh_safety",
+    "refresh_map",
     # Helper (used by tests)
     "_safety_badge",
     # Service class (re-exported so patch("aareguru_mcp.apps.AareguruService") works)
