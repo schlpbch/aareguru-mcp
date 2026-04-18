@@ -12,10 +12,13 @@ Server responsibilities:
 """
 
 import functools
+import re
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
-from fastmcp import FastMCP
+from fastmcp import Context, FastMCP
+from fastmcp.server.elicitation import AcceptedElicitation
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -23,13 +26,8 @@ from starlette.responses import JSONResponse, Response
 from . import apps, prompts, resources, tools
 from .config import get_settings
 from .metrics import MetricsCollector
-from .models import (
-    AareConditionsData,
-    ConditionsToolResponse,
-    FlowDangerResponse,
-    TemperatureToolResponse,
-)
 from .rate_limit import limiter
+from .service import AareguruService
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -118,38 +116,182 @@ async def weekly_trend_analysis_prompt(city: str = "Bern", days: int = 7) -> str
 
 
 # ============================================================================
+# Elicitation helpers
+# ============================================================================
+
+
+async def _elicit_city(ctx: Context, bad_city: str) -> str | None:
+    """Ask the user to pick a valid city when bad_city is not recognised."""
+    try:
+        service = AareguruService()
+        cities = await service.get_cities_list()
+        names: list[str] = sorted(str(c["city"]) for c in cities)
+    except Exception:
+        return None
+    result = await ctx.elicit(
+        f"Stadt '{bad_city}' nicht gefunden. Bitte eine Stadt wählen:",
+        names,  # type: ignore[arg-type]
+    )
+    if isinstance(result, AcceptedElicitation):
+        return str(result.data)
+    return None
+
+
+def _estimate_days(start: str) -> float:
+    """Return approximate number of days covered by a start expression."""
+    s = start.strip().lstrip("-")
+    m = re.match(r"(\d+(?:\.\d+)?)\s*(day|week|month|year)s?", s, re.I)
+    if m:
+        n, unit = float(m.group(1)), m.group(2).lower()
+        return n * {"day": 1, "week": 7, "month": 30, "year": 365}[unit]
+    try:
+        ts = float(start)
+        return (datetime.now(timezone.utc).timestamp() - ts) / 86400
+    except ValueError:
+        pass
+    try:
+        dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc) - dt).total_seconds() / 86400
+    except ValueError:
+        pass
+    return 0.0
+
+
+# ============================================================================
 # Tools
 # ============================================================================
 
 
 @mcp.tool(name="get_current_temperature")
-@functools.wraps(tools.get_current_temperature)
-async def get_current_temperature_tool(city: str = "Bern") -> TemperatureToolResponse:
+async def get_current_temperature_tool(
+    city: str = "Bern", ctx: Context = None  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Get current water temperature for a city.
+
+    Use this for quick temperature checks and simple 'how warm is the water?' questions.
+    Returns temperature in Celsius, Swiss German description (e.g., 'geil aber chli chalt'),
+    and swimming suitability.
+
+    Args:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
+    """
     with MetricsCollector.track_tool_call("get_current_temperature"):
-        result = await tools.get_current_temperature(city)
-        return TemperatureToolResponse(**result)
+        service = AareguruService()
+        try:
+            return await service.get_current_temperature(city)
+        except ValueError:
+            chosen = await _elicit_city(ctx, city)
+            if chosen is None:
+                return {"error": f"Stadt '{city}' nicht gefunden."}
+            return await service.get_current_temperature(chosen)
+        except Exception as e:
+            return {"error": str(e), "city": city}
 
 
 @mcp.tool(name="get_current_conditions")
-@functools.wraps(tools.get_current_conditions)
-async def get_current_conditions_tool(city: str = "Bern") -> ConditionsToolResponse:
-    result = await tools.get_current_conditions(city)
-    if "aare" in result and result["aare"]:
-        result["aare"] = AareConditionsData(**result["aare"])
-    return ConditionsToolResponse(**result)
+async def get_current_conditions_tool(
+    city: str = "Bern", ctx: Context = None  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Get complete current conditions for a city.
+
+    Use this for safety assessments, 'is it safe to swim?' questions, and when users
+    need a complete picture before swimming. This is the most detailed tool.
+
+    Args:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
+    """
+    service = AareguruService()
+    try:
+        return await service.get_current_conditions(city)
+    except ValueError:
+        chosen = await _elicit_city(ctx, city)
+        if chosen is None:
+            return {"error": f"Stadt '{city}' nicht gefunden."}
+        return await service.get_current_conditions(chosen)
+    except Exception as e:
+        return {"error": str(e), "city": city}
 
 
 @mcp.tool(name="get_historical_data")
-@functools.wraps(tools.get_historical_data)
-async def get_historical_data_tool(city: str, start: str, end: str) -> dict[str, Any]:
+async def get_historical_data_tool(
+    city: str, start: str, end: str, ctx: Context = None  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Get historical time-series data.
+
+    Use this for trend analysis, comparisons with past conditions, and statistical queries.
+    Returns hourly data points for temperature and flow.
+
+    Args:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten')
+        start: Start date/time — ISO, Unix timestamp, or relative ('-7 days', '-1 month')
+        end:   End date/time — ISO, Unix timestamp, or 'now'
+    """
+    days = _estimate_days(start)
+    if days > 90:
+        result = await ctx.elicit(
+            f"Der Zeitraum umfasst ca. {int(days)} Tage (~{int(days) * 24} Datenpunkte). "
+            "Das kann einen Moment dauern. Fortfahren?",
+            {"ja": {"title": "Ja, fortfahren"}, "nein": {"title": "Nein, abbrechen"}},  # type: ignore[arg-type]
+        )
+        if not isinstance(result, AcceptedElicitation) or str(result.data) == "nein":
+            return {
+                "error": "Abgebrochen",
+                "tip": "Wähle '-7 days' bis '-90 days' für schnellere Ergebnisse.",
+            }
     return await tools.get_historical_data(city, start, end)
 
 
 @mcp.tool(name="get_flow_danger_level")
-@functools.wraps(tools.get_flow_danger_level)
-async def get_flow_danger_level_tool(city: str = "Bern") -> FlowDangerResponse:
-    result = await tools.get_flow_danger_level(city)
-    return FlowDangerResponse(**result)
+async def get_flow_danger_level_tool(
+    city: str = "Bern", ctx: Context = None  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Get current flow rate and BAFU danger assessment.
+
+    Use this for safety-critical questions about current strength and swimming danger.
+
+    Flow Safety Thresholds:
+    - <100 m³/s: Safe · 100-220: Moderate · 220-300: Elevated
+    - 300-430 m³/s: High — dangerous · >430: Very high — extremely dangerous
+
+    Args:
+        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+              Use `list_cities()` to discover available locations.
+    """
+    service = AareguruService()
+    try:
+        result = await service.get_flow_danger_level(city)
+    except ValueError:
+        chosen = await _elicit_city(ctx, city)
+        if chosen is None:
+            return {"error": f"Stadt '{city}' nicht gefunden."}
+        result = await service.get_flow_danger_level(chosen)
+    except Exception as e:
+        return {"error": str(e), "city": city}
+
+    level: int = result.get("danger_level") or 1
+    if level >= 4:
+        flow = result.get("flow", "?")
+        label: str = result.get("safety_assessment", "Gefährlich")
+        elicit_result = await ctx.elicit(
+            f"⚠️ Durchfluss {flow} m³/s — Stufe {level} ({label}). "
+            "Schwimmen ist gefährlich. Details trotzdem anzeigen?",
+            {"show": {"title": "Ja, anzeigen"}, "cancel": {"title": "Nein, abbrechen"}},  # type: ignore[arg-type]
+        )
+        if (
+            not isinstance(elicit_result, AcceptedElicitation)
+            or str(elicit_result.data) == "cancel"
+        ):
+            return {
+                "city": result.get("city", city),
+                "flow": result.get("flow"),
+                "danger_level": level,
+                "safety_assessment": label,
+                "warning": "Auf Wunsch des Benutzers abgebrochen.",
+            }
+
+    return result
 
 
 @mcp.tool(name="compare_cities")

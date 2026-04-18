@@ -65,7 +65,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     level = _bafu_level(flow, gefahrenstufe)
     _, level_label, level_color, level_color_dk, guidance, description = _BAFU_LEVELS[level - 1]
 
-    with Column(gap=1.5, cssClass="p-2 max-w-xl mx-auto") as view:
+    with Column(gap=2, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
             f"Sicherheit — {location}",
             cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"

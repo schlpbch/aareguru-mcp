@@ -35,7 +35,7 @@ class TestSafetyBadge:
         label, variant, color = _safety_badge(50)
         assert label == "Sicher"
         assert variant == "success"
-        assert color == "#00b2aa"
+        assert color == "#007d76"  # WCAG AA safe for text on white
 
     def test_moderate_100_to_220(self):
         label, variant, color = _safety_badge(150)

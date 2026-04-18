@@ -40,8 +40,8 @@ class TestGetCurrentTemperature:
 
             result = await get_current_temperature_tool("Bern")
 
-            assert result.city == "Bern"
-            assert result.temperature == 17.2
+            assert result["city"] == "Bern"
+            assert result["temperature"] == 17.2
 
     @pytest.mark.asyncio
     @pytest.mark.skip(
@@ -72,7 +72,7 @@ class TestGetCurrentTemperature:
             MockClient.return_value = mock_client
 
             result = await get_current_temperature_tool("Bern")
-            assert result.temperature == 17.5
+            assert result["temperature"] == 17.5
             mock_client.get_today.assert_called_once()
 
 
@@ -107,12 +107,12 @@ class TestGetCurrentConditions:
 
             result = await get_current_conditions_tool("Bern")
 
-            assert result.aare is not None
-            assert result.aare.temperature == 17.0
-            assert result.aare.swiss_german_explanation is not None
-            assert result.weather is not None
-            assert result.forecast is not None
-            assert result.seasonal_advice is not None
+            assert result["aare"] is not None
+            assert result["aare"]["temperature"] == 17.0
+            assert result["aare"]["swiss_german_explanation"] is not None
+            assert result["weather"] is not None
+            assert result["forecast"] is not None
+            assert result["seasonal_advice"] is not None
 
     @pytest.mark.asyncio
     async def test_without_aare_data(self):
@@ -134,9 +134,9 @@ class TestGetCurrentConditions:
 
             result = await get_current_conditions_tool("Bern")
 
-            assert result.city == "Bern"
-            assert result.aare is None
-            assert result.seasonal_advice is not None
+            assert result["city"] == "Bern"
+            assert "aare" not in result
+            assert result["seasonal_advice"] is not None
 
 
 class TestGetFlowDangerLevel:
@@ -159,9 +159,9 @@ class TestGetFlowDangerLevel:
 
             result = await get_flow_danger_level_tool("Bern")
 
-            assert result.city == "Bern"
-            assert result.flow == 85.0
-            assert result.danger_level == 1  # Safe
+            assert result["city"] == "Bern"
+            assert result["flow"] == 85.0
+            assert result["danger_level"] == 1  # Safe
 
     @pytest.mark.asyncio
     async def test_no_aare_data(self):
@@ -180,8 +180,8 @@ class TestGetFlowDangerLevel:
 
             result = await get_flow_danger_level_tool("Bern")
 
-            assert result.flow is None
-            assert "No data available" in result.safety_assessment
+            assert result["flow"] is None
+            assert "No data available" in result["safety_assessment"]
 
 
 class TestGetHistoricalData:
