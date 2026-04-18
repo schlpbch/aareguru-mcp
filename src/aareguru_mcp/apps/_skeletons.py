@@ -2,7 +2,7 @@
 
 from prefab_ui.components import Card, CardContent, Column, Div, Row, Text
 
-from ._constants import _AG_RADIUS, _DK
+from ._constants import _AG_RADIUS
 
 
 def _skeleton_pulse() -> str:

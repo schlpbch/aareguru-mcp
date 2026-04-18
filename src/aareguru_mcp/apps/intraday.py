@@ -29,7 +29,6 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_temp
-from ._skeletons import skeleton_history
 
 logger = structlog.get_logger(__name__)
 

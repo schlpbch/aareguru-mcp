@@ -21,7 +21,7 @@ class TestServiceErrorHandling:
             MockClient.return_value = mock_client
 
             service = AareguruService()
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match="API Error"):
                 await service.get_current_temperature("Bern")
 
     @pytest.mark.asyncio

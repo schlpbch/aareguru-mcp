@@ -35,7 +35,6 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_icon
-from ._skeletons import skeleton_forecast
 
 logger = structlog.get_logger(__name__)
 

@@ -28,7 +28,6 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _safety_badge
-from ._skeletons import skeleton_compare
 
 logger = structlog.get_logger(__name__)
 

@@ -2,8 +2,8 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import httpx
+import pytest
 
 from aareguru_mcp.client import AareguruClient
 from aareguru_mcp.config import get_settings

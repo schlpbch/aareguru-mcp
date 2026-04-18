@@ -6,7 +6,7 @@ from fastmcp import FastMCPApp
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import Column, Grid, Text
 
-from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS, _FONT_INJECTION_SCRIPT
+from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS, _FONT_INJECTION_ON_MOUNT
 from .conditions_flow import render_flow_section
 from .conditions_sun import render_sun_section
 from .conditions_temperature import render_temperature_section

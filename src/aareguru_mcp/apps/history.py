@@ -28,7 +28,6 @@ from ._constants import (
     _FONT_CSS,
     _FONT_INJECTION_ON_MOUNT,
 )
-from ._skeletons import skeleton_history
 
 logger = structlog.get_logger(__name__)
 
