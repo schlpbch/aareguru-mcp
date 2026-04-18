@@ -88,6 +88,28 @@ async def get_today_resource(city: str) -> str:
     return await resources.get_today(city)
 
 
+@mcp.resource("aareguru://forecast/{city}")
+@functools.wraps(resources.get_forecast)
+async def get_forecast_resource(city: str) -> str:
+    return await resources.get_forecast(city)
+
+
+@mcp.resource("aareguru://history/{city}/{start}/{end}")
+@functools.wraps(resources.get_history)
+async def get_history_resource(city: str, start: str, end: str) -> str:
+    return await resources.get_history(city, start, end)
+
+
+@mcp.resource("aareguru://safety-levels")
+def get_safety_levels_resource() -> str:
+    return resources.get_safety_levels()
+
+
+@mcp.resource("aareguru://thresholds")
+def get_thresholds_resource() -> str:
+    return resources.get_thresholds()
+
+
 # ============================================================================
 # Prompts
 # ============================================================================
