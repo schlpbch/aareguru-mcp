@@ -22,8 +22,10 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _DK,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_pct, _fmt_temp, _sy_to_icon
+from ._skeletons import skeleton_weather_card
 
 logger = structlog.get_logger(__name__)
 
@@ -39,14 +41,15 @@ async def refresh_weather(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_weather_section(weather: dict[str, Any]) -> None:
+def render_weather_section(weather: dict[str, Any] | None = None) -> None:
     """Render weather section with current conditions and forecast.
 
     Must be called inside an active Column/Row context.
     Displays air temperature, precipitation risk, and daily forecast.
-    No-op if weather data is empty.
+    Shows skeleton loader if data is unavailable.
     """
     if not weather:
+        skeleton_weather_card()
         return
 
     weather_current: dict[str, Any] = weather.get("current") or {}

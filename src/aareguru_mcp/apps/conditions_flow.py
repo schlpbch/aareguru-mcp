@@ -15,8 +15,10 @@ from ._constants import (
     _DK,
     _FLOW_ZONES,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _safety_badge
+from ._skeletons import skeleton_flow_card
 
 logger = structlog.get_logger(__name__)
 
@@ -32,12 +34,17 @@ async def refresh_flow(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_flow_section(aare: dict[str, Any]) -> None:
+def render_flow_section(aare: dict[str, Any] | None = None) -> None:
     """Render flow rate and BAFU safety grid section.
 
     Must be called inside an active Column/Row context.
     Displays flow in m³/s and BAFU safety level with colored flow zones.
+    Shows skeleton loader if data is unavailable.
     """
+    if not aare:
+        skeleton_flow_card()
+        return
+
     flow: float | None = aare.get("flow")
     safety_label, safety_variant, safety_color = _safety_badge(flow)
 

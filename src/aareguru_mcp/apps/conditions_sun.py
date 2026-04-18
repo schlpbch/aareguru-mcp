@@ -23,7 +23,9 @@ from ._constants import (
     _AG_TXT_PRIMARY,
     _DK,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
+from ._skeletons import skeleton_sun_card
 
 logger = structlog.get_logger(__name__)
 
@@ -39,14 +41,15 @@ async def refresh_sun(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_sun_section(sun: dict[str, Any]) -> None:
+def render_sun_section(sun: dict[str, Any] | None = None) -> None:
     """Render sun section with sunshine hours and sunset times.
 
     Must be called inside an active Column/Row context.
     Displays total sunshine, sunset time, and location badges with time-left values.
-    No-op if sun data is empty.
+    Shows skeleton loader if data is unavailable.
     """
     if not sun:
+        skeleton_sun_card()
         return
 
     sun_today: dict[str, Any] = sun.get("today") or {}

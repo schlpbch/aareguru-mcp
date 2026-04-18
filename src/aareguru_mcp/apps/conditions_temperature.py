@@ -13,8 +13,10 @@ from ._constants import (
     _AG_WASSER_TEMP,
     _DK,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_temp
+from ._skeletons import skeleton_temperature_card
 
 logger = structlog.get_logger(__name__)
 
@@ -30,12 +32,17 @@ async def refresh_temperature(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_temperature_section(aare: dict[str, Any]) -> None:
+def render_temperature_section(aare: dict[str, Any] | None = None) -> None:
     """Render water temperature card section.
 
     Must be called inside an active Column/Row context.
     Builds the cyan Aare water temperature card with trend and Swiss German explanation.
+    Shows skeleton loader if data is unavailable.
     """
+    if not aare:
+        skeleton_temperature_card()
+        return
+
     temp: float | None = aare.get("temperature")
     forecast_2h: float | None = aare.get("forecast2h")
     temp_text: str | None = aare.get("temperature_text")
@@ -72,7 +79,7 @@ def render_temperature_section(aare: dict[str, Any]) -> None:
             if temp_text:
                 Text(
                     f"{temp_text}",
-                    cssClass=f"text-lg text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] font-semibold",
+                    cssClass=f"text-md text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] font-semibold",
                 )
                 if explanation:
                     Muted(
