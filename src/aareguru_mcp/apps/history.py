@@ -145,4 +145,5 @@ async def historical_chart(
         view=view,
         state={"city": city, "start": start, "end": end, "points": len(chart_data)},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

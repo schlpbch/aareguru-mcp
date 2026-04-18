@@ -14,7 +14,7 @@ from prefab_ui.components import (
     Text,
 )
 
-from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS
+from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS, _FONT_INJECTION_ON_MOUNT
 from ._helpers import _safety_badge
 from .conditions_sun import render_sun_section
 from .conditions_temperature import render_temperature_section
@@ -89,4 +89,5 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
         view=view,
         state={"city": city, "aare": aare, "safety": safety_label},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

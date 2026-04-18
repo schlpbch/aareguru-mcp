@@ -261,4 +261,5 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             "hours": len(normalised),
         },
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

@@ -6,7 +6,7 @@ from fastmcp import FastMCPApp
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import Column, Grid, Text
 
-from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS
+from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS, _FONT_INJECTION_SCRIPT
 from .conditions_flow import render_flow_section
 from .conditions_sun import render_sun_section
 from .conditions_temperature import render_temperature_section
@@ -89,4 +89,5 @@ async def conditions_debug_all(city: str = "Bern") -> PrefabApp:
         view=view,
         state={"city": city, "all_data": data},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

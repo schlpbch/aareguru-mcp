@@ -21,6 +21,7 @@ from ._constants import (
     _BAFU_LEVELS,
     _DK,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _bafu_level
 
@@ -171,4 +172,5 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
             "height": height,
         },
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

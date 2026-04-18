@@ -431,6 +431,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
         view=view,
         state={"city": city, "total": len(cities_geo), "safe_count": safe_count},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )
 
 

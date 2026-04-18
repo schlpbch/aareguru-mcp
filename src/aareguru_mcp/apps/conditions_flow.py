@@ -133,4 +133,5 @@ async def flow_card(city: str = "Bern") -> PrefabApp:
         view=view,
         state={"city": city, "aare": aare},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

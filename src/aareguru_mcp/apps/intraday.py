@@ -164,4 +164,5 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
             "points": len(points),
         },
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )

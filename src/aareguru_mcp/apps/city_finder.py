@@ -25,6 +25,7 @@ from ._constants import (
     _AG_WASSER_TEMP,
     _DK,
     _FONT_CSS,
+    _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _safety_badge
 
@@ -185,4 +186,5 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
         view=view,
         state={"sort_by": sort_by, "total": total, "safe_count": safe_count},
         stylesheets=[_FONT_CSS],
+        on_mount=_FONT_INJECTION_ON_MOUNT,
     )
