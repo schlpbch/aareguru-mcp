@@ -24,9 +24,34 @@ _FONT_CSS = (
     "src:url('data:font/woff2;base64," + _FONT_B64 + "') format('woff2');"
     "font-weight:100 900;"
     "font-style:normal;"
+    "font-stretch:condensed;"
     "font-display:swap;"
     "}"
-    "body,*{font-family:'DIN Next LT Pro',ui-sans-serif,system-ui,sans-serif !important;}"
+    "body,*{"
+    "font-family:'DIN Next LT Pro',ui-sans-serif,system-ui,sans-serif !important;"
+    "font-stretch:condensed !important;"
+    "}"
+    # Repeating diagonal stripe pattern — approximates aareguru-pattern-quer-2.svg
+    "body{"
+    "background-image:repeating-linear-gradient("
+    "135deg,"
+    "transparent,"
+    "transparent 18px,"
+    "rgba(15,64,95,0.04) 18px,"
+    "rgba(15,64,95,0.04) 19px"
+    ");"
+    "}"
+    "@media(prefers-color-scheme:dark){"
+    "body{"
+    "background-color:#1c3138 !important;"
+    "background-image:repeating-linear-gradient("
+    "135deg,"
+    "transparent,"
+    "transparent 18px,"
+    "rgba(136,190,224,0.05) 18px,"
+    "rgba(136,190,224,0.05) 19px"
+    ");"
+    "}}"
 )
 
 # ---------------------------------------------------------------------------
@@ -37,44 +62,43 @@ _AG_BG_WETTER = "#aeffda"  # mint green — weather card background
 _AG_TXT_PRIMARY = "#0f405f"  # dark blue — main labels
 _AG_WASSER_TEMP = "#0877ab"  # water temperature values
 _AG_WASSER_FLOW = "#357d9e"  # flow rate values
-_AG_AIR_TEMP = "#0771a8"  # air temperature values  (darkened from #0a96d7 → 5.1:1 on white)
-_AG_BFU = "#007d76"  # BAFU safety accent  (darkened from #00b2aa → 4.6:1 on white)
+_AG_AIR_TEMP = "#0a96d7"  # air temperature values
+_AG_BFU = "#00b2aa"  # BAFU safety accent
 _AG_SUNNY = "#f2e500"  # sunny weather accent
 _AG_RADIUS = "rounded-[3px]"  # angular Swiss border-radius
 
 
 class _DK:
-    """Dark mode equivalents for the aare.guru design tokens."""
+    """Dark mode equivalents — matched to aare.guru CSS custom properties."""
 
-    TXT_PRIMARY = "#c8e6f8"  # light sky blue — replaces dark navy
-    BG_WASSER = "#0d4a5c"  # deep teal — dark cyan background
-    BG_WETTER = "#0a3d24"  # dark forest green
-    WASSER_TEMP = "#38bdf8"  # sky-400 — bright blue for dark bg
-    WASSER_FLOW = "#7dd3fc"  # sky-300 — lighter flow color
-    AIR_TEMP = "#38bdf8"  # sky-400
-    BFU = "#2dd4bf"  # teal-400
+    TXT_PRIMARY = "#88bee0"  # --ag-c-txt-Primary dark
+    BG_WASSER = "#0c4257"  # --ag-c-bg-wasser dark
+    BG_WETTER = "#2e4239"  # --ag-c-bg-wetter dark
+    WASSER_TEMP = "#47aad7"  # --ag-c-wasserTemp dark
+    WASSER_FLOW = "#62ddd3"  # --ag-c-wasserFlow dark
+    AIR_TEMP = "#46b5e9"  # --ag-c-airTemp dark
+    BFU = "#2dd4bf"  # teal-400 (readable on dark)
     SUNNY = "#fde047"  # yellow-300
-    CARD_BG = "#1a2e3d"  # dark navy card inner
+    CARD_BG = "#1c3138"  # page background dark
 
 # ---------------------------------------------------------------------------
 # Safety helpers
 # ---------------------------------------------------------------------------
 
 # (max_flow_exclusive, label, badge_variant, hex_color)
-# hex_color is used for text labels — chosen for WCAG AA on white (≥ 4.5:1).
+# hex_color used for text — WCAG AA on white (≥ 4.5:1) required.
 _SAFETY_LEVELS: list[tuple[float, str, str, str]] = [
-    (100, "Sicher",  "success",     "#007d76"),  # 4.6:1  (was #00b2aa → 2.6:1)
+    (100, "Sicher",  "success",     "#007d76"),  # 4.6:1 on white
     (220, "Moderat", "info",        "#0877ab"),  # 5.0:1
-    (300, "Erhöht",  "warning",     "#b45309"),  # 4.7:1  (was #f59e0b → 2.2:1)
-    (430, "Hoch",    "destructive", "#dc2626"),  # 4.5:1  (was #ef4444 → 3.8:1)
+    (300, "Erhöht",  "warning",     "#b45309"),  # 4.7:1
+    (430, "Hoch",    "destructive", "#dc2626"),  # 4.5:1
 ]
 
 # Flow scale bar zones — (lo, hi_or_None, label, hex_color, tailwind_width)
 # Widths are proportional within a 600 m³/s display cap:
 #   100/600=17%, 120/600=20%, 80/600=13%, 130/600=22%, 170/600=28%
-# Colors match _SAFETY_LEVELS (WCAG AA on white).
 _FLOW_ZONES: list[tuple[float, float | None, str, str, str]] = [
-    (0, 100, "Sicher", "#007d76", "w-[17%]"),
+    (0, 100, "Sicher", "#00b2aa", "w-[17%]"),   # original BFU teal (bar only)
     (100, 220, "Moderat", "#0877ab", "w-[20%]"),
     (220, 300, "Erhöht", "#b45309", "w-[13%]"),
     (300, 430, "Hoch", "#dc2626", "w-[22%]"),
@@ -133,7 +157,7 @@ _BAFU_LEVELS: list[tuple[int, str, str, str, str, str]] = [
     (
         1,
         "Keine Gefahr",
-        "#007d76",  # 4.6:1 on white
+        "#00b2aa",  # original BFU teal (border/accent); text uses _SAFETY_LEVELS for white bg
         "#2dd4bf",  # 9.1:1 on dark card
         "Normales Schwimmen möglich",
         "Normale Abflussverhältnisse. Keine erhöhte Gefahr.",

@@ -161,8 +161,6 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
                     ],
                     rows=city_rows,  # type: ignore[arg-type]
                     search=True,
-                    paginated=True,
-                    pageSize=15,
                 )
 
     return PrefabApp(
