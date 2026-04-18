@@ -112,7 +112,7 @@ async def flow_card(city: str = "Bern") -> PrefabApp:
     and color-coded flow zones.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.flow_card", city=city)
     from aareguru_mcp.apps import AareguruService

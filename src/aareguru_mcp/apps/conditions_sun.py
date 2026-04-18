@@ -13,11 +13,17 @@ from prefab_ui.components import (
     Grid,
     Muted,
     Row,
-    Separator,
     Text,
 )
 
-from ._constants import _AG_RADIUS, _AG_SUNNY, _AG_TXT_PRIMARY, _DK, _FONT_CSS
+from ._constants import (
+    _AG_BG_SUNNY,
+    _AG_RADIUS,
+    _AG_SUNNY,
+    _AG_TXT_PRIMARY,
+    _DK,
+    _FONT_CSS,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -46,24 +52,16 @@ def render_sun_section(sun: dict[str, Any]) -> None:
     sun_today: dict[str, Any] = sun.get("today") or {}
     sun_locs: list[dict[str, Any]] = sun.get("sunlocations") or []
     suntotal_str: str | None = sun_today.get("suntotal")
-    sunset_str: str | None = (
-        sun_locs[0].get("sunsetlocal") if sun_locs else None
-    )
+    sunset_str: str | None = sun_locs[0].get("sunsetlocal") if sun_locs else None
     sun_rel = sun_today.get("sunrelative")
 
-    Separator(cssClass="my-0")
-    Text(
-        "Sonne",
-        cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
-    )
-
     with Card(
-        cssClass=f"{_AG_RADIUS} border-t-[3px] border-t-[{_AG_SUNNY}] dark:border-t-[{_DK.SUNNY}]"
+        cssClass=f"{_AG_RADIUS} border-t-[3px] border-t-[{_AG_SUNNY}] dark:border-t-[{_DK.SUNNY}] bg-[{_AG_BG_SUNNY}] dark:bg-[{_DK.BG_SUNNY}] overflow-hidden"
     ):
         with CardContent(cssClass="p-3"):
             with Grid(columns=2, gap=0, cssClass="mb-2"):
                 with Card(
-                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.SUNNY}]/10"
+                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
                 ):
                     with CardContent(cssClass="p-2 text-center"):
                         Text(
@@ -80,7 +78,7 @@ def render_sun_section(sun: dict[str, Any]) -> None:
                                 cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
                 with Card(
-                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.SUNNY}]/10"
+                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
                 ):
                     with CardContent(cssClass="p-2 text-center"):
                         Text(
@@ -110,7 +108,7 @@ def render_sun_section(sun: dict[str, Any]) -> None:
                         Badge(
                             label=label,
                             variant="secondary",
-                            cssClass=f"bg-[{_AG_SUNNY}]/30 dark:bg-[{_DK.SUNNY}]/15 text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] {_AG_RADIUS} text-xs",
+                            cssClass=f"bg-[{_AG_SUNNY}]/30 dark:bg-[{_DK.BG_SUNNY}]/15 text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] {_AG_RADIUS} text-xs",
                         )
 
 
@@ -122,14 +120,18 @@ async def sun_card(city: str = "Bern") -> PrefabApp:
     for nearby locations.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.sun_card", city=city)
     from aareguru_mcp.apps import AareguruService
 
     service = AareguruService()
     data = await service.get_current_conditions(city)
-    location: str = (data.get("aare") or {}).get("location_long") or (data.get("aare") or {}).get("location") or city
+    location: str = (
+        (data.get("aare") or {}).get("location_long")
+        or (data.get("aare") or {}).get("location")
+        or city
+    )
 
     with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
         Text(

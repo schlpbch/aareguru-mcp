@@ -44,9 +44,6 @@ class TestGetCurrentTemperature:
             assert result["temperature"] == 17.2
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="Service fallback logic requires complex mocking of internal state"
-    )
     async def test_fallback_to_today(self):
         """Test fallback to today endpoint when current has no data."""
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:

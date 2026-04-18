@@ -122,9 +122,6 @@ class TestGetForecastsBatch:
     """Test get_forecasts tool."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(
-        reason="Forecast logic with multiple cities requires complex multi-step mocking"
-    )
     async def test_with_multiple_cities(self):
         """Test fetching forecasts for multiple cities."""
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
@@ -133,15 +130,19 @@ class TestGetForecastsBatch:
             def make_response(city: str):
                 response = MagicMock()
                 response.aare = MagicMock()
+                response.aare.flow = 100.0  # Add required flow attribute
                 if city == "Bern":
                     response.aare.temperature = 18.0
                     response.aare.forecast2h = 19.0
+                    response.aare.location = "Bern"
                 elif city == "Thun":
                     response.aare.temperature = 19.0
                     response.aare.forecast2h = 18.5
+                    response.aare.location = "Thun"
                 else:
                     response.aare.temperature = 17.0
                     response.aare.forecast2h = 17.0
+                    response.aare.location = "Basel"
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
@@ -149,7 +150,7 @@ class TestGetForecastsBatch:
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            result = await compare_cities_tool(cities=["Bern", "Thun", "basel"])
+            result = await get_forecasts_tool(cities=["Bern", "Thun", "basel"])
 
             assert "forecasts" in result
             assert len(result["forecasts"]) == 3

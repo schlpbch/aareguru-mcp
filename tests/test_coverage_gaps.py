@@ -17,7 +17,6 @@ from aareguru_mcp.apps._helpers import (
     _sy_to_emoji,
 )
 
-
 # =============================================================================
 # tools.py — exception handler branches
 # =============================================================================
@@ -404,11 +403,9 @@ class TestFmtHelpers:
     """Test remaining _fmt_* helper functions."""
 
     def test_fmt_temp_value(self):
-        from aareguru_mcp.apps._helpers import _fmt_temp
         assert _fmt_temp(17.2) == "17.2°"
 
     def test_fmt_temp_none(self):
-        from aareguru_mcp.apps._helpers import _fmt_temp
         assert _fmt_temp(None) == "—"
 
     def test_fmt_pct_value(self):

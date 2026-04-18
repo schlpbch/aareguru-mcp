@@ -5,12 +5,11 @@ from typing import Any
 import structlog
 from fastmcp import FastMCPApp
 from prefab_ui.app import PrefabApp
-from prefab_ui.components import Card, CardContent, Column, Muted, Separator, Text
+from prefab_ui.components import Card, CardContent, Column, Muted, Text
 
 from ._constants import (
     _AG_BG_WASSER,
     _AG_RADIUS,
-    _AG_TXT_PRIMARY,
     _AG_WASSER_TEMP,
     _DK,
     _FONT_CSS,
@@ -59,11 +58,11 @@ def render_temperature_section(aare: dict[str, Any]) -> None:
         with CardContent(cssClass="p-4 text-center"):
             Text(
                 _fmt_temp(temp),
-                cssClass=f"text-5xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                cssClass=f"text-6xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
             )
             Text(
                 "Wassertemperatur",
-                cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mt-1",
+                cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-1 mb-0.5",
             )
             if trend_text:
                 Muted(
@@ -71,15 +70,14 @@ def render_temperature_section(aare: dict[str, Any]) -> None:
                     cssClass=f"text-xs text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5 font-semibold",
                 )
             if temp_text:
-                Separator(cssClass=f"my-2 border-[{_AG_WASSER_TEMP}]/30")
                 Text(
-                    f"„{temp_text}\u201c",
-                    cssClass=f"text-base italic text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] font-semibold",
+                    f"{temp_text}",
+                    cssClass=f"text-lg text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] font-semibold",
                 )
                 if explanation:
                     Muted(
                         explanation,
-                        cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/70 dark:text-[{_DK.TXT_PRIMARY}]/70 mt-0.5",
+                        cssClass=f"text-xs text-[{_AG_WASSER_TEMP}]/70 dark:text-[{_DK.WASSER_TEMP}]/70 mt-0.5",
                     )
 
 
@@ -87,11 +85,11 @@ def render_temperature_section(aare: dict[str, Any]) -> None:
 async def temperature_card(city: str = "Bern") -> PrefabApp:
     """Show an interactive Aare water temperature card.
 
-    Displays the current water temperature in the signature Aare cyan (#2be6ff) card
+    Displays the current water temperature in the signature Aare cyan card
     with 2-hour forecast trend and Swiss German description.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.temperature_card", city=city)
     from aareguru_mcp.apps import AareguruService
@@ -104,7 +102,7 @@ async def temperature_card(city: str = "Bern") -> PrefabApp:
     with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
         Text(
             f"Aare — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
+            cssClass=f"text-lg font-black tracking-tight text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] text-center uppercase",
         )
         render_temperature_section(aare)
 

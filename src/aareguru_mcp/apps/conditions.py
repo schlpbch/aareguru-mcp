@@ -16,7 +16,6 @@ from prefab_ui.components import (
 
 from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS
 from ._helpers import _safety_badge
-from .conditions_flow import render_flow_section
 from .conditions_sun import render_sun_section
 from .conditions_temperature import render_temperature_section
 from .conditions_weather import render_weather_section
@@ -44,7 +43,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
     Swiss German description, and a danger alert when flow is elevated.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.conditions_dashboard", city=city)
     from aareguru_mcp.apps import AareguruService
@@ -74,7 +73,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 
         # Composed sections from standalone apps
         render_temperature_section(aare)
-        render_flow_section(aare)
+        ## render_flow_section(aare)
         render_weather_section(data.get("weather") or {})
         render_sun_section(data.get("sun") or {})
 

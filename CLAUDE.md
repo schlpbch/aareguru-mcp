@@ -11,9 +11,11 @@ MCP tools, 7 MCP resources, 3 MCP prompts, and 8 interactive FastMCPApps for
 querying water temperature, flow rates, weather conditions, and safety
 assessments for swimming in the Aare river.
 
-**Status**: Production ready with 350 tests passing (85% coverage) - Phase 8 complete
-**Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
-**Features**: Service layer pattern, 8 FastMCPApps (incl. OpenStreetMap), MCP elicitation, rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
+**Status**: Production ready with 350 tests passing (85% coverage) - Phase 8
+complete **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
+**Features**: Service layer pattern, 8 FastMCPApps (incl. OpenStreetMap), MCP
+elicitation, rate limiting, caching, structured logging (structlog), FastMCP
+Cloud ready
 
 ## Development Commands
 
@@ -89,15 +91,20 @@ uv pip install -e ".[dev]"
 
 ## Architecture Overview
 
-The codebase uses **FastMCP 2.0** with a clean layered architecture. See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
+The codebase uses **FastMCP 2.0** with a clean layered architecture. See
+[ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
 **Key Layers (Top to Bottom):**
 
-1. **MCP Server** (`server.py`): FastMCP decorators (@mcp.tool, @mcp.resource, @mcp.prompt)
-2. **MCP Tools** (`tools.py`): Thin wrappers delegating to service layer for business logic
-3. **Service Layer** (`service.py`): Core domain logic with 7 methods mapping to tools
+1. **MCP Server** (`server.py`): FastMCP decorators (@mcp.tool, @mcp.resource,
+   @mcp.prompt)
+2. **MCP Tools** (`tools.py`): Thin wrappers delegating to service layer for
+   business logic
+3. **Service Layer** (`service.py`): Core domain logic with 7 methods mapping to
+   tools
 4. **Helper Functions** (`helpers.py`): Shared utilities for enrichment and UX
-5. **HTTP Client** (`client.py`): Async client with caching, rate limiting, connection pooling
+5. **HTTP Client** (`client.py`): Async client with caching, rate limiting,
+   connection pooling
 6. **Models** (`models.py`): Pydantic validation for API responses
 7. **Config** (`config.py`): Environment-based settings
 
@@ -123,7 +130,8 @@ Aareguru API
 
 #### Service Layer Pattern (ADR-014)
 
-The `service.py` module provides a clean separation between MCP protocol concerns and domain logic:
+The `service.py` module provides a clean separation between MCP protocol
+concerns and domain logic:
 
 **Service Class Structure:**
 
@@ -187,9 +195,11 @@ The `helpers.py` module provides shared utilities:
 
 - `get_seasonal_advice()`: Contextual swimming advice by season
 - `check_safety_warning(flow, threshold)`: Danger warnings for high flow rates
-- `get_safety_assessment(flow, threshold)`: BAFU safety levels (safe/moderate/elevated/high/very high)
+- `get_safety_assessment(flow, threshold)`: BAFU safety levels
+  (safe/moderate/elevated/high/very high)
 - `get_suggestion(cities_data)`: Suggests warmer/safer alternative locations
-- `get_swiss_german_explanation(text)`: Translates Swiss German phrases (e.g., "geil aber chli chalt")
+- `get_swiss_german_explanation(text)`: Translates Swiss German phrases (e.g.,
+  "geil aber chli chalt")
 
 These enable proactive safety checks and intelligent suggestions.
 
@@ -211,7 +221,8 @@ Every tool creates a scoped client instance for proper HTTP connection cleanup.
 
 #### Rate Limiting
 
-- **Interval**: 300s minimum between requests (configurable via `MIN_REQUEST_INTERVAL_SECONDS`)
+- **Interval**: 300s minimum between requests (configurable via
+  `MIN_REQUEST_INTERVAL_SECONDS`)
 - **Enforcement**: Lock-based coordination prevents concurrent violations
 
 #### Error Handling (Phase 8)
@@ -360,7 +371,7 @@ question patterns):
 
 **2. Parameter Examples**: Concrete examples instead of generic types
 
-- City parameters: `"e.g., 'Bern', 'Thun', 'olten'"`
+- City parameters: `"e.g., 'Bern', 'Thun', 'Olten'"`
 - Date parameters: `"-7 days"`, `"-1 week"`, `"now"`
 
 **3. Domain Knowledge Inline**: Critical information in descriptions
@@ -485,7 +496,8 @@ async def new_tool_name(param: str) -> dict[str, Any]:
 - Cross-reference related tools
 - Service methods reusable by future REST/Chat APIs
 
-**Testing**: Add to `tests/test_tools_basic.py` or `tests/test_tools_advanced.py`
+**Testing**: Add to `tests/test_tools_basic.py` or
+`tests/test_tools_advanced.py`
 
 - Mock the service or client layer consistently
 - Verify both service method and tool wrapper work

@@ -54,7 +54,7 @@ def _sy_to_emoji(sy: int | None) -> str:
     return _SY_EMOJI.get(sy, "🌡")
 
 
-def _sy_to_icon(sy: int | None, cssClass: str = "leading-none") -> None:
+def _sy_to_icon(sy: int | None, cssClass: str = "leading-none") -> None:  # noqa: N803
     """Render a MeteoSwiss weather icon (SVG Image) or emoji fallback (Text)."""
     from prefab_ui.components import Image, Text
 

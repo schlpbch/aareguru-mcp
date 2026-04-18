@@ -53,7 +53,7 @@ async def historical_chart(
     Uses the Aare color palette: #0877ab for temperature, #357d9e for flow.
 
     Args:
-        city:  City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city:  City identifier (e.g. 'Bern', 'Thun', 'Olten')
         start: Start of period (e.g. '-7 days', '-1 month', ISO timestamp)
         end:   End of period ('now' or ISO timestamp)
     """

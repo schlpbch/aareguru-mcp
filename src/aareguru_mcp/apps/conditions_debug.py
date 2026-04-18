@@ -1,6 +1,5 @@
 """Debug app - renders all condition app sections on one page for visual testing."""
 
-from typing import Any
 
 import structlog
 from fastmcp import FastMCPApp
@@ -26,7 +25,7 @@ async def conditions_debug_all(city: str = "Bern") -> PrefabApp:
     and stacked for visual debugging and component testing.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.conditions_debug_all", city=city)
     from aareguru_mcp.apps import AareguruService

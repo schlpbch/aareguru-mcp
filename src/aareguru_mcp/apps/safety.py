@@ -18,12 +18,11 @@ from prefab_ui.components import (
 from ._constants import (
     _AG_RADIUS,
     _AG_TXT_PRIMARY,
-    _AG_WASSER_FLOW,
     _BAFU_LEVELS,
     _DK,
     _FONT_CSS,
 )
-from ._helpers import _bafu_level, _fmt_flow
+from ._helpers import _bafu_level
 
 logger = structlog.get_logger(__name__)
 
@@ -47,7 +46,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     using the actual flow_gefahrenstufe from the API where available.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.safety_briefing", city=city)
     from aareguru_mcp.apps import AareguruService
@@ -55,11 +54,10 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     service = AareguruService()
     data = await service.get_current_conditions(city)
 
-    aare = data.get("aare") or {}
+    aare: dict[str, Any] = data.get("aare") or {}
     flow: float | None = aare.get("flow")
     height: float | None = aare.get("height")
     gefahrenstufe: int | None = aare.get("flow_gefahrenstufe")
-    threshold: float | None = aare.get("flow_scale_threshold")
     location: str = aare.get("location_long") or aare.get("location") or city
 
     level = _bafu_level(flow, gefahrenstufe)
@@ -79,10 +77,10 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
             cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{level_color}] dark:border-l-[{level_color_dk}]"
         ):
             with CardContent(cssClass="p-2"):
-                with Row(cssClass="items-center gap-3"):
+                with Row(cssClass="items-center gap-1"):
                     Text(
                         str(level),
-                        cssClass=f"text-3xl font-black w-8 text-center flex-shrink-0"
+                        cssClass=f"text-3xl font-black w-8 text-center flex-shrink-0 pink"
                         f" text-[{level_color}] dark:text-[{level_color_dk}]",
                     )
                     with Column(cssClass="flex-1"):
@@ -98,7 +96,8 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                             description,
                             cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
                         )
-                    with Column(cssClass="items-end flex-shrink-0 gap-0.5"):
+        """ FIXME
+                     with Column(cssClass="items-end flex-shrink-0 gap-0.5 pink"):
                         Text(
                             f"{_fmt_flow(flow)} m³/s",
                             cssClass=f"text-base font-black tabular-nums"
@@ -124,6 +123,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                                 f"Schwelle {threshold:.0f} m³/s",
                                 cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
                             )
+        """
 
         # Full 5-level scale
         Separator(cssClass="my-0.5")

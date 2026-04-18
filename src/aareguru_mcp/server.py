@@ -200,7 +200,7 @@ async def get_current_temperature_tool(
     and swimming suitability.
 
     Args:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
     """
     with MetricsCollector.track_tool_call("get_current_temperature"):
@@ -226,7 +226,7 @@ async def get_current_conditions_tool(
     need a complete picture before swimming. This is the most detailed tool.
 
     Args:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
     """
     service = AareguruService()
@@ -251,7 +251,7 @@ async def get_historical_data_tool(
     Returns hourly data points for temperature and flow.
 
     Args:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten')
         start: Start date/time — ISO, Unix timestamp, or relative ('-7 days', '-1 month')
         end:   End date/time — ISO, Unix timestamp, or 'now'
     """
@@ -283,7 +283,7 @@ async def get_flow_danger_level_tool(
     - 300-430 m³/s: High — dangerous · >430: Very high — extremely dangerous
 
     Args:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
     """
     service = AareguruService()

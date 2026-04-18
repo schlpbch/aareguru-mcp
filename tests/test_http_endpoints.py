@@ -146,23 +146,6 @@ class TestServerConfiguration:
         assert mcp.instructions is not None
         assert "Aare river" in mcp.instructions
 
-    @pytest.mark.skip(reason="FastMCP no longer exposes _tool_manager publicly")
-    def test_server_has_tools(self):
-        """Test server has registered tools."""
-        # Functionality verified by integration tests that call tools directly
-        pass
-
-    @pytest.mark.skip(reason="FastMCP no longer exposes _resource_manager publicly")
-    def test_server_has_resources(self):
-        """Test server has registered resources."""
-        # Functionality verified by test_resources.py
-        pass
-
-    @pytest.mark.skip(reason="FastMCP no longer exposes _prompt_manager publicly")
-    def test_server_has_prompts(self):
-        """Test server has registered prompts."""
-        # Functionality verified by test_prompts.py
-        pass
 
 
 class TestLogging:

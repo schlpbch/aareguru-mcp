@@ -21,7 +21,11 @@ from .compare import compare_app, compare_cities_table, fetch_comparison
 from .conditions import conditions_app, conditions_dashboard, refresh_conditions
 from .conditions_flow import flow_app, flow_card, render_flow_section
 from .conditions_sun import render_sun_section, sun_app, sun_card
-from .conditions_temperature import render_temperature_section, temperature_app, temperature_card
+from .conditions_temperature import (
+    render_temperature_section,
+    temperature_app,
+    temperature_card,
+)
 from .conditions_weather import render_weather_section, weather_app, weather_card
 from .forecast import forecast_app, forecast_view, refresh_forecast
 from .history import fetch_history, historical_chart, history_app

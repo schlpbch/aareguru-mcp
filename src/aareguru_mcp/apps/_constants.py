@@ -60,12 +60,13 @@ _FONT_CSS = (
 # ---------------------------------------------------------------------------
 _AG_BG_WASSER = "#2be6ff"  # Aare cyan — water card background
 _AG_BG_WETTER = "#aeffda"  # mint green — weather card background
+_AG_BG_SUNNY = "#fff98e"  # sunny yellow — sun card background
 _AG_TXT_PRIMARY = "#0f405f"  # dark blue — main labels
 _AG_WASSER_TEMP = "#0877ab"  # water temperature values
 _AG_WASSER_FLOW = "#357d9e"  # flow rate values
 _AG_AIR_TEMP = "#0a96d7"  # air temperature values
 _AG_BFU = "#00b2aa"  # BAFU safety accent
-_AG_SUNNY = "#f2e500"  # sunny weather accent
+_AG_SUNNY = "#fffcca"  # sunny weather accent
 _AG_RADIUS = "rounded-[0px]"  # angular Swiss border-radius
 
 
@@ -75,11 +76,12 @@ class _DK:
     TXT_PRIMARY = "#88bee0"  # --ag-c-txt-Primary dark
     BG_WASSER = "#0c4257"  # --ag-c-bg-wasser dark
     BG_WETTER = "#2e4239"  # --ag-c-bg-wetter dark
+    BG_SUNNY = "#fde047"  # --ag-c-bg-sunny dark
     WASSER_TEMP = "#47aad7"  # --ag-c-wasserTemp dark
     WASSER_FLOW = "#62ddd3"  # --ag-c-wasserFlow dark
     AIR_TEMP = "#46b5e9"  # --ag-c-airTemp dark
     BFU = "#2dd4bf"  # teal-400 (readable on dark)
-    SUNNY = "#fde047"  # yellow-300
+    SUNNY = "#ffe97c"  # yellow-300
     CARD_BG = "#1c3138"  # page background dark
 
 

@@ -57,7 +57,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
     prognosis (MeteoSwiss symbols, air temp, precipitation) for the full day.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.forecast_view", city=city)
     from aareguru_mcp.apps import AareguruService

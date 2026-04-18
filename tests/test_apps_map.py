@@ -6,11 +6,10 @@ import pytest
 
 from aareguru_mcp.apps.map import (
     _build_map_html,
+    _fetch_map_data,
     _safety_color,
     _safety_label,
-    _fetch_map_data,
 )
-
 
 # =============================================================================
 # Pure helpers

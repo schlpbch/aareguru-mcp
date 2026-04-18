@@ -52,7 +52,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
     API call required.
 
     Args:
-        city: City identifier (e.g. 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g. 'Bern', 'Thun', 'Olten')
     """
     logger.info("app.intraday_view", city=city)
     from aareguru_mcp.apps import AareguruService

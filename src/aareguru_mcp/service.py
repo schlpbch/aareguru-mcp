@@ -67,7 +67,7 @@ class AareguruService:
         - Seasonal swimming advice
 
         Args:
-            city: City identifier (e.g., 'Bern', 'Thun', 'olten')
+            city: City identifier (e.g., 'Bern', 'Thun', 'Olten')
 
         Returns:
             Dictionary with:
@@ -153,7 +153,7 @@ class AareguruService:
         - Seasonal swimming advice
 
         Args:
-            city: City identifier (e.g., 'Bern', 'Thun', 'olten')
+            city: City identifier (e.g., 'Bern', 'Thun', 'Olten')
 
         Returns:
             Dictionary with:

@@ -25,7 +25,7 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
     and swimming suitability.
 
     **Args**:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
 
     **Returns**:
@@ -59,7 +59,7 @@ async def get_current_conditions(city: str = "Bern") -> dict[str, Any]:
     for contextual and safety-critical queries.
 
     **Args**:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
 
     **Returns**:
@@ -94,7 +94,7 @@ async def get_historical_data(
     Returns hourly data points for temperature and flow.
 
     **Args*:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten')
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten')
         start: Start date/time. Accepts:
                - ISO format: "2024-11-01T00:00:00Z"
                - Unix timestamp: "1698796800"
@@ -171,7 +171,7 @@ async def get_flow_danger_level(city: str = "Bern") -> dict[str, Any]:
     - >430 m³/s: Very high - extremely dangerous, avoid swimming
 
     **Args**:
-        city: City identifier (e.g., 'Bern', 'Thun', 'olten').
+        city: City identifier (e.g., 'Bern', 'Thun', 'Olten').
               Use `list_cities()` to discover available locations.
 
     **Returns**:
