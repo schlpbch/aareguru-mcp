@@ -118,3 +118,55 @@ class TestContextManager:
         async with AareguruClient() as client:
             pass
         assert client.http_client.is_closed
+
+
+class TestURLEncoding:
+    """Test URL encoding for query parameters (spaces as %20 not +)."""
+
+    def test_cache_key_uses_percent_encoding(self):
+        """Verify cache key uses %20 for spaces, not +."""
+        client = AareguruClient()
+
+        params = {
+            "city": "Bern",
+            "start": "-7 days",
+            "end": "now",
+            "app": "test",
+            "version": "1.0",
+        }
+
+        cache_key = client._get_cache_key("/v2018/history", params)
+
+        assert "%20" in cache_key, f"Cache key should use %20 for spaces: {cache_key}"
+        assert "-7%20days" in cache_key, f"Cache key should have '-7%20days': {cache_key}"
+        assert "+" not in cache_key, f"Cache key should not have '+' signs: {cache_key}"
+
+    def test_cache_key_sorted(self):
+        """Verify cache key parameters are sorted for consistency."""
+        client = AareguruClient()
+
+        params1 = {"z": "1", "a": "2"}
+        params2 = {"a": "2", "z": "1"}
+
+        key1 = client._get_cache_key("/test", params1)
+        key2 = client._get_cache_key("/test", params2)
+
+        assert key1 == key2, "Cache keys should match when params are same but in different order"
+
+    def test_cache_key_special_chars(self):
+        """Verify special characters are properly URL-encoded."""
+        client = AareguruClient()
+
+        params = {
+            "query": "test value",
+            "date": "2026-01-15",
+            "special": "foo&bar",
+        }
+
+        cache_key = client._get_cache_key("/test", params)
+
+        assert "%20" in cache_key
+        assert "%26" in cache_key
+        # No unencoded & or + in the middle
+        parts = cache_key.split("?")[1].split("&")
+        assert len(parts) == 3, f"Should have 3 params: {cache_key}"

@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from typing import Any, cast
-from urllib.parse import urlencode
+from urllib.parse import quote
 
 import httpx
 import structlog
@@ -119,7 +119,10 @@ class AareguruClient(JsonSerializableMixin):  # type: ignore[misc]
 
     def _get_cache_key(self, endpoint: str, params: dict[str, Any]) -> str:
         """Generate cache key from endpoint and params."""
-        param_str = urlencode(sorted(params.items()))
+        param_str = "&".join(
+            f"{k}={quote(str(v), safe='')}"
+            for k, v in sorted(params.items())
+        )
         return f"{endpoint}?{param_str}"
 
     def _get_cached(self, cache_key: str) -> Any | None:
@@ -195,12 +198,16 @@ class AareguruClient(JsonSerializableMixin):  # type: ignore[misc]
         # Rate limiting
         await self._rate_limit()
 
-        # Make request
+        # Make request with proper URL encoding (use %20 for spaces, not +)
         url = f"{self.base_url}{endpoint}"
-        logger.info(f"GET {url} {params}")
+        query_string = "&".join(
+            f"{k}={quote(str(v), safe='')}" for k, v in params.items()
+        )
+        full_url = f"{url}?{query_string}" if query_string else url
+        logger.info(f"GET {full_url}")
 
         try:
-            response = await self.http_client.get(url, params=params)
+            response = await self.http_client.get(full_url)
             response.raise_for_status()
             data = cast(dict[str, Any], response.json())
 
