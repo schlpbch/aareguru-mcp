@@ -11,7 +11,7 @@ MCP tools, 7 MCP resources, 3 MCP prompts, and 8 interactive FastMCPApps for
 querying water temperature, flow rates, weather conditions, and safety
 assessments for swimming in the Aare river.
 
-**Status**: Production ready with 350 tests passing (85% coverage) - Phase 8
+**Status**: Production ready with 371 tests passing (81% coverage, 0 skipped) - Phase 9
 complete **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
 **Features**: Service layer pattern, 8 FastMCPApps (incl. OpenStreetMap), MCP
 elicitation, rate limiting, caching, structured logging (structlog), FastMCP
@@ -398,7 +398,7 @@ time across all question categories.
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **350 passing + 5 skipped = 355 total tests** (85% coverage)
+- **371 passing tests, 0 skipped** (81% coverage)
 - **Organization**:
   - `test_unit_*.py`: Models, config, client, helpers
   - `test_tools_*.py`: Tool functionality (basic & advanced)
