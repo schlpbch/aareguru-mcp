@@ -1,6 +1,6 @@
 # Aareguru MCP Server - Architecture Decision Records (ADR) Compendium
 
-**Document Version**: 2.0.0 **Last Updated**: 2026-04-17 **Total ADRs**: 17 (17 Accepted)
+**Document Version**: 2.1.0 **Last Updated**: 2026-04-18 **Total ADRs**: 18 (18 Accepted)
 
 **Related Documents**:
 
@@ -56,6 +56,7 @@
 
 - [ADR-016: FastMCP Apps with prefab_ui](#adr-016-fastmcp-apps-with-prefab_ui) ✅
 - [ADR-017: Visual Design System & Embedded Assets](#adr-017-visual-design-system--embedded-assets) ✅
+- [ADR-018: Interactive Map with Leaflet.js Embed](#adr-018-interactive-map-with-leafletjs-embed) ✅
 
 ---
 
@@ -719,10 +720,10 @@ Use **FastMCPApp** with the **prefab_ui** component library to render interactiv
 
 ### [ADR-016] App Inventory
 
-Seven apps are registered in `server.py` via `providers=`:
+Eight apps are registered in `server.py` via `providers=`:
 
 | App | File | UI Pattern | Primary Component |
-|-----|------|-----------|-------------------|
+| --- | ---- | ---------- | ----------------- |
 | `conditions` | `conditions.py` | Card grid dashboard | Cards, Grid, Alert |
 | `history` | `history.py` | Time-series chart | AreaChart |
 | `compare` | `compare.py` | Sortable city table | DataTable |
@@ -730,6 +731,7 @@ Seven apps are registered in `server.py` via `providers=`:
 | `intraday` | `intraday.py` | Today's sparkline | AreaChart |
 | `city_finder` | `city_finder.py` | Ranked city table | DataTable |
 | `safety` | `safety.py` | BAFU danger briefing | Card, Grid |
+| `map` | `map.py` | Interactive OSM map | Embed (Leaflet.js) |
 
 ### [ADR-016] App Structure Pattern
 
@@ -787,7 +789,7 @@ from aareguru_mcp.apps import (
 
 mcp = FastMCP("aareguru", providers=[
     conditions_app, history_app, compare_app,
-    forecast_app, intraday_app, city_finder_app, safety_app,
+    forecast_app, intraday_app, city_finder_app, safety_app, map_app,
 ])
 ```
 
@@ -816,7 +818,7 @@ Maintain a **centralised design token system** in `apps/_constants.py` that enco
 
 **Rationale**:
 
-- **Brand Consistency**: All 7 apps share identical colours, typography, and spacing
+- **Brand Consistency**: All 8 apps share identical colours, typography, and spacing
 - **WCAG AA Compliance**: Every colour is validated for ≥4.5:1 contrast ratio; dark mode colours validated separately against dark backgrounds
 - **Self-Contained Delivery**: Fonts embedded as base64 WOFF2 data URIs; no CDN or font service required
 - **Single Source of Truth**: Changing a colour in `_constants.py` updates all apps automatically
@@ -912,12 +914,86 @@ Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped b
 - **Zero external requests**: No Google Fonts, no CDN, no font service calls
 - **Consistent rendering**: Same font regardless of network or platform
 - **WCAG compliance**: Contrast ratios enforced in code comments, not just design files
-- **Centralised maintenance**: One file to update for brand changes across all 7 apps
+- **Centralised maintenance**: One file to update for brand changes across all 8 apps
 
 ### [ADR-017] Related ADRs
 
 - [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Apps that consume these tokens
+- [ADR-018](#adr-018-interactive-map-with-leafletjs-embed) - Map app extends design system
 - [ADR-011](#adr-011-pytest-testing-with-80-coverage) - `test_apps.py` covers design token functions
+
+---
+
+## ADR-018: Interactive Map with Leaflet.js Embed
+
+**Status**: ✅ Accepted **Date**: 2026-04-18 **Context**: Interactive UI Layer
+
+### [ADR-018] Decision
+
+Add a **map FastMCPApp** that renders an interactive OpenStreetMap of all Aare
+monitoring stations by embedding a self-contained **Leaflet.js** HTML page via
+`prefab_ui`'s `Embed(html=...)` component.
+
+**Rationale**:
+
+- **No native map component**: `prefab_ui` has no map widget; `Embed` with
+  `html=` (iframe srcdoc) is the only viable path
+- **Leaflet.js over CesiumJS**: The Aare runs through a compact Swiss region —
+  a lightweight 2D tile map is more appropriate than a 3D globe
+- **Dynamic CDN loading**: Per the MCP ext-apps reference implementation,
+  `<script>` tags do not execute reliably inside srcdoc iframes; Leaflet is
+  loaded dynamically via `document.createElement("script")` + `onload`
+- **No API key**: CartoDB Positron/Dark Matter (base) and ESRI World Imagery
+  (satellite) are both free and require no registration
+- **Self-contained**: All city data is JSON-serialised inline; no network call
+  is made from the iframe beyond tile and script CDNs
+
+### [ADR-018] Architecture
+
+```
+@map_app.ui()
+    └─ _fetch_map_data()   ← asyncio.gather(get_cities_list, compare_cities)
+    └─ _build_map_html()   ← returns HTML string with embedded city JSON
+    └─ Embed(html=...)     ← prefab_ui srcdoc iframe
+           └─ loadLeaflet()         ← dynamic CDN load
+           └─ initMap()             ← CircleMarkers + popups
+           └─ satellite toggle      ← ESRI World Imagery layer swap
+           └─ localStorage persist  ← map center/zoom + satellite preference
+```
+
+### [ADR-018] Tile Layers
+
+| Mode | Provider | URL pattern | API key |
+| ---- | -------- | ----------- | ------- |
+| Light | CartoDB Positron | `cartocdn.com/light_all/{z}/{x}/{y}{r}.png` | None |
+| Dark | CartoDB Dark Matter | `cartocdn.com/dark_all/{z}/{x}/{y}{r}.png` | None |
+| Satellite | ESRI World Imagery | `arcgisonline.com/…/MapServer/tile/{z}/{y}/{x}` | None |
+
+### [ADR-018] Marker Design
+
+- `CircleMarker` radius: `max(7, min(14, 8 + temp/3))` — scales with temperature
+- Fill colour: matches `_SAFETY_LEVELS` hex values (same tokens as all other apps)
+- White 2px border for contrast on both light and satellite tiles
+- Popup: city name, temperature, flow, Swiss German description, safety badge
+
+### [ADR-018] State Persistence
+
+Two `localStorage` keys per browser session:
+
+- `aareguru-map-state` — `{lat, lng, zoom}` restored on re-render
+- `aareguru-map-satellite` — boolean satellite preference
+
+### [ADR-018] Data Sources
+
+Cities list (`get_cities_list`) provides `coordinates.lat/lon`. Live conditions
+(`compare_cities`) provides `flow` and `temperature`. Both are fetched
+concurrently via `asyncio.gather`.
+
+### [ADR-018] Related ADRs
+
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - App registration pattern
+- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Marker colours from `_SAFETY_LEVELS`
+- [ADR-014](#adr-014-service-layer-pattern) - `get_cities_list` + `compare_cities` reused
 
 ---
 
@@ -935,7 +1011,7 @@ Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped b
 - ✅ ADR-008: Caching strategy
 - ✅ ADR-009: Rate limiting (client + HTTP layer)
 - ✅ ADR-010: Structured logging
-- ✅ ADR-011: pytest testing (83% coverage, 245 tests)
+- ✅ ADR-011: pytest testing (85% coverage, 355 tests)
 - ✅ ADR-012: MyPy type checking
 - ✅ ADR-013: HTTP/SSE and Stdio transports
 
@@ -944,14 +1020,14 @@ Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped b
 - ✅ ADR-014: Service Layer Pattern
 - ✅ ADR-015: FastMCP Cloud Deployment
 
-### Phase 3: Interactive UI Layer ✅ (v4.3.0)
+### Phase 3: Interactive UI Layer ✅ (v4.3.0 – v4.4.0)
 
-- ✅ ADR-016: FastMCP Apps with prefab_ui (7 interactive apps)
+- ✅ ADR-016: FastMCP Apps with prefab_ui (8 interactive apps)
 - ✅ ADR-017: Visual Design System & Embedded Assets
+- ✅ ADR-018: Interactive Map with Leaflet.js Embed
 
 ### Future
 
-- 🔄 ADR-018 (planned): Weather icon SVGs replacing emoji fallback
 - 🔄 Performance profiling and optimisation
 - 🔄 REST/Chat API layer reusing service methods
 
@@ -959,7 +1035,7 @@ Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped b
 
 ## Summary
 
-This ADR compendium establishes **17 architectural decisions** for Aareguru MCP Server v4.3.0:
+This ADR compendium establishes **18 architectural decisions** for Aareguru MCP Server v4.4.0:
 
 **Core Architecture** (5 ADRs):
 FastMCP 3.x · Pydantic v2 · async/httpx · Python 3.11+ · layered architecture
@@ -968,7 +1044,7 @@ FastMCP 3.x · Pydantic v2 · async/httpx · Python 3.11+ · layered architectur
 Helper modules (split top-level/apps) · async context managers · time-based caching · dual rate limiting
 
 **Quality & Observability** (3 ADRs):
-structlog JSON logging · pytest 83% coverage (245 tests) · MyPy type checking
+structlog JSON logging · pytest 85% coverage (355 tests) · MyPy type checking
 
 **Transport & Deployment** (2 ADRs):
 stdio + HTTP/SSE transports · FastMCP Cloud (eu-west-1, auto-scaling 2–10 replicas)
@@ -976,13 +1052,13 @@ stdio + HTTP/SSE transports · FastMCP Cloud (eu-west-1, auto-scaling 2–10 rep
 **Production Enhancements** (2 ADRs):
 Service layer pattern · FastMCP Cloud deployment
 
-**Interactive UI Layer** (2 ADRs):
-FastMCP Apps + prefab_ui (7 apps) · visual design system with embedded assets + WCAG AA compliance
+**Interactive UI Layer** (3 ADRs):
+FastMCP Apps + prefab_ui (8 apps) · visual design system with WCAG AA compliance · Leaflet.js map embed
 
 ---
 
-**Document Status**: v2.0.0 — All 17 ADRs Accepted, Production Ready
-**Last Updated**: 2026-04-17
+**Document Status**: v2.1.0 — All 18 ADRs Accepted, Production Ready
+**Last Updated**: 2026-04-18
 **Maintained By**: Aareguru MCP Development Team
 
 **v4.3.0 Status**: Production ready with interactive UI layer, embedded brand font, WCAG AA compliance, service layer, and FastMCP Cloud deployment (83% test coverage, 245 tests)
