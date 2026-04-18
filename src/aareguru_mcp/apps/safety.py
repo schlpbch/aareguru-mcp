@@ -63,9 +63,11 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     location: str = aare.get("location_long") or aare.get("location") or city
 
     level = _bafu_level(flow, gefahrenstufe)
-    _, level_label, level_color, level_color_dk, guidance, description = _BAFU_LEVELS[level - 1]
+    _, level_label, level_color, level_color_dk, guidance, description = _BAFU_LEVELS[
+        level - 1
+    ]
 
-    with Column(gap=2, cssClass="p-2 max-w-xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
             f"Sicherheit — {location}",
             cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
@@ -73,7 +75,9 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
         )
 
         # Current level hero card
-        with Card(cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{level_color}] dark:border-l-[{level_color_dk}]"):
+        with Card(
+            cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{level_color}] dark:border-l-[{level_color_dk}]"
+        ):
             with CardContent(cssClass="p-2"):
                 with Row(cssClass="items-center gap-3"):
                     Text(
@@ -102,7 +106,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                         )
                         Muted(
                             "Abfluss",
-                            cssClass=f"text-[9px] uppercase tracking-[0.15em]"
+                            cssClass=f"text-[10px] uppercase tracking-[0.15em]"
                             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         Text(
@@ -112,23 +116,23 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                         )
                         Muted(
                             "Pegelstand",
-                            cssClass=f"text-[9px] uppercase tracking-[0.15em]"
+                            cssClass=f"text-[10px] uppercase tracking-[0.15em]"
                             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         if threshold is not None:
                             Muted(
                                 f"Schwelle {threshold:.0f} m³/s",
-                                cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
+                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
                             )
 
         # Full 5-level scale
         Separator(cssClass="my-0.5")
         Text(
             "BAFU Gefahrenstufen",
-            cssClass=f"text-[9px] uppercase tracking-[0.2em]"
+            cssClass=f"text-[10px] uppercase tracking-[0.2em]"
             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
         )
-        with Column(gap=1):
+        with Column(gap=0):
             for lvl, lbl, color, color_dk, swim_guidance, _desc in _BAFU_LEVELS:
                 is_current = lvl == level
                 with Card(

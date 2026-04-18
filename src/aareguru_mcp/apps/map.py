@@ -340,17 +340,19 @@ async def aare_map(city: str | None = None) -> PrefabApp:
         safety_label = _safety_label(flow)
         color = _safety_color(flow)
 
-        cities_geo.append({
-            "city": city_id,
-            "name": item.get("longname") or item.get("name") or city_id,
-            "lat": lat,
-            "lon": lon,
-            "temp": temp,
-            "flow": flow,
-            "desc": desc,
-            "safety": safety_label,
-            "color": color,
-        })
+        cities_geo.append(
+            {
+                "city": city_id,
+                "name": item.get("longname") or item.get("name") or city_id,
+                "lat": lat,
+                "lon": lon,
+                "temp": temp,
+                "flow": flow,
+                "desc": desc,
+                "safety": safety_label,
+                "color": color,
+            }
+        )
 
     warmest = compare_data.get("warmest") or {}
     safe_count: int = compare_data.get("safe_count", 0)
@@ -358,7 +360,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
 
     map_html = _build_map_html(cities_geo, city)
 
-    with Column(gap=2, cssClass="p-2 max-w-4xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-4xl mx-auto") as view:
         Text(
             "Aare Karte",
             cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
@@ -366,7 +368,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
         )
 
         # Summary strip — same pattern as city_finder / compare
-        with Grid(columns=3, gap=2, cssClass="mb-1"):
+        with Grid(columns=3, gap=0, cssClass="mb-1"):
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
                 f" dark:border-t-[{_DK.BG_WASSER}]"

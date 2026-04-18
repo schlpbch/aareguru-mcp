@@ -40,6 +40,10 @@ mcp = FastMCP(
     name="aareguru-mcp",
     providers=[
         apps.conditions_app,
+        apps.temperature_app,
+        apps.flow_app,
+        apps.weather_app,
+        apps.sun_app,
         apps.history_app,
         apps.compare_app,
         apps.forecast_app,

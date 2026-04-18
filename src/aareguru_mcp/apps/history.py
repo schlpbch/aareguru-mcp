@@ -103,7 +103,7 @@ async def historical_chart(
             )
         )
 
-    with Column(gap=2, cssClass="p-2 max-w-3xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-3xl mx-auto") as view:
 
         # Header — matches aare.guru section title style
         with Row(cssClass="justify-between items-end mb-0"):

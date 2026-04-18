@@ -85,7 +85,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
     if points and current_temp is not None:
         delta = current_temp - points[0]["Temperatur"]
 
-    with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-0 max-w-2xl mx-auto") as view:
         Text(
             f"Tagesverlauf — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
@@ -93,8 +93,10 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
         )
 
         # Current + delta summary
-        with Grid(columns=2, gap=2):
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"):
+        with Grid(columns=2, gap=0):
+            with Card(
+                cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
+            ):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         _fmt_temp(current_temp),

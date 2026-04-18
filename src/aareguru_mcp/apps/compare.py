@@ -80,7 +80,7 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
     safe_count = data.get("safe_count", 0)
     total = data.get("total_count", 0)
 
-    with Column(gap=2, cssClass="p-2 max-w-4xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-4xl mx-auto") as view:
 
         # Header
         Text(
@@ -89,7 +89,7 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
         )
 
         # Summary strip — cyan accent top-border cards
-        with Grid(columns=3, gap=2, cssClass="mb-1"):
+        with Grid(columns=3, gap=0, cssClass="mb-1"):
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
@@ -108,7 +108,9 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
                         cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"):
+            with Card(
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"
+            ):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
@@ -120,7 +122,7 @@ async def compare_cities_table(cities: list[str] | None = None) -> PrefabApp:
                     )
                     Muted(
                         "Durchfluss < 150 m³/s",
-                        cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
+                        cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
                     )
 
             with Card(

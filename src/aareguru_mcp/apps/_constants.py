@@ -8,7 +8,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 _WEATHER_ICON_DIR = Path(__file__).parent / "assets" / "img" / "weather"
 _WEATHER_ICONS: dict[int, str] = {
-    int(f.stem): "data:image/svg+xml;base64," + base64.b64encode(f.read_bytes()).decode()
+    int(f.stem): "data:image/svg+xml;base64,"
+    + base64.b64encode(f.read_bytes()).decode()
     for f in _WEATHER_ICON_DIR.glob("*.svg")
     if f.stem.isdigit()
 }
@@ -65,7 +66,7 @@ _AG_WASSER_FLOW = "#357d9e"  # flow rate values
 _AG_AIR_TEMP = "#0a96d7"  # air temperature values
 _AG_BFU = "#00b2aa"  # BAFU safety accent
 _AG_SUNNY = "#f2e500"  # sunny weather accent
-_AG_RADIUS = "rounded-[3px]"  # angular Swiss border-radius
+_AG_RADIUS = "rounded-[0px]"  # angular Swiss border-radius
 
 
 class _DK:
@@ -81,6 +82,7 @@ class _DK:
     SUNNY = "#fde047"  # yellow-300
     CARD_BG = "#1c3138"  # page background dark
 
+
 # ---------------------------------------------------------------------------
 # Safety helpers
 # ---------------------------------------------------------------------------
@@ -88,17 +90,17 @@ class _DK:
 # (max_flow_exclusive, label, badge_variant, hex_color)
 # hex_color used for text — WCAG AA on white (≥ 4.5:1) required.
 _SAFETY_LEVELS: list[tuple[float, str, str, str]] = [
-    (100, "Sicher",  "success",     "#007d76"),  # 4.6:1 on white
-    (220, "Moderat", "info",        "#0877ab"),  # 5.0:1
-    (300, "Erhöht",  "warning",     "#b45309"),  # 4.7:1
-    (430, "Hoch",    "destructive", "#dc2626"),  # 4.5:1
+    (100, "Sicher", "success", "#007d76"),  # 4.6:1 on white
+    (220, "Moderat", "info", "#0877ab"),  # 5.0:1
+    (300, "Erhöht", "warning", "#b45309"),  # 4.7:1
+    (430, "Hoch", "destructive", "#dc2626"),  # 4.5:1
 ]
 
 # Flow scale bar zones — (lo, hi_or_None, label, hex_color, tailwind_width)
 # Widths are proportional within a 600 m³/s display cap:
 #   100/600=17%, 120/600=20%, 80/600=13%, 130/600=22%, 170/600=28%
 _FLOW_ZONES: list[tuple[float, float | None, str, str, str]] = [
-    (0, 100, "Sicher", "#00b2aa", "w-[17%]"),   # original BFU teal (bar only)
+    (0, 100, "Sicher", "#00b2aa", "w-[17%]"),  # original BFU teal (bar only)
     (100, 220, "Moderat", "#0877ab", "w-[20%]"),
     (220, 300, "Erhöht", "#b45309", "w-[13%]"),
     (300, 430, "Hoch", "#dc2626", "w-[22%]"),

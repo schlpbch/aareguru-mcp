@@ -96,7 +96,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
 
     warmest = data.get("warmest") or {}
 
-    with Column(gap=2, cssClass="p-2 max-w-3xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-3xl mx-auto") as view:
         Text(
             "Städtefinder",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
@@ -104,7 +104,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
         )
 
         # Summary strip
-        with Grid(columns=3, gap=2, cssClass="mb-1"):
+        with Grid(columns=3, gap=0, cssClass="mb-1"):
             with Card(
                 cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
@@ -125,7 +125,9 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"):
+            with Card(
+                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"
+            ):
                 with CardContent(cssClass="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",

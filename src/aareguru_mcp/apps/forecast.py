@@ -121,7 +121,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
         if e["tt"] is not None
     ]
 
-    with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
 
         # ── Header ──────────────────────────────────────────────────────────
         Text(
@@ -137,8 +137,10 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                 AlertDescription(warning)
 
         # ── Current → 2h water temperature cards ────────────────────────────
-        with Grid(columns=2, gap=2):
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"):
+        with Grid(columns=2, gap=0):
+            with Card(
+                cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
+            ):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         _fmt_temp(temp),
@@ -150,7 +152,9 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-            with Card(cssClass=f"bg-[{_AG_BG_WASSER}]/50 dark:bg-[{_DK.BG_WASSER}]/50 {_AG_RADIUS}"):
+            with Card(
+                cssClass=f"bg-[{_AG_BG_WASSER}]/50 dark:bg-[{_DK.BG_WASSER}]/50 {_AG_RADIUS}"
+            ):
                 with CardContent(cssClass="p-3 text-center"):
                     Text(
                         f"{trend_arrow} {_fmt_temp(forecast_2h)}",
@@ -233,7 +237,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                         with CardContent(cssClass="p-1.5 text-center"):
                             Muted(
                                 entry["time"],
-                                cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
                             _sy_to_icon(entry["sy"], cssClass="w-5 h-5 my-0.5")
                             Text(
@@ -244,7 +248,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                             if entry["rr"]:
                                 Muted(
                                     f"{entry['rr']:.1f}mm",
-                                    cssClass=f"text-[9px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                                    cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                                 )
 
     return PrefabApp(
