@@ -15,22 +15,12 @@ _WEATHER_ICONS: dict[int, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# DIN Next LT Pro — embedded font (base64 woff2)
+# PT Sans Narrow — Google Fonts
 # ---------------------------------------------------------------------------
-_FONT_FILE = Path(__file__).parent / "assets" / "fonts" / "DIN-Next-LT-Pro.woff2"
-_FONT_B64 = base64.b64encode(_FONT_FILE.read_bytes()).decode()
 _FONT_CSS = (
-    "@font-face {"
-    "font-family:'DIN Next LT Pro';"
-    "src:url('data:font/woff2;base64," + _FONT_B64 + "') format('woff2');"
-    "font-weight:100 900;"
-    "font-style:normal;"
-    "font-stretch:condensed;"
-    "font-display:swap;"
-    "}"
+    "@import url('https://fonts.googleapis.com/css2?family=PT+Sans+Narrow:wght@400;700&display=swap');"
     "body,*{"
-    "font-family:'DIN Next LT Pro',ui-sans-serif,system-ui,sans-serif !important;"
-    "font-stretch:condensed !important;"
+    "font-family:'PT Sans Narrow',ui-sans-serif,system-ui,sans-serif !important;"
     "}"
     # Repeating diagonal stripe pattern — approximates aareguru-pattern-quer-2.svg
     "body{"
