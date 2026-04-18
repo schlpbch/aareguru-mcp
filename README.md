@@ -11,19 +11,22 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.4.0** — 8 interactive FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP elicitation, 85% test coverage. See [CHANGELOG.md](CHANGELOG.md) for details.
+**Latest Release: v4.4.0** — 8 interactive FastMCPApps (incl. OpenStreetMap), 7
+MCP resources, MCP elicitation, 85% test coverage. See
+[CHANGELOG.md](CHANGELOG.md) for details.
 
 ## 🚀 Quick Start
 
 **Use directly from FastMCP Cloud** (no installation needed).
 
-Add it as a *custom connector* in Claude Desktop:
+Add it as a _custom connector_ in Claude Desktop:
 
 ![Claude Custom Connector](claude-custom-connector.png)
 
 No authentication is needed.
 
-Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via `Claude → Settings → Extensions`, or edit the Claude Desktop config directly:
+Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
+`Claude → Settings → Extensions`, or edit the Claude Desktop config directly:
 
 ```json
 {
@@ -43,19 +46,19 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via `Claude �
 
 ## 🎯 Features
 
-| Feature               | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
-| **6 MCP Tools**       | Temperature, flow, safety, forecasts, history, comparisons           |
-| **7 MCP Resources**   | Direct data access via `aareguru://` URIs                            |
-| **3 MCP Prompts**     | Daily reports, spot comparisons, weekly trends                       |
-| **8 FastMCPApps**     | Interactive dashboards, charts, map — rendered in conversation       |
-| **MCP Elicitation**   | Asks for confirmation on dangerous flows and large data requests     |
-| **Rate Limiting**     | 100 req/min, 1000 req/hour protection against abuse                  |
-| **Metrics**           | Prometheus endpoint for monitoring and observability                 |
-| **Swiss German**      | Authentic temperature descriptions ("geil aber chli chalt")          |
-| **BAFU Safety**       | Official flow danger levels and thresholds                           |
-| **350 Tests**         | 85% coverage, comprehensive test suite                               |
-| **Async-First**       | Context managers, parallel API fetching with asyncio.gather()        |
+| Feature             | Description                                                      |
+| ------------------- | ---------------------------------------------------------------- |
+| **6 MCP Tools**     | Temperature, flow, safety, forecasts, history, comparisons       |
+| **7 MCP Resources** | Direct data access via `aareguru://` URIs                        |
+| **3 MCP Prompts**   | Daily reports, spot comparisons, weekly trends                   |
+| **8 FastMCPApps**   | Interactive dashboards, charts, map — rendered in conversation   |
+| **MCP Elicitation** | Asks for confirmation on dangerous flows and large data requests |
+| **Rate Limiting**   | 100 req/min, 1000 req/hour protection against abuse              |
+| **Metrics**         | Prometheus endpoint for monitoring and observability             |
+| **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")      |
+| **BAFU Safety**     | Official flow danger levels and thresholds                       |
+| **350 Tests**       | 85% coverage, comprehensive test suite                           |
+| **Async-First**     | Context managers, parallel API fetching with asyncio.gather()    |
 
 ## 🛠️ Tools
 
@@ -80,30 +83,30 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via `Claude �
 
 ## 📊 Resources
 
-| URI                                      | Description                               |
-| ---------------------------------------- | ----------------------------------------- |
-| `aareguru://cities`                      | All monitored cities with coordinates     |
-| `aareguru://current/{city}`              | Full current conditions for a city        |
-| `aareguru://today/{city}`                | Minimal current snapshot                  |
-| `aareguru://forecast/{city}`             | Weather forecast entries                  |
-| `aareguru://history/{city}/{start}/{end}`| Historical hourly time series             |
-| `aareguru://safety-levels`               | BAFU 1–5 danger level reference table     |
-| `aareguru://thresholds`                  | Flow zone breakpoints with hex colors     |
+| URI                                       | Description                           |
+| ----------------------------------------- | ------------------------------------- |
+| `aareguru://cities`                       | All monitored cities with coordinates |
+| `aareguru://current/{city}`               | Full current conditions for a city    |
+| `aareguru://today/{city}`                 | Minimal current snapshot              |
+| `aareguru://forecast/{city}`              | Weather forecast entries              |
+| `aareguru://history/{city}/{start}/{end}` | Historical hourly time series         |
+| `aareguru://safety-levels`                | BAFU 1–5 danger level reference table |
+| `aareguru://thresholds`                   | Flow zone breakpoints with hex colors |
 
 ## 🖥️ Interactive Apps (FastMCPApps)
 
 Eight apps render rich UIs directly inside AI conversations via `fastmcp[apps]`:
 
-| App            | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| `conditions`   | Dashboard: water temp, flow, weather, BAFU level              |
-| `history`      | Area chart of temperature and flow over time                  |
-| `compare`      | Sortable table comparing all cities                           |
-| `forecast`     | 24-hour forecast with air-temperature chart                   |
-| `intraday`     | Today's intraday water temperature sparkline                  |
-| `city_finder`  | All cities ranked by temperature or safety                    |
-| `safety`       | BAFU 1–5 danger level briefing with current reading           |
-| `map`          | Interactive OpenStreetMap with all stations, satellite toggle |
+| App           | Description                                                   |
+| ------------- | ------------------------------------------------------------- |
+| `conditions`  | Dashboard: water temp, flow, weather, BAFU level              |
+| `history`     | Area chart of temperature and flow over time                  |
+| `compare`     | Sortable table comparing all cities                           |
+| `forecast`    | 24-hour forecast with air-temperature chart                   |
+| `intraday`    | Today's intraday water temperature sparkline                  |
+| `city_finder` | All cities ranked by temperature or safety                    |
+| `safety`      | BAFU 1–5 danger level briefing with current reading           |
+| `map`         | Interactive OpenStreetMap with all stations, satellite toggle |
 
 ## 💬 Prompts
 
@@ -152,13 +155,15 @@ curl http://localhost:8000/health
 
 ### FastMCP Cloud (Recommended)
 
-This server is deployed on [FastMCP Cloud](https://fastmcp.cloud), a managed platform for MCP servers with zero-config deployment.
+This server is deployed on [FastMCP Cloud](https://fastmcp.cloud), a managed
+platform for MCP servers with zero-config deployment.
 
 **Features:**
 
 - ✅ **Zero-Config Deployment** — Connect GitHub repo, automatic deployment
 - ✅ **Serverless Scaling** — Scale from 0 to millions of requests instantly
-- ✅ **Git-Native CI/CD** — Auto-deploy on push to `main`, branch deployments for PRs
+- ✅ **Git-Native CI/CD** — Auto-deploy on push to `main`, branch deployments
+  for PRs
 - ✅ **Built-in Security** — OAuth support, token management, secure endpoints
 - ✅ **MCP Analytics** — Request/response tracking, tool usage insights
 - ✅ **Free Tier** — Available for personal servers
@@ -186,7 +191,8 @@ No special configuration needed. FastMCP Cloud auto-detects FastMCP servers:
 
 FastMCP servers can be deployed to any Python-compatible cloud platform.
 
-**Container Platforms:** Google Cloud Run, AWS ECS/Fargate, Azure Container Instances
+**Container Platforms:** Google Cloud Run, AWS ECS/Fargate, Azure Container
+Instances
 
 **PaaS Providers:** Railway, Render, Vercel
 
@@ -198,13 +204,13 @@ FastMCP servers can be deployed to any Python-compatible cloud platform.
 
 The server exposes Prometheus-compatible metrics at `/metrics`:
 
-| Metric | Type | Description |
-| ------ | ---- | ----------- |
-| `aareguru_mcp_tool_calls_total` | Counter | Tool invocations by name and status |
-| `aareguru_mcp_tool_duration_seconds` | Histogram | Tool execution times |
-| `aareguru_mcp_api_requests_total` | Counter | Aareguru API requests |
-| `aareguru_mcp_errors_total` | Counter | Errors by type and component |
-| `aareguru_mcp_active_requests` | Gauge | Currently active requests |
+| Metric                               | Type      | Description                         |
+| ------------------------------------ | --------- | ----------------------------------- |
+| `aareguru_mcp_tool_calls_total`      | Counter   | Tool invocations by name and status |
+| `aareguru_mcp_tool_duration_seconds` | Histogram | Tool execution times                |
+| `aareguru_mcp_api_requests_total`    | Counter   | Aareguru API requests               |
+| `aareguru_mcp_errors_total`          | Counter   | Errors by type and component        |
+| `aareguru_mcp_active_requests`       | Gauge     | Currently active requests           |
 
 ### Rate Limiting
 
@@ -226,11 +232,37 @@ uv run mypy src/                 # Type check (0 errors)
 uv run fastmcp dev apps run-ext-apps.py  # Preview all 8 apps
 ```
 
+### Visual Debugging - All Apps on One Page
+
+For comprehensive visual testing, render all 12 apps on one page:
+
+```bash
+./run-debug-all-apps.sh          # Start debug server on http://localhost:3000
+```
+
+This debug page includes:
+
+- ✅ Complete conditions dashboard
+- ✅ All 4 individual condition cards (temperature, flow, weather, sun)
+- ✅ Historical chart (7 days) and intraday sparkline
+- ✅ 24-hour forecast view
+- ✅ City comparison table and city finder
+- ✅ Safety briefing with BAFU levels
+- ✅ Interactive OpenStreetMap with all stations
+
+Perfect for:
+
+- Visual regression testing
+- Design system verification
+- Quick overview of all UI components
+- Debugging layout and styling issues
+
 ## 📖 Documentation
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — Comprehensive architecture guide
 - **[CLAUDE.md](CLAUDE.md)** — Development guide for AI assistants
-- **[specs/ADR_COMPENDIUM.md](specs/ADR_COMPENDIUM.md)** — 18 Architecture Decision Records
+- **[specs/ADR_COMPENDIUM.md](specs/ADR_COMPENDIUM.md)** — 18 Architecture
+  Decision Records
 - **[docs/](docs/)** — API documentation and planning
 
 ## 📁 Project Structure
@@ -253,9 +285,11 @@ aareguru-mcp/
 
 ## 🔒 Data Attribution
 
-Data from [BAFU](https://www.hydrodaten.admin.ch), [Aare.guru](https://aare.guru), MeteoSchweiz, Meteotest.
+Data from [BAFU](https://www.hydrodaten.admin.ch),
+[Aare.guru](https://aare.guru), MeteoSchweiz, Meteotest.
 
-> **Non-commercial use only** — Contact: [aaregurus@existenz.ch](mailto:aaregurus@existenz.ch)
+> **Non-commercial use only** — Contact:
+> [aaregurus@existenz.ch](mailto:aaregurus@existenz.ch)
 
 ## 📄 License
 
