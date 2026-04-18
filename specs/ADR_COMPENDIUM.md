@@ -1,6 +1,7 @@
 # Aareguru MCP Server - Architecture Decision Records (ADR) Compendium
 
-**Document Version**: 2.1.0 **Last Updated**: 2026-04-18 **Total ADRs**: 18 (18 Accepted)
+**Document Version**: 2.1.0 **Last Updated**: 2026-04-18 **Total ADRs**: 18 (18
+Accepted)
 
 **Related Documents**:
 
@@ -24,28 +25,38 @@
 
 ### Core Architecture
 
-- [ADR-001: Use FastMCP 3.x for MCP Protocol](#adr-001-use-fastmcp-3x-for-mcp-protocol) ✅
-- [ADR-002: Pydantic v2 for Data Models](#adr-002-pydantic-v2-for-data-models) ✅
-- [ADR-003: Async/Await with httpx for API Calls](#adr-003-asyncawait-with-httpx-for-api-calls) ✅
-- [ADR-004: Python 3.11+ as Minimum Version](#adr-004-python-311-as-minimum-version) ✅
-- [ADR-005: Layered Architecture Pattern](#adr-005-layered-architecture-pattern) ✅
+- [ADR-001: Use FastMCP 3.x for MCP Protocol](#adr-001-use-fastmcp-3x-for-mcp-protocol)
+  ✅
+- [ADR-002: Pydantic v2 for Data Models](#adr-002-pydantic-v2-for-data-models)
+  ✅
+- [ADR-003: Async/Await with httpx for API Calls](#adr-003-asyncawait-with-httpx-for-api-calls)
+  ✅
+- [ADR-004: Python 3.11+ as Minimum Version](#adr-004-python-311-as-minimum-version)
+  ✅
+- [ADR-005: Layered Architecture Pattern](#adr-005-layered-architecture-pattern)
+  ✅
 
 ### Design Patterns
 
-- [ADR-006: Helper Functions Module Pattern](#adr-006-helper-functions-module-pattern) ✅
-- [ADR-007: Async Context Manager Pattern for Resource Management](#adr-007-async-context-manager-pattern-for-resource-management) ✅
+- [ADR-006: Helper Functions Module Pattern](#adr-006-helper-functions-module-pattern)
+  ✅
+- [ADR-007: Async Context Manager Pattern for Resource Management](#adr-007-async-context-manager-pattern-for-resource-management)
+  ✅
 - [ADR-008: Caching Strategy](#adr-008-caching-strategy) ✅
 - [ADR-009: Rate Limiting Strategy](#adr-009-rate-limiting-strategy) ✅
 
 ### Quality & Observability
 
-- [ADR-010: Structured Logging with structlog](#adr-010-structured-logging-with-structlog) ✅
-- [ADR-011: pytest Testing with 80%+ Coverage](#adr-011-pytest-testing-with-80-coverage) ✅
+- [ADR-010: Structured Logging with structlog](#adr-010-structured-logging-with-structlog)
+  ✅
+- [ADR-011: pytest Testing with 80%+ Coverage](#adr-011-pytest-testing-with-80-coverage)
+  ✅
 - [ADR-012: MyPy Strict Type Checking](#adr-012-mypy-strict-type-checking) ✅
 
 ### Transport & Deployment
 
-- [ADR-013: HTTP/SSE and Stdio Transports](#adr-013-httpsse-and-stdio-transports) ✅
+- [ADR-013: HTTP/SSE and Stdio Transports](#adr-013-httpsse-and-stdio-transports)
+  ✅
 
 ### Production Ready Enhancements
 
@@ -54,28 +65,38 @@
 
 ### Interactive UI Layer
 
-- [ADR-016: FastMCP Apps with prefab_ui](#adr-016-fastmcp-apps-with-prefab_ui) ✅
-- [ADR-017: Visual Design System & Embedded Assets](#adr-017-visual-design-system--embedded-assets) ✅
-- [ADR-018: Interactive Map with Leaflet.js Embed](#adr-018-interactive-map-with-leafletjs-embed) ✅
+- [ADR-016: FastMCP Apps with prefab_ui](#adr-016-fastmcp-apps-with-prefab_ui)
+  ✅
+- [ADR-017: Visual Design System & Embedded Assets](#adr-017-visual-design-system--embedded-assets)
+  ✅
+- [ADR-018: Interactive Map with Leaflet.js Embed](#adr-018-interactive-map-with-leafletjs-embed)
+  ✅
 
 ---
 
 ## ADR-001: Use FastMCP 3.x for MCP Protocol
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Core Architecture
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17
+**Context**: Core Architecture
 
 ### [ADR-001] Decision
 
-Use **FastMCP 3.x** (Anthropic's MCP framework) with the `[apps]` extra for implementing the Model Context Protocol server, including interactive UI apps.
+Use **FastMCP 3.x** (Anthropic's MCP framework) with the `[apps]` extra for
+implementing the Model Context Protocol server, including interactive UI apps.
 
 **Rationale**:
 
-- **Minimal Overhead**: Lightweight framework designed specifically for Python MCP servers
+- **Minimal Overhead**: Lightweight framework designed specifically for Python
+  MCP servers
 - **Async-First**: Built on Python's async/await for efficient concurrency
-- **Declarative API**: Simple decorators (`@mcp.tool`, `@mcp.resource`, `@mcp.prompt`, `@app.ui`) for clean definitions
-- **Type Safety**: Integrates seamlessly with Pydantic for automatic validation and schema generation
-- **Protocol Compliance**: Full MCP specification compliance with automatic message handling
-- **Apps Extra**: `fastmcp[apps]` enables interactive UI apps rendered directly in conversations via `prefab_ui`
+- **Declarative API**: Simple decorators (`@mcp.tool`, `@mcp.resource`,
+  `@mcp.prompt`, `@app.ui`) for clean definitions
+- **Type Safety**: Integrates seamlessly with Pydantic for automatic validation
+  and schema generation
+- **Protocol Compliance**: Full MCP specification compliance with automatic
+  message handling
+- **Apps Extra**: `fastmcp[apps]` enables interactive UI apps rendered directly
+  in conversations via `prefab_ui`
 
 ### [ADR-001] Installation
 
@@ -116,15 +137,19 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 ### [ADR-001] Benefits
 
 - **Clean API**: Decorators make component registration explicit and readable
-- **Automatic Schema Generation**: Type hints generate MCP tool schemas automatically
+- **Automatic Schema Generation**: Type hints generate MCP tool schemas
+  automatically
 - **Standards Alignment**: Follows industry best practices for MCP servers
 - **Community**: Active maintenance from Anthropic with regular updates
-- **UI Apps**: `FastMCPApp` renders rich interactive UIs without a separate frontend
+- **UI Apps**: `FastMCPApp` renders rich interactive UIs without a separate
+  frontend
 
 ### [ADR-001] Related ADRs
 
-- [ADR-003](#adr-003-asyncawait-with-httpx-for-api-calls) - Async operations with httpx
-- [ADR-007](#adr-007-async-context-manager-pattern-for-resource-management) - Resource management
+- [ADR-003](#adr-003-asyncawait-with-httpx-for-api-calls) - Async operations
+  with httpx
+- [ADR-007](#adr-007-async-context-manager-pattern-for-resource-management) -
+  Resource management
 - [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Interactive UI apps layer
 
 ---
@@ -135,7 +160,8 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 
 ### [ADR-002] Decision
 
-Use **Pydantic v2** for all data models, DTOs, and request/response validation against Aareguru API.
+Use **Pydantic v2** for all data models, DTOs, and request/response validation
+against Aareguru API.
 
 **Benefits**:
 
@@ -173,11 +199,11 @@ class CurrentResponse(BaseModel):
 
 Critical: Different endpoints return different structures:
 
-| Endpoint | Structure | Model |
-|----------|-----------|-------|
-| `/v2018/today` | Flat (temperature at top level) | `TodayResponse` |
-| `/v2018/current` | Nested (aare as sub-object) | `CurrentResponse` |
-| `/v2018/cities` | Array (not wrapped) | `list[CityData]` |
+| Endpoint         | Structure                       | Model             |
+| ---------------- | ------------------------------- | ----------------- |
+| `/v2018/today`   | Flat (temperature at top level) | `TodayResponse`   |
+| `/v2018/current` | Nested (aare as sub-object)     | `CurrentResponse` |
+| `/v2018/cities`  | Array (not wrapped)             | `list[CityData]`  |
 
 ---
 
@@ -187,7 +213,8 @@ Critical: Different endpoints return different structures:
 
 ### [ADR-003] Decision
 
-Use **async/await pattern with httpx** (async HTTP client) for all Aareguru API calls.
+Use **async/await pattern with httpx** (async HTTP client) for all Aareguru API
+calls.
 
 **Rationale**:
 
@@ -228,11 +255,13 @@ class AareguruClient:
 
 ## ADR-004: Python 3.11+ as Minimum Version
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Core Architecture
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17
+**Context**: Core Architecture
 
 ### [ADR-004] Decision
 
-Require **Python 3.11+** as the minimum supported version. Production environment currently runs Python 3.14.
+Require **Python 3.11+** as the minimum supported version. Production
+environment currently runs Python 3.14.
 
 **Rationale**:
 
@@ -258,7 +287,9 @@ target-version = "py310"   # Conservative lint target
 
 ### [ADR-004] Current Runtime
 
-The development and production environment uses Python 3.14 (latest stable). The `>=3.11` minimum ensures broad compatibility while the codebase takes advantage of newer features available on 3.14.
+The development and production environment uses Python 3.14 (latest stable). The
+`>=3.11` minimum ensures broad compatibility while the codebase takes advantage
+of newer features available on 3.14.
 
 ---
 
@@ -268,7 +299,8 @@ The development and production environment uses Python 3.14 (latest stable). The
 
 ### [ADR-005] Decision
 
-Use a **clean layered architecture** with clear separation of concerns across six layers (including the UI apps layer added in v4.x).
+Use a **clean layered architecture** with clear separation of concerns across
+six layers (including the UI apps layer added in v4.x).
 
 ### [ADR-005] Architecture Layers
 
@@ -327,15 +359,15 @@ Use a **clean layered architecture** with clear separation of concerns across si
 
 ### [ADR-005] Layer Responsibilities
 
-| Layer | Responsibility | Key Files |
-|-------|-----------------|-----------|
-| UI Apps | Interactive dashboards, charts, tables | `apps/*.py`, `apps/_constants.py` |
-| MCP Server | Protocol handling, schema generation | `server.py` |
-| Business Logic | Domain rules, enrichment | `tools.py`, `helpers.py` |
-| Service | Orchestration, reuse across interfaces | `service.py` |
-| HTTP Client | API communication, caching, rate limiting | `client.py` |
-| Models | Data validation, type safety | `models.py` |
-| Config | Environment-based settings | `config.py` |
+| Layer          | Responsibility                            | Key Files                         |
+| -------------- | ----------------------------------------- | --------------------------------- |
+| UI Apps        | Interactive dashboards, charts, tables    | `apps/*.py`, `apps/_constants.py` |
+| MCP Server     | Protocol handling, schema generation      | `server.py`                       |
+| Business Logic | Domain rules, enrichment                  | `tools.py`, `helpers.py`          |
+| Service        | Orchestration, reuse across interfaces    | `service.py`                      |
+| HTTP Client    | API communication, caching, rate limiting | `client.py`                       |
+| Models         | Data validation, type safety              | `models.py`                       |
+| Config         | Environment-based settings                | `config.py`                       |
 
 ### [ADR-005] Related ADRs
 
@@ -350,10 +382,13 @@ Use a **clean layered architecture** with clear separation of concerns across si
 
 ### [ADR-006] Decision
 
-Maintain dedicated helper modules for shared business logic. Two separate helper modules exist:
+Maintain dedicated helper modules for shared business logic. Two separate helper
+modules exist:
 
-- **`helpers.py`** (top-level): Domain logic used by tools and service layer (safety assessment, Swiss German translation, suggestions)
-- **`apps/_helpers.py`**: UI-specific formatters and badge generators used exclusively by the apps layer
+- **`helpers.py`** (top-level): Domain logic used by tools and service layer
+  (safety assessment, Swiss German translation, suggestions)
+- **`apps/_helpers.py`**: UI-specific formatters and badge generators used
+  exclusively by the apps layer
 
 ### [ADR-006] Top-Level Helpers (`helpers.py`)
 
@@ -378,7 +413,8 @@ def _sy_to_emoji(sy: int | None) -> str: ...
 def _bafu_level(flow: float | None, gefahrenstufe: int | None) -> int: ...
 ```
 
-The split keeps UI formatting concerns out of the core domain layer and prevents `apps/` imports leaking into `tools.py`.
+The split keeps UI formatting concerns out of the core domain layer and prevents
+`apps/` imports leaking into `tools.py`.
 
 ---
 
@@ -388,7 +424,8 @@ The split keeps UI formatting concerns out of the core domain layer and prevents
 
 ### [ADR-007] Decision
 
-Use **async context managers** (`async with`) for all HTTP client instantiation to ensure proper connection cleanup.
+Use **async context managers** (`async with`) for all HTTP client instantiation
+to ensure proper connection cleanup.
 
 ```python
 async with AareguruClient(settings=get_settings()) as client:
@@ -396,7 +433,8 @@ async with AareguruClient(settings=get_settings()) as client:
     return response.model_dump()
 ```
 
-**Benefits**: Guarantees cleanup even on exceptions, enables connection pooling, clear acquisition/release points, easy to mock in tests.
+**Benefits**: Guarantees cleanup even on exceptions, enables connection pooling,
+clear acquisition/release points, easy to mock in tests.
 
 ---
 
@@ -406,7 +444,8 @@ async with AareguruClient(settings=get_settings()) as client:
 
 ### [ADR-008] Decision
 
-Implement **time-based caching** in the HTTP client layer with configurable TTL, keyed by endpoint + sorted query parameters.
+Implement **time-based caching** in the HTTP client layer with configurable TTL,
+keyed by endpoint + sorted query parameters.
 
 ```python
 # Cache key: endpoint + sorted JSON params
@@ -431,8 +470,11 @@ MIN_REQUEST_INTERVAL_SECONDS=300   # 5 minutes (default)
 
 Implement **two complementary rate limiting layers**:
 
-1. **Client-side**: `AareguruClient` enforces minimum interval (300s default) between API requests via async lock — respects Aareguru's non-commercial usage guidelines.
-2. **HTTP endpoints**: `slowapi` decorators limit health/metrics endpoint access (60 req/min).
+1. **Client-side**: `AareguruClient` enforces minimum interval (300s default)
+   between API requests via async lock — respects Aareguru's non-commercial
+   usage guidelines.
+2. **HTTP endpoints**: `slowapi` decorators limit health/metrics endpoint access
+   (60 req/min).
 
 ```python
 # Client-side rate limiting
@@ -452,11 +494,13 @@ class AareguruClient:
 
 ## ADR-010: Structured Logging with structlog
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Quality & Observability
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Quality &
+Observability
 
 ### [ADR-010] Decision
 
-Use **structlog** for structured JSON logging with contextual information throughout the application.
+Use **structlog** for structured JSON logging with contextual information
+throughout the application.
 
 ```python
 import structlog
@@ -467,17 +511,20 @@ logger.info("app.conditions_dashboard", city="Bern")
 logger.error("api_error", endpoint="/v2018/current", status_code=500)
 ```
 
-All layers (tools, service, apps, client) use structlog with module-scoped loggers. Log output is JSON-structured for observability platform integration.
+All layers (tools, service, apps, client) use structlog with module-scoped
+loggers. Log output is JSON-structured for observability platform integration.
 
 ---
 
 ## ADR-011: pytest Testing with 80%+ Coverage
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17 **Context**: Quality & Observability
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Updated**: 2026-04-17
+**Context**: Quality & Observability
 
 ### [ADR-011] Decision
 
-Use **pytest** as the testing framework with **≥80% code coverage** target and organized test layers.
+Use **pytest** as the testing framework with **≥80% code coverage** target and
+organized test layers.
 
 ### [ADR-011] Current Coverage Status
 
@@ -543,7 +590,8 @@ uv run pytest -m integration            # Integration tests only
 
 ## ADR-012: MyPy Strict Type Checking
 
-**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Quality & Observability
+**Status**: ✅ Accepted **Date**: 2025-12-01 **Context**: Quality &
+Observability
 
 ### [ADR-012] Decision
 
@@ -570,7 +618,8 @@ uv run mypy src/    # Run type checking
 
 ### [ADR-013] Decision
 
-Support both **stdio transport** (for Claude Desktop) and **HTTP/SSE transport** (for web/cloud).
+Support both **stdio transport** (for Claude Desktop) and **HTTP/SSE transport**
+(for web/cloud).
 
 ### [ADR-013] Entry Points
 
@@ -608,11 +657,13 @@ GET /metrics   # Prometheus metrics (MetricsCollector tracks tool calls)
 
 ## ADR-014: Service Layer Pattern
 
-**Status**: ✅ Accepted **Date**: 2026-02-08 **Context**: Production Ready Enhancements
+**Status**: ✅ Accepted **Date**: 2026-02-08 **Context**: Production Ready
+Enhancements
 
 ### [ADR-014] Decision
 
-Introduce a **service layer** (`service.py`) between the MCP tools and the HTTP client, providing reusable business logic and data enrichment.
+Introduce a **service layer** (`service.py`) between the MCP tools and the HTTP
+client, providing reusable business logic and data enrichment.
 
 ### [ADR-014] Service Methods
 
@@ -627,7 +678,8 @@ class AareguruService:
     async def get_cities_list(self) -> dict[str, Any]: ...
 ```
 
-Methods map 1:1 to MCP tools. The service is called by both tools (MCP interface) and apps (UI interface), avoiding code duplication.
+Methods map 1:1 to MCP tools. The service is called by both tools (MCP
+interface) and apps (UI interface), avoiding code duplication.
 
 ### [ADR-014] Thin Tool Wrapper Pattern
 
@@ -659,35 +711,37 @@ async def get_current_temperature(city: str = "Bern") -> dict[str, Any]:
 
 ## ADR-015: FastMCP Cloud Deployment
 
-**Status**: ✅ Accepted **Date**: 2026-02-08 **Context**: Deployment & Integration
+**Status**: ✅ Accepted **Date**: 2026-02-08 **Context**: Deployment &
+Integration
 
 ### [ADR-015] Decision
 
-Use **FastMCP Cloud** for production deployment with automatic scaling, monitoring, and zero-downtime updates.
+Use **FastMCP Cloud** for production deployment with automatic scaling,
+monitoring, and zero-downtime updates.
 
 ### [ADR-015] Configuration
 
 ```yaml
 # .fastmcp/config.yaml
 deployment:
-  region: "eu-west-1"
+  region: 'eu-west-1'
   replicas: 2
   max_replicas: 10
   timeout: 30s
   memory: 512Mi
 
 environment:
-  LOG_LEVEL: "INFO"
-  CACHE_TTL_SECONDS: "120"
-  MIN_REQUEST_INTERVAL_SECONDS: "0.1"
+  LOG_LEVEL: 'INFO'
+  CACHE_TTL_SECONDS: '120'
+  MIN_REQUEST_INTERVAL_SECONDS: '0.1'
 
 health:
-  path: "/health"
+  path: '/health'
   interval: 30s
 
 monitoring:
   enabled: true
-  metrics_path: "/metrics"
+  metrics_path: '/metrics'
 ```
 
 ### [ADR-015] Installation Options
@@ -695,7 +749,7 @@ monitoring:
 **Direct URL** (Claude Desktop):
 
 ```json
-{"mcpServers": {"aareguru": {"url": "https://aareguru.fastmcp.app/mcp"}}}
+{ "mcpServers": { "aareguru": { "url": "https://aareguru.fastmcp.app/mcp" } } }
 ```
 
 **Bundle file**: Download `aareguru-mcp.mcpb` and drag into Claude Desktop.
@@ -708,30 +762,37 @@ monitoring:
 
 ### [ADR-016] Decision
 
-Use **FastMCPApp** with the **prefab_ui** component library to render interactive, data-rich UIs directly within AI conversation contexts — no separate frontend required.
+Use **FastMCPApp** with the **prefab_ui** component library to render
+interactive, data-rich UIs directly within AI conversation contexts — no
+separate frontend required.
 
 **Rationale**:
 
-- **In-Context UI**: Rich dashboards, charts, and tables rendered where the data is requested
-- **Zero Frontend Overhead**: No separate React/Vue app, no deployment pipeline for UI
-- **Component Library**: `prefab_ui` provides Cards, Grids, Charts, DataTables, Alerts, etc.
-- **Server-Rendered**: Apps run on the MCP server, return a `PrefabApp` descriptor that the client renders
-- **Reactive**: Each app has a paired `refresh_*` tool for live data updates from the UI
+- **In-Context UI**: Rich dashboards, charts, and tables rendered where the data
+  is requested
+- **Zero Frontend Overhead**: No separate React/Vue app, no deployment pipeline
+  for UI
+- **Component Library**: `prefab_ui` provides Cards, Grids, Charts, DataTables,
+  Alerts, etc.
+- **Server-Rendered**: Apps run on the MCP server, return a `PrefabApp`
+  descriptor that the client renders
+- **Reactive**: Each app has a paired `refresh_*` tool for live data updates
+  from the UI
 
 ### [ADR-016] App Inventory
 
 Eight apps are registered in `server.py` via `providers=`:
 
-| App | File | UI Pattern | Primary Component |
-| --- | ---- | ---------- | ----------------- |
-| `conditions` | `conditions.py` | Card grid dashboard | Cards, Grid, Alert |
-| `history` | `history.py` | Time-series chart | AreaChart |
-| `compare` | `compare.py` | Sortable city table | DataTable |
-| `forecast` | `forecast.py` | 24h forecast + chart | AreaChart, Grid |
-| `intraday` | `intraday.py` | Today's sparkline | AreaChart |
-| `city_finder` | `city_finder.py` | Ranked city table | DataTable |
-| `safety` | `safety.py` | BAFU danger briefing | Card, Grid |
-| `map` | `map.py` | Interactive OSM map | Embed (Leaflet.js) |
+| App           | File             | UI Pattern           | Primary Component  |
+| ------------- | ---------------- | -------------------- | ------------------ |
+| `conditions`  | `conditions.py`  | Card grid dashboard  | Cards, Grid, Alert |
+| `history`     | `history.py`     | Time-series chart    | AreaChart          |
+| `compare`     | `compare.py`     | Sortable city table  | DataTable          |
+| `forecast`    | `forecast.py`    | 24h forecast + chart | AreaChart, Grid    |
+| `intraday`    | `intraday.py`    | Today's sparkline    | AreaChart          |
+| `city_finder` | `city_finder.py` | Ranked city table    | DataTable          |
+| `safety`      | `safety.py`      | BAFU danger briefing | Card, Grid         |
+| `map`         | `map.py`         | Interactive OSM map  | Embed (Leaflet.js) |
 
 ### [ADR-016] App Structure Pattern
 
@@ -754,7 +815,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
     service = AareguruService()
     data = await service.get_current_conditions(city)
 
-    with Column(gap=2, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
         # Build component tree using prefab_ui components
         Text("Aare — Bern", cssClass="text-lg font-black ...")
         with Card(...):
@@ -770,7 +831,8 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
 
 ### [ADR-016] Service Layer Integration
 
-Apps call `AareguruService` directly — the same service methods used by MCP tools. No data-fetching logic is duplicated.
+Apps call `AareguruService` directly — the same service methods used by MCP
+tools. No data-fetching logic is duplicated.
 
 ```
 UI request → @conditions_app.ui() → AareguruService → AareguruClient → API
@@ -797,14 +859,18 @@ mcp = FastMCP("aareguru", providers=[
 
 - **DRY**: Service layer reused by both tools and apps
 - **Isolation**: Each app is a self-contained `FastMCPApp` instance
-- **Testability**: Apps can be tested by calling the `@app.ui()` function directly
-- **Composability**: `prefab_ui` components are declaratively composed using Python context managers
+- **Testability**: Apps can be tested by calling the `@app.ui()` function
+  directly
+- **Composability**: `prefab_ui` components are declaratively composed using
+  Python context managers
 
 ### [ADR-016] Related ADRs
 
-- [ADR-001](#adr-001-use-fastmcp-3x-for-mcp-protocol) - FastMCPApp requires `fastmcp[apps]`
+- [ADR-001](#adr-001-use-fastmcp-3x-for-mcp-protocol) - FastMCPApp requires
+  `fastmcp[apps]`
 - [ADR-014](#adr-014-service-layer-pattern) - Service called by apps
-- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Design tokens used by all apps
+- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Design tokens used
+  by all apps
 
 ---
 
@@ -814,15 +880,23 @@ mcp = FastMCP("aareguru", providers=[
 
 ### [ADR-017] Decision
 
-Maintain a **centralised design token system** in `apps/_constants.py` that encodes the aare.guru visual identity, enforces WCAG AA colour contrast, and embeds all UI assets (fonts, icons) as inline base64 data URIs — making every `PrefabApp` fully self-contained with no external network dependency.
+Maintain a **centralised design token system** in `apps/_constants.py` that
+encodes the aare.guru visual identity, enforces WCAG AA colour contrast, and
+embeds all UI assets (fonts, icons) as inline base64 data URIs — making every
+`PrefabApp` fully self-contained with no external network dependency.
 
 **Rationale**:
 
-- **Brand Consistency**: All 8 apps share identical colours, typography, and spacing
-- **WCAG AA Compliance**: Every colour is validated for ≥4.5:1 contrast ratio; dark mode colours validated separately against dark backgrounds
-- **Self-Contained Delivery**: Fonts embedded as base64 WOFF2 data URIs; no CDN or font service required
-- **Single Source of Truth**: Changing a colour in `_constants.py` updates all apps automatically
-- **Offline Capable**: Apps render correctly in sandboxed or network-restricted environments
+- **Brand Consistency**: All 8 apps share identical colours, typography, and
+  spacing
+- **WCAG AA Compliance**: Every colour is validated for ≥4.5:1 contrast ratio;
+  dark mode colours validated separately against dark backgrounds
+- **Self-Contained Delivery**: Fonts embedded as base64 WOFF2 data URIs; no CDN
+  or font service required
+- **Single Source of Truth**: Changing a colour in `_constants.py` updates all
+  apps automatically
+- **Offline Capable**: Apps render correctly in sandboxed or network-restricted
+  environments
 
 ### [ADR-017] Design Tokens
 
@@ -854,13 +928,13 @@ class _DK:  # Dark mode equivalents
 
 All foreground colours are chosen for ≥4.5:1 contrast ratio:
 
-| Token | Light Hex | Ratio on White | Dark Hex | Ratio on `#1a2e3d` |
-|-------|-----------|----------------|----------|---------------------|
-| BAFU safe | `#007d76` | 4.6:1 | `#2dd4bf` | 9.1:1 |
-| Moderat | `#0877ab` | 5.0:1 | `#38bdf8` | 7.9:1 |
-| Erhöht | `#b45309` | 4.7:1 | `#fbbf24` | 9.4:1 |
-| Hoch | `#dc2626` | 4.5:1 | `#f87171` | 5.9:1 |
-| Sehr hoch | `#7f1d1d` | 10.0:1 | `#fca5a5` | 8.3:1 |
+| Token     | Light Hex | Ratio on White | Dark Hex  | Ratio on `#1a2e3d` |
+| --------- | --------- | -------------- | --------- | ------------------ |
+| BAFU safe | `#007d76` | 4.6:1          | `#2dd4bf` | 9.1:1              |
+| Moderat   | `#0877ab` | 5.0:1          | `#38bdf8` | 7.9:1              |
+| Erhöht    | `#b45309` | 4.7:1          | `#fbbf24` | 9.4:1              |
+| Hoch      | `#dc2626` | 4.5:1          | `#f87171` | 5.9:1              |
+| Sehr hoch | `#7f1d1d` | 10.0:1         | `#fca5a5` | 8.3:1              |
 
 ### [ADR-017] Embedded Font (DIN Next LT Pro)
 
@@ -879,9 +953,13 @@ _FONT_CSS  = (
 )
 ```
 
-`_FONT_CSS` is passed as `stylesheets=[_FONT_CSS]` to every `PrefabApp`. `PrefabApp` detects `{` in the string and injects it as an inline `<style>` tag — no font service, no CDN.
+`_FONT_CSS` is passed as `stylesheets=[_FONT_CSS]` to every `PrefabApp`.
+`PrefabApp` detects `{` in the string and injects it as an inline `<style>` tag
+— no font service, no CDN.
 
-The font is read once at module import time and cached as a module-level constant. Startup cost is minimal; subsequent app renders have zero I/O overhead.
+The font is read once at module import time and cached as a module-level
+constant. Startup cost is minimal; subsequent app renders have zero I/O
+overhead.
 
 ### [ADR-017] Asset Structure
 
@@ -897,7 +975,9 @@ apps/assets/
         └── 10.svg                  # sy-code 10 (heavy rain)
 ```
 
-Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped by `_sy_to_emoji` in `_helpers.py`). These are available for future replacement of the current emoji fallback.
+Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped
+by `_sy_to_emoji` in `_helpers.py`). These are available for future replacement
+of the current emoji fallback.
 
 ### [ADR-017] Domain Lookup Tables
 
@@ -913,14 +993,19 @@ Weather SVGs correspond to MeteoSwiss symbol codes (the same `sy` field mapped b
 
 - **Zero external requests**: No Google Fonts, no CDN, no font service calls
 - **Consistent rendering**: Same font regardless of network or platform
-- **WCAG compliance**: Contrast ratios enforced in code comments, not just design files
-- **Centralised maintenance**: One file to update for brand changes across all 8 apps
+- **WCAG compliance**: Contrast ratios enforced in code comments, not just
+  design files
+- **Centralised maintenance**: One file to update for brand changes across all 8
+  apps
 
 ### [ADR-017] Related ADRs
 
-- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Apps that consume these tokens
-- [ADR-018](#adr-018-interactive-map-with-leafletjs-embed) - Map app extends design system
-- [ADR-011](#adr-011-pytest-testing-with-80-coverage) - `test_apps.py` covers design token functions
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - Apps that consume these
+  tokens
+- [ADR-018](#adr-018-interactive-map-with-leafletjs-embed) - Map app extends
+  design system
+- [ADR-011](#adr-011-pytest-testing-with-80-coverage) - `test_apps.py` covers
+  design token functions
 
 ---
 
@@ -938,8 +1023,8 @@ monitoring stations by embedding a self-contained **Leaflet.js** HTML page via
 
 - **No native map component**: `prefab_ui` has no map widget; `Embed` with
   `html=` (iframe srcdoc) is the only viable path
-- **Leaflet.js over CesiumJS**: The Aare runs through a compact Swiss region —
-  a lightweight 2D tile map is more appropriate than a 3D globe
+- **Leaflet.js over CesiumJS**: The Aare runs through a compact Swiss region — a
+  lightweight 2D tile map is more appropriate than a 3D globe
 - **Dynamic CDN loading**: Per the MCP ext-apps reference implementation,
   `<script>` tags do not execute reliably inside srcdoc iframes; Leaflet is
   loaded dynamically via `document.createElement("script")` + `onload`
@@ -963,16 +1048,17 @@ monitoring stations by embedding a self-contained **Leaflet.js** HTML page via
 
 ### [ADR-018] Tile Layers
 
-| Mode | Provider | URL pattern | API key |
-| ---- | -------- | ----------- | ------- |
-| Light | CartoDB Positron | `cartocdn.com/light_all/{z}/{x}/{y}{r}.png` | None |
-| Dark | CartoDB Dark Matter | `cartocdn.com/dark_all/{z}/{x}/{y}{r}.png` | None |
-| Satellite | ESRI World Imagery | `arcgisonline.com/…/MapServer/tile/{z}/{y}/{x}` | None |
+| Mode      | Provider            | URL pattern                                     | API key |
+| --------- | ------------------- | ----------------------------------------------- | ------- |
+| Light     | CartoDB Positron    | `cartocdn.com/light_all/{z}/{x}/{y}{r}.png`     | None    |
+| Dark      | CartoDB Dark Matter | `cartocdn.com/dark_all/{z}/{x}/{y}{r}.png`      | None    |
+| Satellite | ESRI World Imagery  | `arcgisonline.com/…/MapServer/tile/{z}/{y}/{x}` | None    |
 
 ### [ADR-018] Marker Design
 
 - `CircleMarker` radius: `max(7, min(14, 8 + temp/3))` — scales with temperature
-- Fill colour: matches `_SAFETY_LEVELS` hex values (same tokens as all other apps)
+- Fill colour: matches `_SAFETY_LEVELS` hex values (same tokens as all other
+  apps)
 - White 2px border for contrast on both light and satellite tiles
 - Popup: city name, temperature, flow, Swiss German description, safety badge
 
@@ -992,8 +1078,10 @@ concurrently via `asyncio.gather`.
 ### [ADR-018] Related ADRs
 
 - [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - App registration pattern
-- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Marker colours from `_SAFETY_LEVELS`
-- [ADR-014](#adr-014-service-layer-pattern) - `get_cities_list` + `compare_cities` reused
+- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Marker colours
+  from `_SAFETY_LEVELS`
+- [ADR-014](#adr-014-service-layer-pattern) - `get_cities_list` +
+  `compare_cities` reused
 
 ---
 
@@ -1035,31 +1123,32 @@ concurrently via `asyncio.gather`.
 
 ## Summary
 
-This ADR compendium establishes **18 architectural decisions** for Aareguru MCP Server v4.4.0:
+This ADR compendium establishes **18 architectural decisions** for Aareguru MCP
+Server v4.4.0:
 
-**Core Architecture** (5 ADRs):
-FastMCP 3.x · Pydantic v2 · async/httpx · Python 3.11+ · layered architecture
+**Core Architecture** (5 ADRs): FastMCP 3.x · Pydantic v2 · async/httpx · Python
+3.11+ · layered architecture
 
-**Design Patterns** (4 ADRs):
-Helper modules (split top-level/apps) · async context managers · time-based caching · dual rate limiting
+**Design Patterns** (4 ADRs): Helper modules (split top-level/apps) · async
+context managers · time-based caching · dual rate limiting
 
-**Quality & Observability** (3 ADRs):
-structlog JSON logging · pytest 85% coverage (355 tests) · MyPy type checking
+**Quality & Observability** (3 ADRs): structlog JSON logging · pytest 85%
+coverage (355 tests) · MyPy type checking
 
-**Transport & Deployment** (2 ADRs):
-stdio + HTTP/SSE transports · FastMCP Cloud (eu-west-1, auto-scaling 2–10 replicas)
+**Transport & Deployment** (2 ADRs): stdio + HTTP/SSE transports · FastMCP Cloud
+(eu-west-1, auto-scaling 2–10 replicas)
 
-**Production Enhancements** (2 ADRs):
-Service layer pattern · FastMCP Cloud deployment
+**Production Enhancements** (2 ADRs): Service layer pattern · FastMCP Cloud
+deployment
 
-**Interactive UI Layer** (3 ADRs):
-FastMCP Apps + prefab_ui (8 apps) · visual design system with WCAG AA compliance · Leaflet.js map embed
+**Interactive UI Layer** (3 ADRs): FastMCP Apps + prefab_ui (8 apps) · visual
+design system with WCAG AA compliance · Leaflet.js map embed
 
 ---
 
-**Document Status**: v2.1.0 — All 18 ADRs Accepted, Production Ready
-**Last Updated**: 2026-04-18
-**Maintained By**: Aareguru MCP Development Team
+**Document Status**: v2.1.0 — All 18 ADRs Accepted, Production Ready **Last
+Updated**: 2026-04-18 **Maintained By**: Aareguru MCP Development Team
 
-**v4.3.0 Status**: Production ready with interactive UI layer, embedded brand font, WCAG AA compliance, service layer, and FastMCP Cloud deployment (83% test coverage, 245 tests)
-**Next**: Weather SVG icon integration (ADR-018 planned)
+**v4.3.0 Status**: Production ready with interactive UI layer, embedded brand
+font, WCAG AA compliance, service layer, and FastMCP Cloud deployment (83% test
+coverage, 245 tests) **Next**: Weather SVG icon integration (ADR-018 planned)
