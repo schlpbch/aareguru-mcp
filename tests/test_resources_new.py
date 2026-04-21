@@ -16,7 +16,13 @@ class TestGetForecast:
         with patch("aareguru_mcp.resources.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             entry = MagicMock()
-            entry.model_dump.return_value = {"time": "2024-01-01T14:00:00Z", "tt": 18.5, "sy": 3, "rr": 0.0, "fff": 12.5}
+            entry.model_dump.return_value = {
+                "time": "2024-01-01T14:00:00Z",
+                "tt": 18.5,
+                "sy": 3,
+                "rr": 0.0,
+                "fff": 12.5,
+            }
             mock_response = MagicMock()
             mock_response.weatherprognosis = [entry]
             mock_client.get_current = AsyncMock(return_value=mock_response)
@@ -53,7 +59,9 @@ class TestGetForecast:
         with patch("aareguru_mcp.resources.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_response = MagicMock()
-            mock_response.weatherprognosis = [{"time": "2024-01-01T14:00:00Z", "tt": 17.5, "sy": 5}]
+            mock_response.weatherprognosis = [
+                {"time": "2024-01-01T14:00:00Z", "tt": 17.5, "sy": 5}
+            ]
             mock_client.get_current = AsyncMock(return_value=mock_response)
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
@@ -116,12 +124,16 @@ class TestGetHistory:
     async def test_passes_params_to_client(self):
         with patch("aareguru_mcp.resources.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_client.get_history = AsyncMock(return_value={"city": "Thun", "timeseries": []})
+            mock_client.get_history = AsyncMock(
+                return_value={"city": "Thun", "timeseries": []}
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
 
-            await resources.get_history("Thun", "2024-01-01T00:00:00Z", "2024-01-07T23:59:59Z")
+            await resources.get_history(
+                "Thun", "2024-01-01T00:00:00Z", "2024-01-07T23:59:59Z"
+            )
 
             mock_client.get_history.assert_called_once_with(
                 "Thun", "2024-01-01T00:00:00Z", "2024-01-07T23:59:59Z"
@@ -131,7 +143,9 @@ class TestGetHistory:
     async def test_empty_timeseries(self):
         with patch("aareguru_mcp.resources.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_client.get_history = AsyncMock(return_value={"city": "Bern", "timeseries": []})
+            mock_client.get_history = AsyncMock(
+                return_value={"city": "Bern", "timeseries": []}
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client

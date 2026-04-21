@@ -120,8 +120,7 @@ class AareguruClient(JsonSerializableMixin):  # type: ignore[misc]
     def _get_cache_key(self, endpoint: str, params: dict[str, Any]) -> str:
         """Generate cache key from endpoint and params."""
         param_str = "&".join(
-            f"{k}={quote(str(v), safe='')}"
-            for k, v in sorted(params.items())
+            f"{k}={quote(str(v), safe='')}" for k, v in sorted(params.items())
         )
         return f"{endpoint}?{param_str}"
 

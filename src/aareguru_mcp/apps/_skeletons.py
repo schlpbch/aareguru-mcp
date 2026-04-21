@@ -25,9 +25,7 @@ def _skeleton_line(height: str = "h-4", width: str = "w-full") -> None:
 
 def skeleton_temperature_card() -> None:
     """Render skeleton loader for temperature card."""
-    with Card(
-        cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"
-    ):
+    with Card(cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"):
         with CardContent(cssClass="p-4 text-center space-y-2"):
             _skeleton_line("h-16", "w-32 mx-auto")
             _skeleton_line("h-3", "w-24 mx-auto")
@@ -49,9 +47,7 @@ def skeleton_flow_card() -> None:
 
 def skeleton_weather_card() -> None:
     """Render skeleton loader for weather card."""
-    with Card(
-        cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"
-    ):
+    with Card(cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"):
         with CardContent(cssClass="p-4 space-y-4"):
             with Row(gap=4):
                 _skeleton_line("h-10", "w-10")
@@ -66,9 +62,7 @@ def skeleton_weather_card() -> None:
 
 def skeleton_sun_card() -> None:
     """Render skeleton loader for sun/hours card."""
-    with Card(
-        cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"
-    ):
+    with Card(cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} overflow-hidden"):
         with CardContent(cssClass="p-4 space-y-2"):
             _skeleton_line("h-6", "w-24")
             _skeleton_line("h-4", "w-32")
@@ -82,9 +76,7 @@ def skeleton_map() -> None:
             "Aare — Loading map...",
             cssClass="text-lg font-black text-center mb-4 text-gray-400 dark:text-gray-600",
         )
-        Div(
-            cssClass=f"w-full h-96 {_skeleton_pulse()} {_AG_RADIUS} overflow-hidden"
-        )
+        Div(cssClass=f"w-full h-96 {_skeleton_pulse()} {_AG_RADIUS} overflow-hidden")
 
 
 def skeleton_forecast() -> None:
@@ -99,7 +91,9 @@ def skeleton_forecast() -> None:
         # Forecast cards
         with Row(gap=2):
             for _ in range(6):
-                with Card(cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} p-3 flex-1"):
+                with Card(
+                    cssClass=f"bg-gray-100 dark:bg-gray-800 {_AG_RADIUS} p-3 flex-1"
+                ):
                     _skeleton_line("h-6", "w-16 mx-auto")
                     _skeleton_line("h-4", "w-12 mx-auto mt-2")
                     _skeleton_line("h-3", "w-10 mx-auto mt-1")
@@ -112,9 +106,7 @@ def skeleton_history() -> None:
             "Aare — Loading history...",
             cssClass="text-lg font-black text-center mb-4 text-gray-400 dark:text-gray-600",
         )
-        Div(
-            cssClass=f"w-full h-64 {_skeleton_pulse()} {_AG_RADIUS} overflow-hidden"
-        )
+        Div(cssClass=f"w-full h-64 {_skeleton_pulse()} {_AG_RADIUS} overflow-hidden")
 
 
 def skeleton_compare() -> None:

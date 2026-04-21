@@ -191,7 +191,12 @@ _MOCK_CITIES = [
 
 _MOCK_COMPARE = {
     "cities": [
-        {"city": "bern", "temperature": 18.5, "flow": 80.0, "temperature_text": "schön"},
+        {
+            "city": "bern",
+            "temperature": 18.5,
+            "flow": 80.0,
+            "temperature_text": "schön",
+        },
         {"city": "thun", "temperature": 19.1, "flow": None, "temperature_text": ""},
     ],
     "warmest": {"city": "thun", "location": "Thun", "temperature": 19.1},
@@ -205,9 +210,7 @@ class TestAareMapUI:
     async def test_returns_prefab_app(self):
         from prefab_ui.app import PrefabApp
 
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(return_value=_MOCK_CITIES)
             instance.compare_cities = AsyncMock(return_value=_MOCK_COMPARE)
@@ -221,9 +224,7 @@ class TestAareMapUI:
     async def test_with_focus_city(self):
         from prefab_ui.app import PrefabApp
 
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(return_value=_MOCK_CITIES)
             instance.compare_cities = AsyncMock(return_value=_MOCK_COMPARE)
@@ -235,9 +236,7 @@ class TestAareMapUI:
 
     @pytest.mark.asyncio
     async def test_state_includes_city(self):
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(return_value=_MOCK_CITIES)
             instance.compare_cities = AsyncMock(return_value=_MOCK_COMPARE)
@@ -249,9 +248,7 @@ class TestAareMapUI:
 
     @pytest.mark.asyncio
     async def test_state_station_count(self):
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(return_value=_MOCK_CITIES)
             instance.compare_cities = AsyncMock(return_value=_MOCK_COMPARE)
@@ -265,17 +262,18 @@ class TestAareMapUI:
     @pytest.mark.asyncio
     async def test_no_coords_city_skipped(self):
         """Cities without coordinates must not appear in the map."""
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(
-                return_value=[
-                    {"city": "nocity", "coordinates": None, "aare": None}
-                ]
+                return_value=[{"city": "nocity", "coordinates": None, "aare": None}]
             )
             instance.compare_cities = AsyncMock(
-                return_value={"cities": [], "warmest": {}, "safe_count": 0, "total_count": 0}
+                return_value={
+                    "cities": [],
+                    "warmest": {},
+                    "safe_count": 0,
+                    "total_count": 0,
+                }
             )
 
             from aareguru_mcp.apps.map import aare_map
@@ -286,13 +284,16 @@ class TestAareMapUI:
     @pytest.mark.asyncio
     async def test_empty_compare_data(self):
         """Works gracefully when compare_data is mostly empty."""
-        with patch(
-            "aareguru_mcp.apps.AareguruService"
-        ) as MockService:
+        with patch("aareguru_mcp.apps.AareguruService") as MockService:
             instance = MockService.return_value
             instance.get_cities_list = AsyncMock(return_value=_MOCK_CITIES[:1])
             instance.compare_cities = AsyncMock(
-                return_value={"cities": [], "warmest": None, "safe_count": 0, "total_count": 0}
+                return_value={
+                    "cities": [],
+                    "warmest": None,
+                    "safe_count": 0,
+                    "total_count": 0,
+                }
             )
 
             from aareguru_mcp.apps.map import aare_map

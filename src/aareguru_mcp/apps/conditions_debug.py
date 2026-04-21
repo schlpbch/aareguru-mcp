@@ -1,6 +1,5 @@
 """Debug app - renders all condition app sections on one page for visual testing."""
 
-
 import structlog
 from fastmcp import FastMCPApp
 from prefab_ui.app import PrefabApp

@@ -22,8 +22,8 @@ _FONT_INJECTION_ON_MOUNT = (
     "const s=document.createElement('style');"
     "s.setAttribute('data-font','pt-sans-narrow');"
     "s.textContent="
-    "'@font-face{font-family:\\\"PT Sans Narrow\\\";font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ptsansnarrow/v18/BcBkuQs5l2-g6qmSyCW_ahuMB7Vf7NxXIiUpXyWWuPI.woff2) format(\\\"woff2\\\")}'+"
-    "'@font-face{font-family:\\\"PT Sans Narrow\\\";font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/ptsansnarrow/v18/BcBIuQs5l2-g6qmSyCW_ahuMB7VfnpJuHh-84rqB_tY.woff2) format(\\\"woff2\\\")}'+"
+    '\'@font-face{font-family:\\"PT Sans Narrow\\";font-style:normal;font-weight:400;font-display:swap;src:url(https://fonts.gstatic.com/s/ptsansnarrow/v18/BcBkuQs5l2-g6qmSyCW_ahuMB7Vf7NxXIiUpXyWWuPI.woff2) format(\\"woff2\\")}\'+'
+    '\'@font-face{font-family:\\"PT Sans Narrow\\";font-style:normal;font-weight:700;font-display:swap;src:url(https://fonts.gstatic.com/s/ptsansnarrow/v18/BcBIuQs5l2-g6qmSyCW_ahuMB7VfnpJuHh-84rqB_tY.woff2) format(\\"woff2\\")}\'+'
     "'body,*{font-family:\\\"PT Sans Narrow\\\",ui-sans-serif,system-ui,sans-serif !important}';"
     "document.head.appendChild(s)"
     "}"
@@ -56,8 +56,7 @@ _BACKGROUND_PATTERN_CSS = (
 
 # Combined CSS for both fonts and background pattern
 _FONT_CSS = (
-    _BACKGROUND_PATTERN_CSS +
-    "body,*{"
+    _BACKGROUND_PATTERN_CSS + "body,*{"
     "font-family:'PT Sans Narrow',ui-sans-serif,system-ui,sans-serif !important;"
     "}"
 )

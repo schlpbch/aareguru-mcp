@@ -13,7 +13,7 @@ Server responsibilities:
 
 import functools
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -26,7 +26,6 @@ from starlette.responses import JSONResponse, Response
 from . import apps, prompts, resources, tools
 from .config import get_settings
 from .metrics import MetricsCollector
-from .rate_limit import limiter
 from .service import AareguruService
 
 # Get structured logger
@@ -173,12 +172,12 @@ def _estimate_days(start: str) -> float:
         return n * {"day": 1, "week": 7, "month": 30, "year": 365}[unit]
     try:
         ts = float(start)
-        return (datetime.now(timezone.utc).timestamp() - ts) / 86400
+        return (datetime.now(UTC).timestamp() - ts) / 86400
     except ValueError:
         pass
     try:
         dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
-        return (datetime.now(timezone.utc) - dt).total_seconds() / 86400
+        return (datetime.now(UTC) - dt).total_seconds() / 86400
     except ValueError:
         pass
     return 0.0
@@ -339,7 +338,6 @@ async def get_forecasts_tool(cities: list[str]) -> dict[str, Any]:
 
 
 @mcp.custom_route("/health", methods=["GET"])
-@limiter.limit("60/minute")
 async def health_check(request: Request) -> JSONResponse:
     """Health check endpoint."""
     return JSONResponse(

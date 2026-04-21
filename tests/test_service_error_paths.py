@@ -89,9 +89,7 @@ class TestServiceErrorHandling:
             MockClient.return_value = mock_client
 
             service = AareguruService()
-            result = await service.get_historical_data(
-                "Bern", "-7 days", "now"
-            )
+            result = await service.get_historical_data("Bern", "-7 days", "now")
             assert len(result) == 2
 
     @pytest.mark.asyncio

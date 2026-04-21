@@ -147,7 +147,6 @@ class TestServerConfiguration:
         assert "Aare river" in mcp.instructions
 
 
-
 class TestLogging:
     """Test logging functionality."""
 

@@ -138,7 +138,9 @@ class TestURLEncoding:
         cache_key = client._get_cache_key("/v2018/history", params)
 
         assert "%20" in cache_key, f"Cache key should use %20 for spaces: {cache_key}"
-        assert "-7%20days" in cache_key, f"Cache key should have '-7%20days': {cache_key}"
+        assert (
+            "-7%20days" in cache_key
+        ), f"Cache key should have '-7%20days': {cache_key}"
         assert "+" not in cache_key, f"Cache key should not have '+' signs: {cache_key}"
 
     def test_cache_key_sorted(self):
@@ -151,7 +153,9 @@ class TestURLEncoding:
         key1 = client._get_cache_key("/test", params1)
         key2 = client._get_cache_key("/test", params2)
 
-        assert key1 == key2, "Cache keys should match when params are same but in different order"
+        assert (
+            key1 == key2
+        ), "Cache keys should match when params are same but in different order"
 
     def test_cache_key_special_chars(self):
         """Verify special characters are properly URL-encoded."""

@@ -173,7 +173,9 @@ class TestServiceParallelFetchErrors:
                 raise RuntimeError(f"fail {city}")
 
             mock_client.get_current = AsyncMock(side_effect=_side)
-            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")])
+            mock_client.get_cities = AsyncMock(
+                return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -190,8 +192,12 @@ class TestServiceParallelFetchErrors:
     async def test_compare_cities_all_fail_raises(self):
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_client.get_current = AsyncMock(side_effect=RuntimeError("API unavailable"))
-            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")])
+            mock_client.get_current = AsyncMock(
+                side_effect=RuntimeError("API unavailable")
+            )
+            mock_client.get_cities = AsyncMock(
+                return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -233,7 +239,9 @@ class TestServiceParallelFetchErrors:
     async def test_get_forecasts_all_fail_raises(self):
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
-            mock_client.get_current = AsyncMock(side_effect=RuntimeError("API unavailable"))
+            mock_client.get_current = AsyncMock(
+                side_effect=RuntimeError("API unavailable")
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -446,9 +454,17 @@ class TestServiceGetCitiesList:
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             city1 = MagicMock()
-            city1.model_dump.return_value = {"city": "Bern", "name": "Bern", "aare": 17.0}
+            city1.model_dump.return_value = {
+                "city": "Bern",
+                "name": "Bern",
+                "aare": 17.0,
+            }
             city2 = MagicMock()
-            city2.model_dump.return_value = {"city": "Thun", "name": "Thun", "aare": 16.5}
+            city2.model_dump.return_value = {
+                "city": "Thun",
+                "name": "Thun",
+                "aare": 16.5,
+            }
             mock_client.get_cities = AsyncMock(return_value=[city1, city2])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)

@@ -11,8 +11,8 @@ MCP tools, 7 MCP resources, 3 MCP prompts, and 8 interactive FastMCPApps for
 querying water temperature, flow rates, weather conditions, and safety
 assessments for swimming in the Aare river.
 
-**Status**: Production ready with 371 tests passing (81% coverage, 0 skipped) - Phase 9
-complete **Stack**: FastMCP 2.0, HTTP/SSE transport, Python 3.13, async/await
+**Status**: Production ready with 371 tests passing (81% coverage, 0 skipped) - Phase 10
+complete **Stack**: FastMCP 3.x, HTTP/SSE transport, Python 3.13, async/await
 **Features**: Service layer pattern, 8 FastMCPApps (incl. OpenStreetMap), MCP
 elicitation, rate limiting, caching, structured logging (structlog), FastMCP
 Cloud ready
@@ -91,7 +91,7 @@ uv pip install -e ".[dev]"
 
 ## Architecture Overview
 
-The codebase uses **FastMCP 2.0** with a clean layered architecture. See
+The codebase uses **FastMCP 3.x** with a clean layered architecture. See
 [ARCHITECTURE.md](ARCHITECTURE.md) for detailed design documentation.
 
 **Key Layers (Top to Bottom):**
@@ -314,7 +314,7 @@ to match these structures.
 
 ### MCP Protocol Implementation
 
-#### FastMCP 2.0 Decorator Pattern
+#### FastMCP 3.x Decorator Pattern
 
 The server uses FastMCP decorators for clean, declarative MCP components:
 

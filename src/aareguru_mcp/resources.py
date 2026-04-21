@@ -92,7 +92,10 @@ async def get_forecast(city: str) -> str:
         response = await client.get_current(city)
         forecast = response.weatherprognosis or []
         return json.dumps(
-            [entry.model_dump() if hasattr(entry, "model_dump") else entry for entry in forecast],
+            [
+                entry.model_dump() if hasattr(entry, "model_dump") else entry
+                for entry in forecast
+            ],
             indent=2,
         )
 
