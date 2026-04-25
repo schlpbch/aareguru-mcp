@@ -12,7 +12,7 @@ answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
 **Latest Release: v4.6.0** — governance documentation (CONSTITUTION.md,
-SKILLS.md), 12 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP
+SKILLS.md), 8 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP
 elicitation, 365 tests (80% coverage). See
 [docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md) for details.
 
