@@ -2,7 +2,7 @@
 
 **Version**: 1.0.0
 **Effective**: 2026-04-26
-**Maintainer**: Andreas Schlapbach (schlpbch@gmail.com)
+**Maintainer**: Andreas Schlapbach (<schlpbch@gmail.com>)
 **Repository**: aareguru-mcp
 
 ---
@@ -75,7 +75,7 @@ parameters identifying this server. Removing these identifiers is prohibited.
 The codebase is organized into seven layers. Each layer MUST depend only on the
 layer immediately below it. Cross-layer shortcuts are prohibited. See ADR-005.
 
-```
+```ascii
 UI Apps (apps/)
   → MCP Server (server.py)
   → MCP Interface (tools.py, resources.py, prompts.py)

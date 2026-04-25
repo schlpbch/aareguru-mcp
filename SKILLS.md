@@ -183,6 +183,7 @@ external assets fetched at render time (fonts embedded as base64).
 ## Use Cases by Topic
 
 ### Basic temperature queries
+>
 > "How warm is the Aare?" / "Is it warm enough to swim?" / "Temperature in Thun?"
 
 Primary: `get_current_temperature`  
@@ -191,6 +192,7 @@ Visual: `temperature_card`
 ---
 
 ### Safety and flow assessment
+>
 > "Is it safe?" / "What's the danger level?" / "Can beginners swim?"
 
 Primary: `get_flow_danger_level` or `get_current_conditions`  
@@ -200,6 +202,7 @@ Note: flows above 220 m³/s trigger an elicitation confirmation step.
 ---
 
 ### Full conditions report
+>
 > "How are conditions today?" / "Should I go to the Aare?" / "Give me a swimming report"
 
 Primary: `get_current_conditions` or prompt `daily-swimming-report`  
@@ -208,6 +211,7 @@ Visual: `conditions_dashboard`
 ---
 
 ### Weather integration
+>
 > "What's the air temperature?" / "Will it rain?" / "Is it sunny?"
 
 Primary: `get_current_conditions` (includes weather sub-object)  
@@ -216,6 +220,7 @@ Visual: `weather_card`, `sun_card`
 ---
 
 ### City comparison
+>
 > "Which city is warmest?" / "Compare Bern and Basel" / "Best spot today?"
 
 Primary: `compare_cities` or prompt `compare-swimming-spots`  
@@ -224,6 +229,7 @@ Visual: `compare_cities_table`, `city_finder_view`, `aare_map`
 ---
 
 ### Historical trends
+>
 > "How has the temperature changed this week?" / "Was it warmer last month?"
 
 Primary: `get_historical_data`  
@@ -233,6 +239,7 @@ Note: requests exceeding 90 days trigger an elicitation confirmation step.
 ---
 
 ### Forecasts
+>
 > "What's the 2-hour forecast?" / "Will it warm up this afternoon?"
 
 Primary: `get_forecasts`  
@@ -242,6 +249,7 @@ Resource: `aareguru://forecast/{city}`
 ---
 
 ### Location discovery
+>
 > "Which cities are monitored?" / "Where can I check Aare data?"
 
 Primary: resource `aareguru://cities`  
@@ -250,6 +258,7 @@ Visual: `aare_map`, `city_finder_view`
 ---
 
 ### Activity-specific queries
+>
 > "Is it good for Aare floating?" / "Can I kayak today?" / "Safe for wild swimming?"
 
 Primary: `get_flow_danger_level` + `get_current_conditions`  
@@ -259,6 +268,7 @@ Logic: flow >220 m³/s → caution; flow >300 m³/s → dangerous for all activi
 ---
 
 ### Intraday temperature evolution
+>
 > "Has it warmed up since this morning?" / "Show me today's temperature curve"
 
 Primary: `get_current_conditions` (includes 2h forecast trend)  
@@ -267,6 +277,7 @@ Visual: `intraday_view`
 ---
 
 ### Weekly trend analysis
+>
 > "Show me temperature patterns over 7 days" / "Has it been cooling down?"
 
 Primary: prompt `weekly-trend-analysis` or `get_historical_data`  
@@ -275,6 +286,7 @@ Visual: `historical_chart`
 ---
 
 ### Multi-step queries
+>
 > "Compare all cities, then show me the warmest one in detail"
 
 Step 1: `compare_cities` or `compare_cities_table`  

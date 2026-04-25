@@ -11,10 +11,10 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.6.0** — governance documentation (CONSTITUTION.md, SKILLS.md),
-12 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP elicitation, 365 tests
-(80% coverage). See [docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md)
-for details.
+**Latest Release: v4.6.0** — governance documentation (CONSTITUTION.md,
+SKILLS.md), 12 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP
+elicitation, 365 tests (80% coverage). See
+[docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md) for details.
 
 ## 🚀 Quick Start
 
@@ -41,6 +41,7 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 
 ## 📸 Screenshots
 
+![Claude Mobile](aareguru-mobile-1.png) ![Claude Mobile](aareguru-mobile-2.png)
 ![Claude Desktop Integration](claude-desktop-1.png)
 ![Claude Desktop Integration](claude-desktop-2.png)
 ![Claude Desktop Integration](claude-desktop-3.png)
@@ -58,7 +59,7 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | **Metrics**         | Prometheus endpoint for monitoring and observability             |
 | **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")      |
 | **BAFU Safety**     | Official flow danger levels and thresholds                       |
-| **365 Tests**       | 80% coverage, comprehensive test suite (0 skipped)              |
+| **365 Tests**       | 80% coverage, comprehensive test suite (0 skipped)               |
 | **Async-First**     | Context managers, parallel API fetching with asyncio.gather()    |
 
 ## 🛠️ Tools
