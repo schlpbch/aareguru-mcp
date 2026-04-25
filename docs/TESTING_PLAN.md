@@ -2,50 +2,70 @@
 
 ## Test Suite
 
-**200 tests** | **87% coverage** | **< 10s execution**
+**365 tests** | **80% coverage** | **< 10s execution** | **floor: 70%**
 
 ## Structure
 
 ```
 tests/
-├── test_models.py           # Pydantic models (14 tests)
-├── test_config.py           # Settings (13 tests)
-├── test_client.py           # API client (14 tests)
-├── test_server.py           # Server helpers (32 tests)
-├── test_tools.py            # Basic tools (21 tests)
-├── test_advanced_tools.py   # Compare, forecast (18 tests)
-├── test_tool_integration.py # Multi-tool workflows (16 tests)
-├── test_http_server.py      # HTTP endpoints (17 tests)
-├── test_resources.py        # Resources (9 tests)
-└── conftest.py              # Shared fixtures
+├── test_unit_models.py          # Pydantic models
+├── test_unit_config.py          # Settings
+├── test_unit_client.py          # API client
+├── test_unit_server_helpers.py  # Server helpers
+├── test_unit_metrics.py         # Prometheus metrics
+├── test_tools_basic.py          # Basic tools (mocked service)
+├── test_parallel_tools.py       # compare_cities, get_forecasts
+├── test_client_edge_cases.py    # Client error paths, caching, rate limits
+├── test_service_error_paths.py  # Service layer edge cases
+├── test_integration_workflows.py # Multi-tool workflows
+├── test_http_endpoints.py       # HTTP/SSE transport
+├── test_resources.py            # Resource URI resolution
+├── test_resources_new.py        # Additional resource tests
+├── test_prompts.py              # Prompts and E2E workflows
+├── test_apps.py                 # FastMCPApps (8 apps)
+├── test_apps_map.py             # OpenStreetMap app
+├── test_metrics_and_rate_limit.py # Metrics + HTTP rate limiting
+├── test_coverage_gaps.py        # Edge cases for coverage floor
+└── conftest.py                  # Shared fixtures and mocks
 ```
 
-## Coverage Goals
+## Coverage by Component
 
 | Component | Target | Actual |
 |-----------|--------|--------|
-| Models | 100% | 100% |
-| Config | 100% | 100% |
-| Client | 80% | 76% |
-| Server | 85% | 80% |
-| Tools | 90% | 87% |
-| **Overall** | **85%** | **87%** |
+| `config.py` | 100% | 100% |
+| `tools.py` | 100% | 100% |
+| `__init__.py` | 100% | 100% |
+| `helpers.py` | 90% | 94% |
+| `models.py` | 90% | 94% |
+| `service.py` | 85% | 91% |
+| `client.py` | 80% | 82% |
+| `server.py` | 70% | 60% |
+| `apps/*` | 70% | varies |
+| **Overall** | **70%** | **80%** |
 
 ## Commands
 
 ```bash
-uv run pytest                         # All tests
-uv run pytest --cov=aareguru_mcp      # With coverage
-uv run pytest tests/test_tools.py     # Specific file
+uv run pytest                         # All tests (365)
+uv run pytest --cov=aareguru_mcp      # With coverage (80%)
+uv run pytest tests/test_tools_basic.py  # Specific file
 uv run pytest -v                      # Verbose
 uv run pytest -x                      # Stop on first failure
 uv run pytest -m integration          # Integration only
+uv run pytest -m e2e                  # E2E only
 ```
 
 ## Test Categories
 
-- **Unit**: Models, config, client, helpers (isolated)
-- **Tool**: Tool functionality with mocked/real API
-- **Integration**: Multi-tool workflows, caching
-- **HTTP**: Endpoints, performance, concurrency
-- **E2E**: Full conversation patterns
+- **Unit** (`test_unit_*.py`): Models, config, client, helpers, metrics — isolated, no I/O
+- **Tool** (`test_tools_*.py`, `test_parallel_tools.py`): Tool + service layer with mocked API
+- **Integration** (`test_integration_workflows.py`, `test_client_edge_cases.py`, `test_service_error_paths.py`): Multi-component workflows
+- **HTTP** (`test_http_endpoints.py`, `test_metrics_and_rate_limit.py`): Transport, Prometheus, rate limiting
+- **Resources** (`test_resources*.py`): URI resolution and data access
+- **Apps** (`test_apps*.py`): FastMCPApps HTML rendering
+- **E2E** (`test_prompts.py`): Full prompt-to-tool conversation flows
+
+## Coverage Enforcement
+
+`--cov-fail-under=70` is set in `pyproject.toml` — CI fails if coverage drops below 70%.

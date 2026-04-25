@@ -2,7 +2,7 @@
 
 ## Overview
 
-Aareguru MCP Server is a production-ready Model Context Protocol (MCP) server built with FastMCP 2.0. It provides AI assistants with structured access to Swiss Aare river data through a clean, layered architecture emphasizing type safety, async operations, and resource management.
+Aareguru MCP Server is a production-ready Model Context Protocol (MCP) server built with FastMCP 3.x. It provides AI assistants with structured access to Swiss Aare river data through a clean, layered architecture emphasizing type safety, async operations, and resource management.
 
 **Key Characteristics:**
 - **Async-first**: All I/O operations use async/await
@@ -10,7 +10,7 @@ Aareguru MCP Server is a production-ready Model Context Protocol (MCP) server bu
 - **Resource-aware**: Context managers ensure proper cleanup
 - **Observable**: Structured logging with structlog
 - **Resilient**: Caching, rate limiting, comprehensive error handling
-- **Testable**: 85% coverage, 350 passing tests
+- **Testable**: 80% coverage, 365 passing tests
 
 ## Design Philosophy
 
@@ -87,7 +87,7 @@ async with AareguruClient(settings=get_settings()) as client:
 
 **Responsibility:** Expose functionality via MCP protocol
 
-**Pattern:** Decorator-based registration with FastMCP 2.0
+**Pattern:** Decorator-based registration with FastMCP 3.x
 
 ```python
 @mcp.tool()
@@ -611,7 +611,7 @@ def mock_http_client():
 
 ### Coverage Goals
 
-- **Overall:** 85% (current: 85% ✅)
+- **Overall:** 80% (current: 80% ✅, floor: 70%)
 - **Core modules:** 90%+ (client.py, tools.py, helpers.py)
 - **Models:** 95%+ (critical for data integrity)
 - **Server:** 80%+ (some branches only hit in production)

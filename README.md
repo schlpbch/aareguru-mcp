@@ -1,10 +1,10 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-371%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-81%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-365%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
-[![FastMCP](https://img.shields.io/badge/FastMCP-2.0-purple)](https://github.com/jlowin/fastmcp)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
 [![Version](https://img.shields.io/badge/version-4.5.0-blue)](CHANGELOG.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
@@ -12,7 +12,7 @@ answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
 **Latest Release: v4.5.0** — 8 interactive FastMCPApps (incl. OpenStreetMap), 7
-MCP resources, MCP elicitation, 371 tests (81% coverage). See
+MCP resources, MCP elicitation, 365 tests (80% coverage). See
 [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## 🚀 Quick Start
@@ -57,7 +57,7 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | **Metrics**         | Prometheus endpoint for monitoring and observability             |
 | **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")      |
 | **BAFU Safety**     | Official flow danger levels and thresholds                       |
-| **371 Tests**       | 81% coverage, comprehensive test suite (0 skipped)              |
+| **365 Tests**       | 80% coverage, comprehensive test suite (0 skipped)              |
 | **Async-First**     | Context managers, parallel API fetching with asyncio.gather()    |
 
 ## 🛠️ Tools
@@ -224,8 +224,8 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (371 tests, all passing)
-uv run pytest --cov=aareguru_mcp # With coverage (81%)
+uv run pytest                    # Run tests (365 tests, all passing)
+uv run pytest --cov=aareguru_mcp # With coverage (80%)
 uv run ruff check src/ tests/    # Lint (all passing)
 uv run mypy src/                 # Type check (0 errors)
 uv run fastmcp dev apps run-ext-apps.py  # Preview all 8 apps
@@ -275,7 +275,7 @@ aareguru-mcp/
 │   ├── client.py      # Async HTTP client with caching
 │   ├── models.py      # Pydantic models
 │   └── helpers.py     # Shared utilities
-├── tests/             # 371 tests, 81% coverage (0 skipped)
+├── tests/             # 365 tests, 80% coverage (0 skipped)
 ├── docs/              # API docs, testing, implementation notes
 ├── ARCHITECTURE.md
 ├── CLAUDE.md
