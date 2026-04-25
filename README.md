@@ -5,15 +5,16 @@
 [![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
-[![Version](https://img.shields.io/badge/version-4.5.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.5.0** — 8 interactive FastMCPApps (incl. OpenStreetMap), 7
-MCP resources, MCP elicitation, 365 tests (80% coverage). See
-[CHANGELOG.md](CHANGELOG.md) for details.
+**Latest Release: v4.6.0** — governance documentation (CONSTITUTION.md, SKILLS.md),
+12 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP elicitation, 365 tests
+(80% coverage). See [docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md)
+for details.
 
 ## 🚀 Quick Start
 
