@@ -6,6 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
 [![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
+[![Privacy Policy](https://img.shields.io/badge/privacy-policy-informational)](PRIVACY.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
@@ -279,10 +280,15 @@ aareguru-mcp/
 │   └── helpers.py     # Shared utilities
 ├── tests/             # 365 tests, 80% coverage (0 skipped)
 ├── docs/              # API docs, testing, implementation notes
-├── ARCHITECTURE.md
+├── ARCHITECTURE.md1
 ├── CLAUDE.md
 └── pyproject.toml
 ```
+
+## 🔐 Privacy
+
+No personal data is collected. See [PRIVACY.md](PRIVACY.md) for the full
+policy.
 
 ## 🔒 Data Attribution
 
@@ -294,7 +300,7 @@ Data from [BAFU](https://www.hydrodaten.admin.ch),
 
 ## 📄 License
 
-MIT License — See [LICENSE](LICENSE)
+MIT License — See [LICENCE.md](LICENCE.md)
 
 ---
 
