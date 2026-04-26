@@ -1,0 +1,15 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.schlpbch/aareguru-mcp",
+  "title": "Aareguru MCP Server",
+  "description": "MCP server for Swiss Aare river data. Provides AI assistants with real-time water temperature, flow rates, swimming conditions, weather, and safety information for cities along the Aare river in Switzerland.",
+  "version": "4.6.0",
+  "license": "MIT",
+  "homepage": "https://github.com/schlpbch/aareguru-mcp",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://aareguru.fastmcp.app/mcp"
+    }
+  ]
+}
