@@ -1,7 +1,7 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-429%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-464%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
@@ -13,7 +13,7 @@ answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
 **Latest Release: v4.7.0** — i18n for all 9 FastMCPApps (de / en / fr / it via
-`lang=` parameter), historical chart 400 fix, 429 tests (80% coverage). See
+`lang=` parameter), historical chart 400 fix, 464 tests (80% coverage). See
 [docs/RELEASE_NOTES_v4.7.0.md](docs/RELEASE_NOTES_v4.7.0.md) for details.
 
 ## 🚀 Quick Start
@@ -60,7 +60,7 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | **Metrics**          | Prometheus endpoint for monitoring and observability                       |
 | **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")                |
 | **BAFU Safety**      | Official flow danger levels and thresholds                                 |
-| **429 Tests**        | 80% coverage, comprehensive test suite (0 skipped)                         |
+| **464 Tests**        | 80% coverage, comprehensive test suite (0 skipped)                         |
 | **Async-First**      | Context managers, parallel API fetching with asyncio.gather()              |
 
 ## 🛠️ Tools
@@ -242,7 +242,7 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (429 tests, all passing)
+uv run pytest                    # Run tests (464 tests, all passing)
 uv run pytest --cov=aareguru_mcp # With coverage (80%)
 uv run ruff check src/ tests/    # Lint (all passing)
 uv run mypy src/                 # Type check (0 errors)
@@ -294,7 +294,7 @@ aareguru-mcp/
 │   ├── client.py      # Async HTTP client with caching
 │   ├── models.py      # Pydantic models
 │   └── helpers.py     # Shared utilities
-├── tests/             # 429 tests, 80% coverage (0 skipped)
+├── tests/             # 464 tests, 80% coverage (0 skipped)
 ├── docs/              # API docs, testing, implementation notes
 ├── ARCHITECTURE.md
 ├── CLAUDE.md
