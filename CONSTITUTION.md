@@ -261,7 +261,7 @@ ADRs MUST be appended to `specs/ADR_COMPENDIUM.md`. Each ADR MUST include:
 status, date, context category, decision, rationale, and related ADRs.
 
 **X.3 ADR numbering.**
-ADRs are numbered sequentially. The current highest number is ADR-018. Gaps in
+ADRs are numbered sequentially. The current highest number is ADR-019. Gaps in
 numbering are not permitted.
 
 **X.4 ADR immutability.**

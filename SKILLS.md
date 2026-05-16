@@ -14,6 +14,8 @@ for internals see [ARCHITECTURE.md](ARCHITECTURE.md), for governance see [CONSTI
 
 ## Quick Reference
 
+### Aare river tools
+
 | Tool | What it does | Example question |
 | --- | --- | --- |
 | `get_current_temperature` | Water temp + Swiss German description + suitability | "How warm is the Aare in Bern?" |
@@ -22,6 +24,17 @@ for internals see [ARCHITECTURE.md](ARCHITECTURE.md), for governance see [CONSTI
 | `get_historical_data` | Hourly time-series; relative or ISO dates | "Show temperature trends for the last 7 days" |
 | `compare_cities` | Parallel multi-city comparison with warmest/safest ranking | "Which city has the warmest water?" |
 | `get_forecasts` | Concurrent forecast fetch with 2-hour temperature trend | "What's the forecast for Thun and Basel?" |
+
+### Shop tools (konsum.aare.guru — UCP checkout)
+
+| Tool | What it does | Example question |
+| --- | --- | --- |
+| `list_shop_products` | Browse merchandise catalog with prices in CHF | "What merch is available?" |
+| `get_shop_product` | Full details for a specific product | "Tell me more about the swim buoy" |
+| `create_checkout_session` | Start a UCP checkout session, adds items to cart | "I want to buy the beach towel" |
+| `update_checkout_session` | Attach billing/shipping address to a session | "My address is Bahnhofplatz 1, Bern" |
+| `complete_checkout` | Submit the order and return the PostFinance payment URL | "Confirm my order" |
+| `cancel_checkout_session` | Cancel a session and clear the cart | "Never mind, cancel my order" |
 
 ---
 
@@ -45,16 +58,21 @@ What does the user need?
 ├── Compare locations → compare_cities
 │     "Which city is warmest?" / "Best spot today?"
 │
-└── Forecast → get_forecasts
-      "What's the 2-hour forecast?" / "Will it warm up?"
+├── Forecast → get_forecasts
+│     "What's the 2-hour forecast?" / "Will it warm up?"
+│
+└── Shopping / merchandise → shop tools
+      Browse: list_shop_products / get_shop_product
+      Buy:    create_checkout_session → update_checkout_session → complete_checkout
 ```
 
 ---
 
 ## Tools
 
-Six tools for dynamic, parameterized queries. All tools default to Bern when no
-city is specified.
+Twelve tools for dynamic, parameterized queries. Aare tools default to Bern when no city is specified.
+
+### Aare river tools
 
 | Tool | Parameters | Returns | Notes |
 | --- | --- | --- | --- |
@@ -64,6 +82,17 @@ city is specified.
 | `get_historical_data` | `city`, `start`, `end` | hourly time-series array | Triggers elicitation for >90-day ranges |
 | `compare_cities` | `cities?` (optional list) | all-city table + warmest/coldest/safest | Parallel fetch; omit `cities` for all |
 | `get_forecasts` | `cities` (list) | per-city forecast + 2h trend | Parallel fetch; multiple cities at once |
+
+### Shop tools (konsum.aare.guru — UCP checkout)
+
+| Tool | Parameters | Returns | Notes |
+| --- | --- | --- | --- |
+| `list_shop_products` | `search?` | list of products with name, price CHF, stock | Optional keyword filter |
+| `get_shop_product` | `product_id` | full product details | Use `list_shop_products` to find IDs |
+| `create_checkout_session` | `items` (list of `{id, quantity}`) | UCP session with total and status | Clears cart; starts fresh session |
+| `update_checkout_session` | `session_id`, `billing`, `shipping?` | updated session (ready_for_complete) | Required before `complete_checkout` |
+| `complete_checkout` | `session_id` | order ID + PostFinance payment URL | Triggers elicitation if billing missing |
+| `cancel_checkout_session` | `session_id` | confirmation | Clears cart and removes session |
 
 ### Date formats for `get_historical_data`
 
@@ -98,7 +127,7 @@ Temperature responses include authentic local phrases, e.g.:
 
 ## Resources
 
-Seven URI-addressable resources for direct, read-only data access — useful when
+Eight URI-addressable resources for direct, read-only data access — useful when
 building integrations or when you need raw data without tool invocation overhead.
 
 | URI | Returns | When to use |
@@ -110,6 +139,7 @@ building integrations or when you need raw data without tool invocation overhead
 | `aareguru://history/{city}/{start}/{end}` | Hourly time-series | Historical analysis |
 | `aareguru://safety-levels` | Static BAFU 1–5 reference table | Display or interpret the scale |
 | `aareguru://thresholds` | Flow thresholds with hex color codes | Build safety visualizations |
+| `aareguru://shop` | Merchandise catalog from konsum.aare.guru | Browse products without tool call |
 
 Resources return JSON strings. `aareguru://current/{city}` uses a nested
 structure (`aare.temperature`, `aare.flow`); `aareguru://today/{city}` uses a
@@ -140,9 +170,10 @@ values interactively.
 
 ## Interactive Apps (FastMCPApps)
 
-Twelve apps render rich HTML UIs directly inside AI conversations via FastMCP's
-app rendering layer. Each app returns a self-contained visual component — no
-external assets fetched at render time (fonts embedded as base64).
+Thirteen app views across nine FastMCPApps render rich HTML UIs directly inside
+AI conversations via FastMCP's app rendering layer. Each app returns a
+self-contained visual component — no external assets fetched at render time
+(fonts embedded as base64).
 
 ### Condition & Status Apps
 
@@ -171,12 +202,19 @@ external assets fetched at render time (fonts embedded as base64).
 | `city_finder_view` | `city_finder_view(sort_by)` | All cities ranked by temperature or safety |
 | `aare_map` | `aare_map(city?)` | Leaflet.js interactive map, all stations, color-coded by BAFU level |
 
+### Shop & Checkout App
+
+| App | Invocation | What it shows |
+| --- | --- | --- |
+| `shop_cart_view` | `shop_cart_view(session_id?)` | Cart items, total, billing summary, payment URL |
+
 **When to use apps vs. tools:**
 
-- Use **apps** when the user benefits from a visual layout (dashboard, chart, map, table).
+- Use **apps** when the user benefits from a visual layout (dashboard, chart, map, table, cart).
 - Use **tools** when you need structured data to reason over or combine with other information.
 - `conditions_dashboard` covers most display scenarios without needing to call `get_current_conditions` manually.
 - `historical_chart` avoids formatting raw `get_historical_data` output into prose.
+- `shop_cart_view` gives the user a visual cart/checkout summary at each step of the purchase flow.
 
 ---
 
@@ -291,6 +329,19 @@ Visual: `historical_chart`
 
 Step 1: `compare_cities` or `compare_cities_table`  
 Step 2: `get_current_conditions(warmest_city)` or `conditions_dashboard(warmest_city)`
+
+---
+
+### Shopping & merchandise
+>
+> "What merch is available?" / "I want to buy the swim buoy" / "Show my cart"
+
+Browse: `list_shop_products` → `get_shop_product`  
+Buy:    `create_checkout_session` → `update_checkout_session` → `complete_checkout`  
+Visual: `shop_cart_view(session_id)` — shows cart at every step  
+Cancel: `cancel_checkout_session`  
+Resource: `aareguru://shop` — static catalog snapshot  
+Note: checkout uses UCP over WooCommerce Store API; payment via PostFinance.
 
 ---
 

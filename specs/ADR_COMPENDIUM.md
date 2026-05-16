@@ -1,6 +1,6 @@
 # Aareguru MCP Server - Architecture Decision Records (ADR) Compendium
 
-**Document Version**: 2.1.0 **Last Updated**: 2026-04-18 **Total ADRs**: 18 (18
+**Document Version**: 2.2.0 **Last Updated**: 2026-05-16 **Total ADRs**: 19 (19
 Accepted)
 
 **Related Documents**:
@@ -70,6 +70,11 @@ Accepted)
 - [ADR-017: Visual Design System & Embedded Assets](#adr-017-visual-design-system--embedded-assets)
   ✅
 - [ADR-018: Interactive Map with Leaflet.js Embed](#adr-018-interactive-map-with-leafletjs-embed)
+  ✅
+
+### Commerce
+
+- [ADR-019: UCP Checkout over WooCommerce Store API](#adr-019-ucp-checkout-over-woocommerce-store-api)
   ✅
 
 ---
@@ -529,19 +534,20 @@ organized test layers.
 ### [ADR-011] Current Coverage Status
 
 ```
-Total tests: 245 collected (239 passing, 5 skipped, 1 pre-existing stale)
-Coverage: 83% (target ≥80%)
+Total tests: 376 passing, 0 skipped
+Coverage: 76% (floor: ≥70%)
 
 Coverage by module:
-├── client.py          95%
+├── client.py          82%
 ├── config.py          100%
-├── helpers.py         97%
+├── helpers.py         95%
 ├── models.py          94%
-├── rate_limit.py      82%
 ├── resources.py       100%
-├── server.py          89%
-├── service.py         74%
-└── tools.py           71%
+├── server.py          59%
+├── service.py         91%
+├── shop_service.py    89%
+├── shop_client.py     29%
+└── tools.py           85%
 ```
 
 ### [ADR-011] Test Organization
@@ -781,7 +787,7 @@ separate frontend required.
 
 ### [ADR-016] App Inventory
 
-Eight apps are registered in `server.py` via `providers=`:
+Nine apps are registered in `server.py` via `providers=`:
 
 | App           | File             | UI Pattern           | Primary Component  |
 | ------------- | ---------------- | -------------------- | ------------------ |
@@ -793,6 +799,7 @@ Eight apps are registered in `server.py` via `providers=`:
 | `city_finder` | `city_finder.py` | Ranked city table    | DataTable          |
 | `safety`      | `safety.py`      | BAFU danger briefing | Card, Grid         |
 | `map`         | `map.py`         | Interactive OSM map  | Embed (Leaflet.js) |
+| `shop`        | `shop.py`        | Cart + UCP checkout  | DataTable, Card    |
 
 ### [ADR-016] App Structure Pattern
 
@@ -846,12 +853,12 @@ Same path as: @mcp.tool() ────────┘
 # server.py
 from aareguru_mcp.apps import (
     conditions_app, history_app, compare_app,
-    forecast_app, intraday_app, city_finder_app, safety_app,
+    forecast_app, intraday_app, city_finder_app, safety_app, map_app, shop_app,
 )
 
 mcp = FastMCP("aareguru", providers=[
     conditions_app, history_app, compare_app,
-    forecast_app, intraday_app, city_finder_app, safety_app, map_app,
+    forecast_app, intraday_app, city_finder_app, safety_app, map_app, shop_app,
 ])
 ```
 
@@ -887,7 +894,7 @@ embeds all UI assets (fonts, icons) as inline base64 data URIs — making every
 
 **Rationale**:
 
-- **Brand Consistency**: All 8 apps share identical colours, typography, and
+- **Brand Consistency**: All 9 apps share identical colours, typography, and
   spacing
 - **WCAG AA Compliance**: Every colour is validated for ≥4.5:1 contrast ratio;
   dark mode colours validated separately against dark backgrounds
@@ -995,7 +1002,7 @@ of the current emoji fallback.
 - **Consistent rendering**: Same font regardless of network or platform
 - **WCAG compliance**: Contrast ratios enforced in code comments, not just
   design files
-- **Centralised maintenance**: One file to update for brand changes across all 8
+- **Centralised maintenance**: One file to update for brand changes across all 9
   apps
 
 ### [ADR-017] Related ADRs
@@ -1110,9 +1117,13 @@ concurrently via `asyncio.gather`.
 
 ### Phase 3: Interactive UI Layer ✅ (v4.3.0 – v4.4.0)
 
-- ✅ ADR-016: FastMCP Apps with prefab_ui (8 interactive apps)
+- ✅ ADR-016: FastMCP Apps with prefab_ui (9 interactive apps)
 - ✅ ADR-017: Visual Design System & Embedded Assets
 - ✅ ADR-018: Interactive Map with Leaflet.js Embed
+
+### Phase 4: Commerce ✅ (v4.6.x)
+
+- ✅ ADR-019: UCP Checkout over WooCommerce Store API (6 shop tools + shop app)
 
 ### Future
 
@@ -1121,10 +1132,100 @@ concurrently via `asyncio.gather`.
 
 ---
 
+## ADR-019: UCP Checkout over WooCommerce Store API
+
+**Status**: ✅ Accepted **Date**: 2026-05-16 **Context**: Commerce
+
+### [ADR-019] Decision
+
+Add **six shop tools** and a **shop FastMCPApp** that expose the
+[konsum.aare.guru](https://konsum.aare.guru) merchandise store through a
+**Universal Commerce Protocol (UCP)**-compatible checkout flow, backed by the
+public **WooCommerce Store API** (`wc/store/v1`).
+
+**Rationale**:
+
+- **UCP alignment**: UCP (Universal Commerce Protocol, open-sourced Jan 2026 by
+  Google/Shopify under Apache 2.0) standardises AI-initiated checkout via
+  create/update/complete/cancel session semantics — a natural fit for MCP tool
+  design
+- **WooCommerce Store API**: konsum.aare.guru runs WooCommerce; the public
+  `wc/store/v1` endpoints require no authentication for reads and only a Nonce
+  header (fetched from GET /cart response) for writes
+- **No WP admin access needed**: The Store API is entirely public; no WooCommerce
+  or WordPress credentials are required
+- **PostFinance checkout**: The store's payment gateway is PostFinance; after
+  `submit_checkout` the server returns a payment URL the user opens in their
+  browser
+
+### [ADR-019] New Modules
+
+| Module | Responsibility |
+| --- | --- |
+| `shop_client.py` | Singleton `ShopClient`; persistent `httpx.AsyncClient` + cookie jar + Nonce lifecycle |
+| `shop_models.py` | Pydantic models for WooCommerce responses (`ShopProduct`, `ShopCart`, `UCPCheckoutSession`) |
+| `shop_service.py` | `ShopService` — orchestrates client calls, manages in-memory UCP session state |
+| `apps/shop.py` | `shop_app` — `shop_cart_view` FastMCPApp rendering cart + checkout UI |
+
+### [ADR-019] UCP Session State Machine
+
+```
+create_checkout_session  →  status: "incomplete"
+        ↓
+update_checkout_session  →  status: "ready_for_complete"
+        ↓
+   complete_checkout     →  status: "completed"  (returns payment_url)
+        or
+cancel_checkout_session  →  session removed, cart cleared
+```
+
+### [ADR-019] Architecture Integration
+
+The shop tools follow the same layered pattern as all other tools:
+
+```
+server.py (@mcp.tool wrappers)
+    ↓
+tools.py (thin wrappers)
+    ↓
+shop_service.py (session state + WooCommerce orchestration)
+    ↓
+shop_client.py (singleton HTTP client + cookie jar)
+    ↓
+WooCommerce Store API (konsum.aare.guru/wp-json/wc/store/v1)
+```
+
+`ShopClient` is a singleton (class-level `_instance`) with a persistent
+`httpx.AsyncClient` and WooCommerce session cookies — required because
+WooCommerce cart state is cookie-based.
+
+### [ADR-019] New Dependency
+
+```toml
+# pyproject.toml
+"ucp-sdk>=0.3.0"   # Pydantic models for UCP session types
+```
+
+`swiss-ai-mcp-commons` was removed in the same release (it provided only a
+marker mixin with no behaviour).
+
+### [ADR-019] MCP Elicitation
+
+`complete_checkout` uses `ctx.elicit()` if billing address is missing, following
+the same pattern as `get_flow_danger_level` (ADR-014).
+
+### [ADR-019] Related ADRs
+
+- [ADR-014](#adr-014-service-layer-pattern) - `ShopService` follows service layer pattern
+- [ADR-016](#adr-016-fastmcp-apps-with-prefab_ui) - `shop_app` follows app pattern
+- [ADR-017](#adr-017-visual-design-system--embedded-assets) - Shop UI uses design tokens
+
+---
+
 ## Summary
 
-This ADR compendium establishes **18 architectural decisions** for Aareguru MCP
-Server v4.4.0:
+This ADR compendium establishes **19 architectural decisions** for Aareguru MCP
+Server v4.6.x:
 
 **Core Architecture** (5 ADRs): FastMCP 3.x · Pydantic v2 · async/httpx · Python
 3.11+ · layered architecture
@@ -1132,8 +1233,8 @@ Server v4.4.0:
 **Design Patterns** (4 ADRs): Helper modules (split top-level/apps) · async
 context managers · time-based caching · dual rate limiting
 
-**Quality & Observability** (3 ADRs): structlog JSON logging · pytest 85%
-coverage (355 tests) · MyPy type checking
+**Quality & Observability** (3 ADRs): structlog JSON logging · pytest 76%
+coverage (376 tests) · MyPy type checking
 
 **Transport & Deployment** (2 ADRs): stdio + HTTP/SSE transports · FastMCP Cloud
 (eu-west-1, auto-scaling 2–10 replicas)
@@ -1141,14 +1242,17 @@ coverage (355 tests) · MyPy type checking
 **Production Enhancements** (2 ADRs): Service layer pattern · FastMCP Cloud
 deployment
 
-**Interactive UI Layer** (3 ADRs): FastMCP Apps + prefab_ui (8 apps) · visual
+**Interactive UI Layer** (3 ADRs): FastMCP Apps + prefab_ui (9 apps) · visual
 design system with WCAG AA compliance · Leaflet.js map embed
+
+**Commerce** (1 ADR): UCP checkout over WooCommerce Store API (6 shop tools,
+shop FastMCPApp, PostFinance payment)
 
 ---
 
-**Document Status**: v2.1.0 — All 18 ADRs Accepted, Production Ready **Last
-Updated**: 2026-04-18 **Maintained By**: Aareguru MCP Development Team
+**Document Status**: v2.2.0 — All 19 ADRs Accepted, Production Ready **Last
+Updated**: 2026-05-16 **Maintained By**: Aareguru MCP Development Team
 
-**v4.3.0 Status**: Production ready with interactive UI layer, embedded brand
-font, WCAG AA compliance, service layer, and FastMCP Cloud deployment (83% test
-coverage, 245 tests) **Next**: Weather SVG icon integration (ADR-018 planned)
+**v4.6.x Status**: Production ready with interactive UI layer, shop/UCP checkout,
+embedded brand font, WCAG AA compliance, service layer, and FastMCP Cloud
+deployment (76% test coverage, 376 tests)

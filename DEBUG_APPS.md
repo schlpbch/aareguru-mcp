@@ -1,6 +1,6 @@
 # Debug All Apps - Visual Testing Page
 
-This directory contains files for rendering all 12 FastMCP apps on a single page
+This directory contains files for rendering all 13 FastMCP app views on a single page
 for comprehensive visual debugging.
 
 ## Files Created
@@ -44,7 +44,7 @@ uv run fastmcp dev apps run_debug_apps.py --dev-port 3001 --mcp-port 8888
 
 ## What's Included
 
-The debug page shows all 12 apps organized into 7 sections:
+The debug page shows all 13 app views organized into 8 sections:
 
 ### Section 1: Complete Dashboard
 
@@ -78,6 +78,13 @@ The debug page shows all 12 apps organized into 7 sections:
 ### Section 7: Interactive Map
 
 - Leaflet.js map with all monitoring stations
+
+### Section 8: Shop Cart & Checkout (UCP)
+
+- Empty state (no session)
+- Cart with items and totals
+- Billing address step
+- Order confirmed with payment URL
 
 ## Benefits
 

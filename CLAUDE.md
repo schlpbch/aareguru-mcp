@@ -6,16 +6,16 @@ code in this repository.
 ## Project Overview
 
 Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss
-Aare river data from the Aareguru API to AI assistants. The server provides 6
-MCP tools, 7 MCP resources, 3 MCP prompts, and 8 interactive FastMCPApps for
-querying water temperature, flow rates, weather conditions, and safety
-assessments for swimming in the Aare river.
+Aare river data from the Aareguru API to AI assistants. The server provides 12
+MCP tools (incl. 6 shop/UCP checkout tools), 8 MCP resources, 3 MCP prompts,
+and 9 interactive FastMCPApps for querying water temperature, flow rates,
+weather conditions, safety assessments, and merchandise checkout.
 
-**Status**: Production ready with 365 tests passing (80% coverage, 0 skipped)
+**Status**: Production ready with 376 tests passing (76% coverage, 0 skipped)
 complete **Stack**: FastMCP 3.x, HTTP/SSE transport, Python 3.13, async/await
-**Features**: Service layer pattern, 8 FastMCPApps (incl. OpenStreetMap), MCP
-elicitation, rate limiting, caching, structured logging (structlog), FastMCP
-Cloud ready
+**Features**: Service layer pattern, 9 FastMCPApps (incl. OpenStreetMap and
+shop/checkout), UCP checkout over WooCommerce, MCP elicitation, rate limiting,
+caching, structured logging (structlog), FastMCP Cloud ready
 
 ## Development Commands
 
@@ -100,8 +100,7 @@ The codebase uses **FastMCP 3.x** with a clean layered architecture. See
    @mcp.prompt)
 2. **MCP Tools** (`tools.py`): Thin wrappers delegating to service layer for
    business logic
-3. **Service Layer** (`service.py`): Core domain logic with 7 methods mapping to
-   tools
+3. **Service Layer** (`service.py`, `shop_service.py`): Core domain logic mapping to tools
 4. **Helper Functions** (`helpers.py`): Shared utilities for enrichment and UX
 5. **HTTP Client** (`client.py`): Async client with caching, rate limiting,
    connection pooling
@@ -398,7 +397,7 @@ time across all question categories.
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **365 passing tests, 0 skipped** (80% coverage)
+- **376 passing tests, 0 skipped** (76% coverage)
 - **Organization**:
   - `test_unit_*.py`: Models, config, client, helpers
   - `test_tools_*.py`: Tool functionality (basic & advanced)
