@@ -12,6 +12,7 @@ Server responsibilities:
 """
 
 import functools
+import json
 import re
 from datetime import UTC, datetime
 from typing import Any
@@ -27,6 +28,7 @@ from . import apps, prompts, resources, tools
 from .config import get_settings
 from .metrics import MetricsCollector
 from .service import AareguruService
+from .shop_service import ShopService
 
 # Get structured logger
 logger = structlog.get_logger(__name__)
@@ -330,6 +332,91 @@ async def compare_cities_tool(cities: list[str] | None = None) -> dict[str, Any]
 @functools.wraps(tools.get_forecasts)
 async def get_forecasts_tool(cities: list[str]) -> dict[str, Any]:
     return await tools.get_forecasts(cities)
+
+
+# ============================================================================
+# Shop resource + tools (konsum.aare.guru / UCP checkout)
+# ============================================================================
+
+
+@mcp.resource("aareguru://shop")
+async def shop_catalog_resource() -> str:
+    """Product catalog from the Aareguru merchandise shop (konsum.aare.guru).
+
+    Returns JSON list of all available products with name, price in CHF,
+    permalink, and stock status.
+    """
+    service = ShopService()
+    try:
+        result = await service.list_products()
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool(name="list_shop_products")
+@functools.wraps(tools.list_shop_products)
+async def list_shop_products_tool(search: str | None = None) -> dict[str, Any]:
+    return await tools.list_shop_products(search)
+
+
+@mcp.tool(name="get_shop_product")
+@functools.wraps(tools.get_shop_product)
+async def get_shop_product_tool(product_id: int) -> dict[str, Any]:
+    return await tools.get_shop_product(product_id)
+
+
+@mcp.tool(name="create_checkout_session")
+@functools.wraps(tools.create_checkout_session)
+async def create_checkout_session_tool(
+    items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return await tools.create_checkout_session(items)
+
+
+@mcp.tool(name="update_checkout_session")
+@functools.wraps(tools.update_checkout_session)
+async def update_checkout_session_tool(
+    session_id: str,
+    billing: dict[str, Any],
+    shipping: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return await tools.update_checkout_session(session_id, billing, shipping)
+
+
+@mcp.tool(name="complete_checkout")
+async def complete_checkout_tool(
+    session_id: str,
+    ctx: Context = None,  # type: ignore[assignment]
+) -> dict[str, Any]:
+    """Submit the order and return the payment URL.
+
+    Use this after update_checkout_session to finalise the purchase.
+    Returns a payment_url the user must open in their browser to pay
+    via PostFinance Checkout.
+
+    Args:
+        session_id: From create_checkout_session result.
+    """
+    service = ShopService()
+    result = await service.complete_checkout(session_id)
+    if "error" in result and "Billing address" in str(result["error"]):
+        elicit_result = await ctx.elicit(
+            "Bitte Lieferadresse angeben (Vorname Nachname, E-Mail, Strasse, PLZ Ort):",
+            str,  # type: ignore[arg-type]
+        )
+        if isinstance(elicit_result, AcceptedElicitation):
+            return {
+                **result,
+                "hint": "Call update_checkout_session with billing details first.",
+            }
+    return result
+
+
+@mcp.tool(name="cancel_checkout_session")
+@functools.wraps(tools.cancel_checkout_session)
+async def cancel_checkout_session_tool(session_id: str) -> dict[str, Any]:
+    return await tools.cancel_checkout_session(session_id)
 
 
 # ============================================================================

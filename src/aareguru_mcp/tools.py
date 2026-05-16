@@ -13,6 +13,7 @@ from typing import Any
 import structlog
 
 from .service import AareguruService
+from .shop_service import ShopService
 
 logger = structlog.get_logger(__name__)
 
@@ -218,4 +219,168 @@ async def get_forecasts(
         return await service.get_forecasts(cities)
     except Exception as e:
         logger.error("Tool error: get_forecasts", error=str(e))
+        return {"error": str(e)}
+
+
+# ============================================================================
+# Shopping tools (konsum.aare.guru via WooCommerce Store API + UCP checkout)
+# ============================================================================
+
+
+async def list_shop_products(search: str | None = None) -> dict[str, Any]:
+    """List available merchandise from the Aareguru shop.
+
+    Use this to browse products, answer 'what merch is available?', or find
+    items by keyword. Returns name, price in CHF, and product URL.
+
+    **Args**:
+        search: Optional keyword filter (e.g., 'towel', 'cap').
+                If None, returns the full catalog.
+
+    **Returns**:
+        Dictionary with:
+        - products: List of products with id, name, price_chf, permalink,
+                    short_description, on_sale, stock_status, image_url
+        - count: Total number of products returned
+
+    **Example**:
+        >>> result = await list_shop_products()
+        >>> for p in result['products']:
+        ...     print(f"{p['name']}: CHF {p['price_chf']}")
+    """
+    logger.info(f"Tool: list_shop_products search={search}")
+    try:
+        service = ShopService()
+        return await service.list_products(search=search)
+    except Exception as e:
+        logger.error("Tool error: list_shop_products", error=str(e))
+        return {"error": str(e)}
+
+
+async def get_shop_product(product_id: int) -> dict[str, Any]:
+    """Get detailed information about a specific shop product.
+
+    Use this after list_shop_products to get the full description, all images,
+    and exact pricing for a product before adding it to a checkout session.
+
+    **Args**:
+        product_id: WooCommerce product ID (from list_shop_products result).
+
+    **Returns**:
+        Dictionary with id, name, price_chf, permalink, description,
+        short_description, on_sale, stock_status, images (list of URLs).
+
+    **Example**:
+        >>> result = await get_shop_product(42)
+        >>> print(result['name'], result['price_chf'])
+    """
+    logger.info(f"Tool: get_shop_product id={product_id}")
+    try:
+        service = ShopService()
+        return await service.get_product(product_id)
+    except Exception as e:
+        logger.error(f"Tool error: get_shop_product id={product_id}", error=str(e))
+        return {"error": str(e)}
+
+
+async def create_checkout_session(
+    items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Create a UCP checkout session with one or more products.
+
+    Use this when the user wants to buy something. Clears any existing cart
+    and starts a new checkout session. Returns a session_id needed for
+    subsequent update and complete calls.
+
+    **Args**:
+        items: List of items to purchase. Each item must have:
+               - product_id (int): from list_shop_products
+               - quantity (int, optional): defaults to 1
+
+    **Returns**:
+        UCP CheckoutSession with session_id, status, line_items, total_chf.
+
+    **Example**:
+        >>> result = await create_checkout_session([{"product_id": 42, "quantity": 1}])
+        >>> session_id = result['session_id']
+    """
+    logger.info(f"Tool: create_checkout_session items={items}")
+    try:
+        service = ShopService()
+        return await service.create_checkout_session(items)
+    except Exception as e:
+        logger.error("Tool error: create_checkout_session", error=str(e))
+        return {"error": str(e)}
+
+
+async def update_checkout_session(
+    session_id: str,
+    billing: dict[str, Any],
+    shipping: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Attach billing and shipping address to a checkout session.
+
+    Use this after create_checkout_session to provide the delivery address.
+    Required before calling complete_checkout. If shipping is omitted,
+    billing address is used for shipping too.
+
+    **Args**:
+        session_id: From create_checkout_session result.
+        billing: Billing address dict with keys:
+                 first_name, last_name, email, address_1, city, postcode,
+                 country (default 'CH'), state (optional).
+        shipping: Shipping address dict (same keys as billing). Optional.
+
+    **Returns**:
+        Updated UCP CheckoutSession with status 'ready_for_complete'.
+    """
+    logger.info(f"Tool: update_checkout_session session_id={session_id}")
+    try:
+        service = ShopService()
+        return await service.update_checkout_session(session_id, billing, shipping)
+    except Exception as e:
+        logger.error("Tool error: update_checkout_session", error=str(e))
+        return {"error": str(e)}
+
+
+async def complete_checkout(session_id: str) -> dict[str, Any]:
+    """Submit the order and return the payment URL.
+
+    Use this after update_checkout_session to finalise the purchase.
+    Returns a payment_url the user must open in their browser to pay
+    via PostFinance Checkout.
+
+    **Args**:
+        session_id: From create_checkout_session result.
+
+    **Returns**:
+        UCP CheckoutSession with status 'completed', order_id, and
+        continue_url (payment URL to open in browser).
+    """
+    logger.info(f"Tool: complete_checkout session_id={session_id}")
+    try:
+        service = ShopService()
+        return await service.complete_checkout(session_id)
+    except Exception as e:
+        logger.error("Tool error: complete_checkout", error=str(e))
+        return {"error": str(e)}
+
+
+async def cancel_checkout_session(session_id: str) -> dict[str, Any]:
+    """Cancel a checkout session and clear the cart.
+
+    Use this when the user wants to abandon a checkout or start over.
+
+    **Args**:
+        session_id: From create_checkout_session result.
+
+    **Returns**:
+        Dictionary with session_id and status 'canceled'.
+    """
+    logger.info(f"Tool: cancel_checkout_session session_id={session_id}")
+    try:
+        service = ShopService()
+        return await service.cancel_checkout_session(session_id)
+    except Exception as e:
+        logger.error("Tool error: cancel_checkout_session", error=str(e))
         return {"error": str(e)}

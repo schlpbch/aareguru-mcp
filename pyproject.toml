@@ -19,6 +19,7 @@ dependencies = [
     "structlog>=23.1.0",
     "prometheus-client>=0.20.0",
     "swiss-ai-mcp-commons @ git+https://github.com/schlpbch/swiss-ai-mcp-commons.git@v1.1.0",
+    "ucp-sdk>=0.3.0",
 ]
 
 [dependency-groups]

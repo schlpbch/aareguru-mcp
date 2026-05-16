@@ -41,6 +41,7 @@ from .helpers import (  # noqa: E402
 )
 from .server import app, entry_point, mcp, run_http  # noqa: E402
 from .service import AareguruService  # noqa: E402
+from .shop_service import ShopService  # noqa: E402
 
 __all__ = [
     "AareguruClient",
@@ -56,5 +57,6 @@ __all__ = [
     "get_seasonal_advice",
     "get_swiss_german_explanation",
     "get_warmer_suggestion",
+    "ShopService",
     "__version__",
 ]
