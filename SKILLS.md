@@ -175,38 +175,42 @@ AI conversations via FastMCP's app rendering layer. Each app returns a
 self-contained visual component — no external assets fetched at render time
 (fonts embedded as base64).
 
+All app views accept an optional `lang` parameter (`"de"` / `"en"` / `"fr"` /
+`"it"`, default `"de"`). Pass `lang` to render every label, header, chart
+legend, and BAFU description in the user's language.
+
 ### Condition & Status Apps
 
 | App | Invocation | What it shows |
 | --- | --- | --- |
-| `conditions_dashboard` | `conditions_dashboard(city)` | Full dashboard: temp, flow, weather, BAFU level |
-| `temperature_card` | `temperature_card(city)` | Water temp with 2h trend arrow and Swiss German text |
-| `flow_card` | `flow_card(city)` | Flow rate + BAFU level, color-coded by danger |
-| `weather_card` | `weather_card(city)` | Air temperature + 6-day forecast strip |
-| `sun_card` | `sun_card(city)` | Sunshine hours and sunset time |
-| `safety_briefing` | `safety_briefing(city)` | BAFU 1–5 scale with current level highlighted |
+| `conditions_dashboard` | `conditions_dashboard(city, lang?)` | Full dashboard: temp, flow, weather, BAFU level |
+| `temperature_card` | `temperature_card(city, lang?)` | Water temp with 2h trend arrow and Swiss German text |
+| `flow_card` | `flow_card(city, lang?)` | Flow rate + BAFU level, color-coded by danger |
+| `weather_card` | `weather_card(city, lang?)` | Air temperature + 6-day forecast strip |
+| `sun_card` | `sun_card(city, lang?)` | Sunshine hours and sunset time |
+| `safety_briefing` | `safety_briefing(city, lang?)` | BAFU 1–5 scale with current level highlighted |
 
 ### Historical & Trend Apps
 
 | App | Invocation | What it shows |
 | --- | --- | --- |
-| `historical_chart` | `historical_chart(city, start, end)` | Area chart: water temperature and flow over time |
-| `intraday_view` | `intraday_view(city)` | Today's intraday water temperature sparkline |
-| `forecast_view` | `forecast_view(city)` | 24-hour forecast with hourly temperature cards |
+| `historical_chart` | `historical_chart(city, start, end, lang?)` | Area chart: water temperature and flow over time |
+| `intraday_view` | `intraday_view(city, lang?)` | Today's intraday water temperature sparkline |
+| `forecast_view` | `forecast_view(city, lang?)` | 24-hour forecast with hourly temperature cards |
 
 ### Discovery & Comparison Apps
 
 | App | Invocation | What it shows |
 | --- | --- | --- |
-| `compare_cities_table` | `compare_cities_table(cities?)` | Sortable table across all cities (or a subset) |
-| `city_finder_view` | `city_finder_view(sort_by)` | All cities ranked by temperature or safety |
-| `aare_map` | `aare_map(city?)` | Leaflet.js interactive map, all stations, color-coded by BAFU level |
+| `compare_cities_table` | `compare_cities_table(cities?, lang?)` | Sortable table across all cities (or a subset) |
+| `city_finder_view` | `city_finder_view(sort_by, lang?)` | All cities ranked by temperature or safety |
+| `aare_map` | `aare_map(city?, lang?)` | Leaflet.js interactive map, all stations, color-coded by BAFU level |
 
 ### Shop & Checkout App
 
 | App | Invocation | What it shows |
 | --- | --- | --- |
-| `shop_cart_view` | `shop_cart_view(session_id?)` | Cart items, total, billing summary, payment URL |
+| `shop_cart_view` | `shop_cart_view(session_id?, lang?)` | Cart items, total, billing summary, payment URL |
 
 **When to use apps vs. tools:**
 
@@ -346,6 +350,27 @@ Note: checkout uses UCP over WooCommerce Store API; payment via PostFinance.
 ---
 
 ## Developer Notes
+
+### Language / i18n
+
+All FastMCPApp UI functions accept a `lang` parameter:
+
+| Value | Language | Notes |
+| --- | --- | --- |
+| `"de"` | German | Default; fallback for any unknown locale |
+| `"en"` | English | Swiss tourism and international users |
+| `"fr"` | French | National language; BAFU translations official |
+| `"it"` | Italian | National language; BAFU translations official |
+
+The AI assistant should detect the conversation language and pass it
+automatically. Users do not need an explicit toggle. Every user-visible label,
+section header, chart legend, alert, badge, and BAFU safety description is
+translated. Swiss German temperature phrases (`"geil und warm"` etc.) are
+returned from the upstream API unchanged regardless of `lang`.
+
+Translations live in `apps/_i18n.py` (`STRINGS` dict + `t(key, lang)` helper).
+BAFU danger level text uses official OFEV (French) and UFAM (Italian)
+terminology verbatim.
 
 ### Elicitation behavior
 
