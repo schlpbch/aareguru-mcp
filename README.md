@@ -1,21 +1,20 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-376%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-76%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-429%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
-[![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.7.0-blue)](CHANGELOG.md)
 [![Privacy Policy](https://img.shields.io/badge/privacy-policy-informational)](PRIVACY.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.6.0** — 12 MCP tools (incl. 6 shop tools with UCP
-checkout), 9 FastMCPApps (incl. cart/checkout UI and OpenStreetMap), 8 MCP
-resources, MCP elicitation, 376 tests (76% coverage). See
-[docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md) for details.
+**Latest Release: v4.7.0** — i18n for all 9 FastMCPApps (de / en / fr / it via
+`lang=` parameter), historical chart 400 fix, 429 tests (80% coverage). See
+[docs/RELEASE_NOTES_v4.7.0.md](docs/RELEASE_NOTES_v4.7.0.md) for details.
 
 ## 🚀 Quick Start
 
@@ -54,14 +53,14 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | **12 MCP Tools**     | Temperature, flow, safety, forecasts, history, comparisons + shop/checkout |
 | **8 MCP Resources**  | Direct data access via `aareguru://` URIs incl. shop catalog               |
 | **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                             |
-| **9 FastMCPApps**    | Interactive dashboards, charts, map, cart/checkout — rendered in conversation |
+| **9 FastMCPApps**    | Interactive dashboards, charts, map, cart/checkout — in de / en / fr / it    |
 | **UCP Checkout**     | Shop cart and checkout via Universal Commerce Protocol over WooCommerce    |
 | **MCP Elicitation**  | Asks for confirmation on dangerous flows and large data requests           |
 | **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                        |
 | **Metrics**          | Prometheus endpoint for monitoring and observability                       |
 | **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")                |
 | **BAFU Safety**      | Official flow danger levels and thresholds                                 |
-| **376 Tests**        | 76% coverage, comprehensive test suite (0 skipped)                         |
+| **429 Tests**        | 80% coverage, comprehensive test suite (0 skipped)                         |
 | **Async-First**      | Context managers, parallel API fetching with asyncio.gather()              |
 
 ## 🛠️ Tools
@@ -243,8 +242,8 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (376 tests, all passing)
-uv run pytest --cov=aareguru_mcp # With coverage (76%)
+uv run pytest                    # Run tests (429 tests, all passing)
+uv run pytest --cov=aareguru_mcp # With coverage (80%)
 uv run ruff check src/ tests/    # Lint (all passing)
 uv run mypy src/                 # Type check (0 errors)
 uv run fastmcp dev apps run-ext-apps.py  # Preview all 9 apps
@@ -295,9 +294,9 @@ aareguru-mcp/
 │   ├── client.py      # Async HTTP client with caching
 │   ├── models.py      # Pydantic models
 │   └── helpers.py     # Shared utilities
-├── tests/             # 365 tests, 80% coverage (0 skipped)
+├── tests/             # 429 tests, 80% coverage (0 skipped)
 ├── docs/              # API docs, testing, implementation notes
-├── ARCHITECTURE.md1
+├── ARCHITECTURE.md
 ├── CLAUDE.md
 └── pyproject.toml
 ```
