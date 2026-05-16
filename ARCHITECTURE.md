@@ -10,7 +10,7 @@ Aareguru MCP Server is a production-ready Model Context Protocol (MCP) server bu
 - **Resource-aware**: Context managers ensure proper cleanup
 - **Observable**: Structured logging with structlog
 - **Resilient**: Caching, rate limiting, comprehensive error handling
-- **Testable**: 76% coverage, 376 passing tests
+- **Testable**: 80% coverage, 429 passing tests
 
 ## Design Philosophy
 
@@ -611,7 +611,7 @@ def mock_http_client():
 
 ### Coverage Goals
 
-- **Overall:** 76% (current: 76% ✅, floor: 70%)
+- **Overall:** 80% (current: 80% ✅, floor: 70%)
 - **Core modules:** 90%+ (client.py, tools.py, helpers.py)
 - **Models:** 95%+ (critical for data integrity)
 - **Server:** 80%+ (some branches only hit in production)
@@ -884,6 +884,6 @@ This architecture prioritizes:
 2. **Performance:** Caching, connection pooling, async I/O
 3. **Maintainability:** Layered design, dependency injection, type safety
 4. **Observability:** Structured logging, health checks, clear data flow
-5. **Testability:** 76% coverage, mockable components, deterministic tests
+5. **Testability:** 80% coverage, mockable components, deterministic tests
 
 The design supports both simple stdio deployment (Claude Desktop) and complex HTTP/SSE deployments (web/cloud) with minimal code changes, demonstrating the flexibility of the layered architecture.

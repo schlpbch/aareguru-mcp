@@ -534,8 +534,8 @@ organized test layers.
 ### [ADR-011] Current Coverage Status
 
 ```
-Total tests: 376 passing, 0 skipped
-Coverage: 76% (floor: ≥70%)
+Total tests: 429 passing, 0 skipped
+Coverage: 80% (floor: ≥70%)
 
 Coverage by module:
 ├── client.py          82%
@@ -1233,8 +1233,8 @@ Server v4.6.x:
 **Design Patterns** (4 ADRs): Helper modules (split top-level/apps) · async
 context managers · time-based caching · dual rate limiting
 
-**Quality & Observability** (3 ADRs): structlog JSON logging · pytest 76%
-coverage (376 tests) · MyPy type checking
+**Quality & Observability** (3 ADRs): structlog JSON logging · pytest 80%
+coverage (429 tests) · MyPy type checking
 
 **Transport & Deployment** (2 ADRs): stdio + HTTP/SSE transports · FastMCP Cloud
 (eu-west-1, auto-scaling 2–10 replicas)
@@ -1253,6 +1253,6 @@ shop FastMCPApp, PostFinance payment)
 **Document Status**: v2.2.0 — All 19 ADRs Accepted, Production Ready **Last
 Updated**: 2026-05-16 **Maintained By**: Aareguru MCP Development Team
 
-**v4.6.x Status**: Production ready with interactive UI layer, shop/UCP checkout,
-embedded brand font, WCAG AA compliance, service layer, and FastMCP Cloud
-deployment (76% test coverage, 376 tests)
+**v4.7.x Status**: Production ready with interactive UI layer, shop/UCP checkout,
+embedded brand font, WCAG AA compliance, service layer, i18n (de/en/fr/it), and
+FastMCP Cloud deployment (80% test coverage, 429 tests)
