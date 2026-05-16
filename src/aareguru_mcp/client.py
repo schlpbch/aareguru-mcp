@@ -16,6 +16,42 @@ from .models import CitiesResponse, CurrentResponse, TodayResponse
 logger = structlog.get_logger(__name__)
 
 
+def _normalize_city(city: str) -> str:
+    """Normalise a city identifier to the lowercase form the API expects."""
+    return city.strip().lower()
+
+
+def _resolve_timestamp(expr: str) -> str:
+    """Convert a date expression to a Unix timestamp string.
+
+    Accepts: Unix timestamp, ISO 8601, "now", or relative expressions
+    like "-7 days", "-1 week", "-2 months".
+    """
+    expr = expr.strip()
+    if expr == "now":
+        return str(int(datetime.now(tz=UTC).timestamp()))
+    if re.fullmatch(r"-?\d+", expr):
+        return expr
+    m = re.fullmatch(r"(-?\d+)\s*(day|days|week|weeks|month|months)", expr)
+    if m:
+        amount = int(m.group(1))
+        unit = m.group(2).rstrip("s")
+        if unit == "month":
+            delta = timedelta(days=amount * 30)
+        elif unit == "week":
+            delta = timedelta(weeks=amount)
+        else:
+            delta = timedelta(days=amount)
+        return str(int((datetime.now(tz=UTC) + delta).timestamp()))
+    for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+        try:
+            dt = datetime.strptime(expr, fmt).replace(tzinfo=UTC)
+            return str(int(dt.timestamp()))
+        except ValueError:
+            continue
+    return expr
+
+
 class CacheEntry:
     """Simple cache entry with TTL."""
 
@@ -245,6 +281,10 @@ class AareguruClient:
             logger.error(f"Validation error for cities response: {e}")
             raise
 
+    @staticmethod
+    def _normalize_city(city: str) -> str:
+        return _normalize_city(city)
+
     async def get_today(self, city: str = "Bern") -> TodayResponse:
         """Get minimal current data for a city.
 
@@ -258,7 +298,7 @@ class AareguruClient:
             httpx.HTTPError: On HTTP errors
             ValidationError: On invalid response data
         """
-        data = await self._request("/v2018/today", {"city": city})
+        data = await self._request("/v2018/today", {"city": self._normalize_city(city)})
         try:
             return TodayResponse(**data)
         except ValidationError as e:
@@ -278,7 +318,7 @@ class AareguruClient:
             httpx.HTTPError: On HTTP errors
             ValidationError: On invalid response data
         """
-        data = await self._request("/v2018/current", {"city": city})
+        data = await self._request("/v2018/current", {"city": self._normalize_city(city)})
         try:
             return CurrentResponse(**data)
         except ValidationError as e:
@@ -287,38 +327,8 @@ class AareguruClient:
 
     @staticmethod
     def _resolve_timestamp(expr: str) -> str:
-        """Convert a date expression to a Unix timestamp string.
-
-        Accepts: Unix timestamp, ISO 8601, "now", or relative expressions
-        like "-7 days", "-1 week", "-2 months".
-        """
-        expr = expr.strip()
-        if expr == "now":
-            return str(int(datetime.now(tz=UTC).timestamp()))
-        # Already a Unix timestamp (digits only, optionally negative)
-        if re.fullmatch(r"-?\d+", expr):
-            return expr
-        # Relative: "-N days|weeks|months"
-        m = re.fullmatch(r"(-?\d+)\s*(day|days|week|weeks|month|months)", expr)
-        if m:
-            amount = int(m.group(1))
-            unit = m.group(2).rstrip("s")  # normalize to singular
-            if unit == "month":
-                delta = timedelta(days=amount * 30)
-            elif unit == "week":
-                delta = timedelta(weeks=amount)
-            else:
-                delta = timedelta(days=amount)
-            return str(int((datetime.now(tz=UTC) + delta).timestamp()))
-        # ISO 8601 (with or without timezone)
-        for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
-            try:
-                dt = datetime.strptime(expr, fmt).replace(tzinfo=UTC)
-                return str(int(dt.timestamp()))
-            except ValueError:
-                continue
-        # Unknown format — pass through and let the API reject it
-        return expr
+        """Convert a date expression to a Unix timestamp string."""
+        return _resolve_timestamp(expr)
 
     async def get_history(
         self,
@@ -339,9 +349,16 @@ class AareguruClient:
         Raises:
             httpx.HTTPError: On HTTP errors
         """
+        ts_start = self._resolve_timestamp(start)
+        ts_end = self._resolve_timestamp(end)
+        if re.fullmatch(r"\d+", ts_start) and re.fullmatch(r"\d+", ts_end):
+            if int(ts_start) >= int(ts_end):
+                raise ValueError(
+                    f"start ({start!r}) must be before end ({end!r})"
+                )
         params = {
-            "city": city,
-            "start": self._resolve_timestamp(start),
-            "end": self._resolve_timestamp(end),
+            "city": self._normalize_city(city),
+            "start": ts_start,
+            "end": ts_end,
         }
         return await self._request("/v2018/history", params, use_cache=False)

@@ -17,11 +17,12 @@ The service layer enables:
 """
 
 import asyncio
+import re
 from typing import Any, cast
 
 import structlog
 
-from .client import AareguruClient
+from .client import AareguruClient, _normalize_city, _resolve_timestamp
 from .config import Settings, get_settings
 from .helpers import (
     check_safety_warning,
@@ -228,6 +229,17 @@ class AareguruService:
         Raises:
             Any exception from AareguruClient
         """
+        city = _normalize_city(city)
+
+        # Validate date range before hitting the network.
+        ts_start = _resolve_timestamp(start)
+        ts_end = _resolve_timestamp(end)
+        if re.fullmatch(r"\d+", ts_start) and re.fullmatch(r"\d+", ts_end):
+            if int(ts_start) >= int(ts_end):
+                raise ValueError(
+                    f"start ({start!r}) must be before end ({end!r})"
+                )
+
         logger.info("service.get_historical_data", city=city, start=start, end=end)
 
         async with AareguruClient(settings=self.settings) as client:

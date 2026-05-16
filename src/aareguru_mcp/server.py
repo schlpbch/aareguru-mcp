@@ -13,7 +13,6 @@ Server responsibilities:
 
 import functools
 import json
-import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -180,20 +179,20 @@ async def _elicit_city(ctx: Context, bad_city: str) -> str | None:
 
 
 def _estimate_days(start: str) -> float:
-    """Return approximate number of days covered by a start expression."""
-    s = start.strip().lstrip("-")
-    m = re.match(r"(\d+(?:\.\d+)?)\s*(day|week|month|year)s?", s, re.I)
-    if m:
-        n, unit = float(m.group(1)), m.group(2).lower()
-        return n * {"day": 1, "week": 7, "month": 30, "year": 365}[unit]
+    """Return approximate number of days covered by a start expression.
+
+    Works on raw user input (before _resolve_timestamp), so relative
+    expressions like '-7 days' are parsed directly. Unix timestamps and
+    ISO 8601 strings are also handled.
+    """
+    from .client import AareguruClient
+
+    # Resolve to a Unix timestamp first so all formats are handled uniformly.
+    resolved = AareguruClient._resolve_timestamp(start)
     try:
-        ts = float(start)
-        return (datetime.now(UTC).timestamp() - ts) / 86400
-    except ValueError:
-        pass
-    try:
-        dt = datetime.fromisoformat(start.replace("Z", "+00:00"))
-        return (datetime.now(UTC) - dt).total_seconds() / 86400
+        ts = float(resolved)
+        days = (datetime.now(UTC).timestamp() - ts) / 86400
+        return max(days, 0.0)
     except ValueError:
         pass
     return 0.0
