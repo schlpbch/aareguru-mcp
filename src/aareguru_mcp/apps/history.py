@@ -28,6 +28,7 @@ from ._constants import (
     _FONT_CSS,
     _FONT_INJECTION_ON_MOUNT,
 )
+from ._i18n import t
 
 logger = structlog.get_logger(__name__)
 
@@ -48,6 +49,7 @@ async def historical_chart(
     city: str = "Bern",
     start: str = "-7 days",
     end: str = "now",
+    lang: str = "de",
 ) -> PrefabApp:
     """Show an aare.guru-style area chart of historical Aare temperature and flow.
 
@@ -94,13 +96,13 @@ async def historical_chart(
     has_flow = any(p.get("flow") is not None for p in chart_data)
     series = [
         ChartSeries(
-            dataKey="temperature", label="Wassertemperatur (°C)", color=_AG_WASSER_TEMP
+            dataKey="temperature", label=t("chart_water_temp", lang), color=_AG_WASSER_TEMP
         ),
     ]
     if has_flow:
         series.append(
             ChartSeries(
-                dataKey="flow", label="Wasserstand (m³/s)", color=_AG_WASSER_FLOW
+                dataKey="flow", label=t("chart_flow", lang), color=_AG_WASSER_FLOW
             )
         )
 
@@ -132,15 +134,13 @@ async def historical_chart(
                         height=220,
                     )
             Muted(
-                f"{len(chart_data)} Datenpunkte",
+                f"{len(chart_data)} {t('label_data_points', lang)}",
                 cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
             with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):
-                AlertTitle("Keine Daten")
-                AlertDescription(
-                    "Keine historischen Daten für den gewählten Zeitraum gefunden."
-                )
+                AlertTitle(t("alert_no_data", lang))
+                AlertDescription(t("alert_no_history", lang))
 
     return PrefabApp(
         view=view,

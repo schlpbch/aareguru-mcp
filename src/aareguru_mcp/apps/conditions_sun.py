@@ -25,6 +25,7 @@ from ._constants import (
     _FONT_CSS,
     _FONT_INJECTION_ON_MOUNT,
 )
+from ._i18n import t
 from ._skeletons import skeleton_sun_card
 
 logger = structlog.get_logger(__name__)
@@ -41,7 +42,7 @@ async def refresh_sun(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_sun_section(sun: dict[str, Any] | None = None) -> None:
+def render_sun_section(sun: dict[str, Any] | None = None, lang: str = "de") -> None:
     """Render sun section with sunshine hours and sunset times.
 
     Must be called inside an active Column/Row context.
@@ -72,12 +73,12 @@ def render_sun_section(sun: dict[str, Any] | None = None) -> None:
                             cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
-                            "Sonnenschein",
+                            t("card_sunshine", lang),
                             cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         if sun_rel is not None:
                             Muted(
-                                f"{sun_rel:.0f}% des Tages",
+                                f"{sun_rel:.0f}{t('label_pct_day', lang)}",
                                 cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
                 with Card(
@@ -89,7 +90,7 @@ def render_sun_section(sun: dict[str, Any] | None = None) -> None:
                             cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
-                            "Sonnenuntergang",
+                            t("card_sunset", lang),
                             cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
 
@@ -116,7 +117,7 @@ def render_sun_section(sun: dict[str, Any] | None = None) -> None:
 
 
 @sun_app.ui()
-async def sun_card(city: str = "Bern") -> PrefabApp:
+async def sun_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show an interactive Aare sun and sunshine card.
 
     Displays total sunshine hours for today, sunset time, and time-left-in-sun
@@ -141,7 +142,7 @@ async def sun_card(city: str = "Bern") -> PrefabApp:
             f"Aare — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
-        render_sun_section(data.get("sun") or {})
+        render_sun_section(data.get("sun") or {}, lang=lang)
 
     return PrefabApp(
         view=view,

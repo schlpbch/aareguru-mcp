@@ -18,6 +18,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _safety_badge
+from ._i18n import FLOW_LABEL_KEY, t
 from ._skeletons import skeleton_flow_card
 
 logger = structlog.get_logger(__name__)
@@ -34,7 +35,7 @@ async def refresh_flow(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_flow_section(aare: dict[str, Any] | None = None) -> None:
+def render_flow_section(aare: dict[str, Any] | None = None, lang: str = "de") -> None:
     """Render flow rate and BAFU safety grid section.
 
     Must be called inside an active Column/Row context.
@@ -46,7 +47,7 @@ def render_flow_section(aare: dict[str, Any] | None = None) -> None:
         return
 
     flow: float | None = aare.get("flow")
-    safety_label, safety_variant, safety_color = _safety_badge(flow)
+    safety_label, safety_variant, safety_color = _safety_badge(flow, lang=lang)
 
     with Grid(columns=2, gap=0):
         # Flow card
@@ -57,7 +58,7 @@ def render_flow_section(aare: dict[str, Any] | None = None) -> None:
                     cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                 )
                 Text(
-                    "m³/s · Wasserstand",
+                    t("card_flow", lang),
                     cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] mt-0.5",
                 )
 
@@ -73,7 +74,7 @@ def render_flow_section(aare: dict[str, Any] | None = None) -> None:
                         cssClass="text-sm px-3 py-0.5",
                     )
                     Text(
-                        "BAFU Sicherheit",
+                        t("card_bafu_safety", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_BFU}] dark:text-[{_DK.BFU}] mt-1",
                     )
 
@@ -101,8 +102,9 @@ def render_flow_section(aare: dict[str, Any] | None = None) -> None:
                             and flow >= lo
                             and (hi is None or flow < hi)
                         )
+                        lbl_i18n = t(FLOW_LABEL_KEY.get(lbl, "safety_safe"), lang)
                         Text(
-                            f"▲ {lbl}" if is_active else lbl,
+                            f"▲ {lbl_i18n}" if is_active else lbl_i18n,
                             cssClass=(
                                 f"{width} text-center text-[8px] font-bold text-[{color}]"
                                 if is_active
@@ -112,7 +114,7 @@ def render_flow_section(aare: dict[str, Any] | None = None) -> None:
 
 
 @flow_app.ui()
-async def flow_card(city: str = "Bern") -> PrefabApp:
+async def flow_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show an interactive Aare flow and safety level card.
 
     Displays water flow in m³/s with BAFU safety level assessment
@@ -134,7 +136,7 @@ async def flow_card(city: str = "Bern") -> PrefabApp:
             f"Aare — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
-        render_flow_section(aare)
+        render_flow_section(aare, lang=lang)
 
     return PrefabApp(
         view=view,

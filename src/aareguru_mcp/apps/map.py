@@ -27,6 +27,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
     _SAFETY_LEVELS,
 )
+from ._i18n import FLOW_LABEL_KEY, t
 
 logger = structlog.get_logger(__name__)
 
@@ -41,15 +42,17 @@ def _safety_color(flow: float | None) -> str:
     """Return hex color for a flow value, matching _SAFETY_LEVELS thresholds."""
     if flow is None:
         return "#9ca3af"
-    thresholds = [t for t, _, _, _ in _SAFETY_LEVELS]
-    colors = [c for _, _, _, c in _SAFETY_LEVELS] + ["#7f1d1d"]
-    for i, t in enumerate(thresholds):
-        if flow < t:
+    thresholds = [thresh for thresh, _, _, _ in _SAFETY_LEVELS]
+    colors = [color for _, _, _, color in _SAFETY_LEVELS] + ["#7f1d1d"]
+    for i, thresh in enumerate(thresholds):
+        if flow < thresh:
             return colors[i]
     return colors[-1]
 
 
-def _build_map_html(cities_geo: list[dict[str, Any]], focus_city: str | None) -> str:
+def _build_map_html(
+    cities_geo: list[dict[str, Any]], focus_city: str | None, lang: str = "de"
+) -> str:
     """Return a self-contained Leaflet.js HTML string for embedding as srcdoc."""
 
     cities_json = json.dumps(cities_geo, ensure_ascii=False)
@@ -60,12 +63,15 @@ def _build_map_html(cities_geo: list[dict[str, Any]], focus_city: str | None) ->
     else:
         focus_json = "null"
 
+    sat_label = t("label_satellite", lang)
+    flow_label = t("label_flow_popup", lang)
+
     return f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aare Karte</title>
+<title>{t("page_aare_map", lang)}</title>
 <style>
   html,body,#map {{
     margin:0;padding:0;width:100%;height:100%;
@@ -150,7 +156,7 @@ def _build_map_html(cities_geo: list[dict[str, Any]], focus_city: str | None) ->
 </head>
 <body>
 <div id="map"></div>
-<button id="sat-toggle">Satellit</button>
+<button id="sat-toggle">{sat_label}</button>
 <script>
 (function(){{
   var CITIES = {cities_json};
@@ -263,7 +269,7 @@ def _build_map_html(cities_geo: list[dict[str, Any]], focus_city: str | None) ->
         c.temp!==null
           ?'<div class="ag-popup-temp">'+c.temp.toFixed(1)+'°C</div>'
           :'<div class="ag-popup-temp">—</div>',
-        '<div class="ag-popup-meta">Abfluss: '+(c.flow!==null?Math.round(c.flow)+' m³/s':'—')+'</div>',
+        '<div class="ag-popup-meta">{flow_label}'+(c.flow!==null?Math.round(c.flow)+' m³/s':'—')+'</div>',
         c.desc?'<div class="ag-popup-desc">'+c.desc+'</div>':'',
         '<span class="ag-popup-safety" style="'+safetyStyle+'">'+c.safety+'</span>'
       ].join('');
@@ -301,7 +307,7 @@ async def refresh_map(city: str | None = None) -> dict[str, Any]:
 
 
 @map_app.ui()
-async def aare_map(city: str | None = None) -> PrefabApp:
+async def aare_map(city: str | None = None, lang: str = "de") -> PrefabApp:
     """Show an interactive OpenStreetMap with all Aare monitoring stations.
 
     Each city is plotted as a circle marker coloured by BAFU safety level.
@@ -338,7 +344,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
         flow = live.get("flow")
         temp = live.get("temperature") if live else item.get("aare")
         desc = live.get("temperature_text") or ""
-        safety_label = _safety_label(flow)
+        safety_label = _safety_label(flow, lang=lang)
         color = _safety_color(flow)
 
         cities_geo.append(
@@ -359,11 +365,11 @@ async def aare_map(city: str | None = None) -> PrefabApp:
     safe_count: int = compare_data.get("safe_count", 0)
     total: int = compare_data.get("total_count", len(cities_geo))
 
-    map_html = _build_map_html(cities_geo, city)
+    map_html = _build_map_html(cities_geo, city, lang=lang)
 
     with Column(gap=0, cssClass="p-2 max-w-4xl mx-auto") as view:
         Text(
-            "Aare Karte",
+            t("page_aare_map", lang),
             cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
             f" dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
@@ -387,7 +393,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
                             f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
-                        "WÄRMSTE STADT",
+                        t("badge_warmest_city", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -403,7 +409,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
                         f" text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
-                        "SICHERE STÄDTE",
+                        t("badge_safe_cities", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -419,7 +425,7 @@ async def aare_map(city: str | None = None) -> PrefabApp:
                         f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                     )
                     Muted(
-                        "STATIONEN",
+                        t("badge_stations", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -448,12 +454,12 @@ async def _fetch_map_data(
     return cities_list, compare_data
 
 
-def _safety_label(flow: float | None) -> str:
-    """Return German safety label for a flow value."""
+def _safety_label(flow: float | None, lang: str = "de") -> str:
+    """Return localised safety label for a flow value."""
     if flow is None:
-        return "Unbekannt"
-    thresholds_labels = [(t, lbl) for t, lbl, _, _ in _SAFETY_LEVELS]
-    for threshold, label in thresholds_labels:
+        return t("safety_unknown", lang)
+    for threshold, de_label, _, _ in _SAFETY_LEVELS:
         if flow < threshold:
-            return label
-    return "Sehr hoch"
+            key = FLOW_LABEL_KEY.get(de_label, "safety_safe")
+            return t(key, lang)
+    return t("safety_very_high", lang)

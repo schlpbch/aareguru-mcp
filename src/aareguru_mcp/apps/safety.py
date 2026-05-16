@@ -24,6 +24,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _bafu_level
+from ._i18n import t
 
 logger = structlog.get_logger(__name__)
 
@@ -40,7 +41,7 @@ async def refresh_safety(city: str) -> dict[str, Any]:
 
 
 @safety_app.ui()
-async def safety_briefing(city: str = "Bern") -> PrefabApp:
+async def safety_briefing(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show the official BAFU 1–5 danger level scale with the current reading highlighted.
 
     Translates the hydrological danger level into plain swimmer guidance,
@@ -62,13 +63,16 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
     location: str = aare.get("location_long") or aare.get("location") or city
 
     level = _bafu_level(flow, gefahrenstufe)
-    _, level_label, level_color, level_color_dk, guidance, description = _BAFU_LEVELS[
+    _, _de_label, level_color, level_color_dk, _de_guidance, _de_description = _BAFU_LEVELS[
         level - 1
     ]
+    level_label = t(f"bafu_{level}_label", lang)
+    guidance = t(f"bafu_{level}_guidance", lang)
+    description = t(f"bafu_{level}_desc", lang)
 
     with Column(gap=0, cssClass="p-2 max-w-xl mx-auto") as view:
         Text(
-            f"Sicherheit — {location}",
+            f"{t('page_safety', lang)} — {location}",
             cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
@@ -129,13 +133,15 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
         # Full 5-level scale
         Separator(cssClass="my-0.5")
         Text(
-            "BAFU Gefahrenstufen",
+            t("section_bafu_levels", lang),
             cssClass=f"text-[10px] uppercase tracking-[0.2em]"
             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
         )
         with Column(gap=0):
-            for lvl, lbl, color, color_dk, swim_guidance, _desc in _BAFU_LEVELS:
+            for lvl, _lbl, color, color_dk, _swim_guidance, _desc in _BAFU_LEVELS:
                 is_current = lvl == level
+                lvl_label = t(f"bafu_{lvl}_label", lang)
+                lvl_guidance = t(f"bafu_{lvl}_guidance", lang)
                 with Card(
                     cssClass=(
                         f"{_AG_RADIUS} border-l-[3px] border-l-[{color}] dark:border-l-[{color_dk}]"
@@ -150,7 +156,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                                 " w-4 text-center flex-shrink-0",
                             )
                             Text(
-                                lbl + (" ← aktuell" if is_current else ""),
+                                lvl_label + (f" {t('label_current_marker', lang)}" if is_current else ""),
                                 cssClass=(
                                     f"text-xs font-bold text-[{color}] dark:text-[{color_dk}]"
                                     if is_current
@@ -159,7 +165,7 @@ async def safety_briefing(city: str = "Bern") -> PrefabApp:
                                 ),
                             )
                             Muted(
-                                swim_guidance,
+                                lvl_guidance,
                                 cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60 ml-auto text-right",
                             )
 

@@ -35,6 +35,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _fmt_temp, _safety_badge, _sy_to_icon
+from ._i18n import t
 
 logger = structlog.get_logger(__name__)
 
@@ -51,7 +52,7 @@ async def refresh_forecast(city: str) -> dict[str, Any]:
 
 
 @forecast_app.ui()
-async def forecast_view(city: str = "Bern") -> PrefabApp:
+async def forecast_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show a 24-hour forecast with air-temperature chart and hourly card strip.
 
     Displays the 2-hour water temperature trend alongside an hourly weather
@@ -74,7 +75,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
     warning: str | None = aare.get("warning")
     location: str = aare.get("location_long") or aare.get("location") or city
 
-    safety_label, safety_variant, _ = _safety_badge(flow)
+    safety_label, safety_variant, _ = _safety_badge(flow, lang=lang)
 
     # Trend arrow + diff text
     trend_arrow = "→"
@@ -89,7 +90,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
             trend_diff = f"{diff:.1f}°"
         else:
             trend_arrow = "→"
-            trend_diff = "stabil"
+            trend_diff = t("label_stable", lang)
 
     forecast_list: list[dict[str, Any]] = data.get("forecast") or []
 
@@ -126,7 +127,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
 
         # ── Header ──────────────────────────────────────────────────────────
         Text(
-            f"Vorhersage — {location}",
+            f"{t('page_forecast', lang)} — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
@@ -134,7 +135,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
         # ── Safety warning ───────────────────────────────────────────────────
         if warning:
             with Alert(variant="destructive", cssClass=f"{_AG_RADIUS}"):
-                AlertTitle("⚠ Sicherheitswarnung")
+                AlertTitle(t("alert_safety_title", lang))
                 AlertDescription(warning)
 
         # ── Current → 2h water temperature cards ────────────────────────────
@@ -148,7 +149,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                         cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
-                        "Jetzt",
+                        t("label_now", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -162,7 +163,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                         cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
-                        "in 2 Stunden",
+                        t("label_in_2h", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -193,7 +194,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
         if chart_data:
             Separator(cssClass="my-0")
             Text(
-                "Wettervorhersage",
+                t("section_weather_forecast", lang),
                 cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                 f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )
@@ -206,12 +207,12 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
                         series=[
                             ChartSeries(
                                 dataKey="Lufttemp",
-                                label="Lufttemperatur (°C)",
+                                label=t("chart_air_temp_label", lang),
                                 color=_AG_AIR_TEMP,
                             ),
                             ChartSeries(
                                 dataKey="Niederschlag",
-                                label="Niederschlag (mm)",
+                                label=t("chart_precipitation_label", lang),
                                 color=_AG_WASSER_FLOW,
                             ),
                         ],
@@ -225,7 +226,7 @@ async def forecast_view(city: str = "Bern") -> PrefabApp:
         if normalised:
             Separator(cssClass="my-0")
             Text(
-                "Stündliche Vorhersage",
+                t("section_hourly_forecast", lang),
                 cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                 f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )

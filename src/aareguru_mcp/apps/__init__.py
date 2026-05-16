@@ -16,6 +16,7 @@ Apps:
 
 from ..service import AareguruService
 from ._helpers import _safety_badge
+from ._i18n import t
 from .city_finder import city_finder_app, city_finder_view, refresh_cities
 from .compare import compare_app, compare_cities_table, fetch_comparison
 from .conditions import conditions_app, conditions_dashboard, refresh_conditions
@@ -80,6 +81,8 @@ __all__ = [
     "refresh_shop_cart",
     # Helper (used by tests)
     "_safety_badge",
+    # i18n
+    "t",
     # Service class (re-exported so patch("aareguru_mcp.apps.AareguruService") works)
     "AareguruService",
 ]

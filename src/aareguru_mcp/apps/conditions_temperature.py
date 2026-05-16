@@ -16,6 +16,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_temp
+from ._i18n import t
 from ._skeletons import skeleton_temperature_card
 
 logger = structlog.get_logger(__name__)
@@ -32,7 +33,7 @@ async def refresh_temperature(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_temperature_section(aare: dict[str, Any] | None = None) -> None:
+def render_temperature_section(aare: dict[str, Any] | None = None, lang: str = "de") -> None:
     """Render water temperature card section.
 
     Must be called inside an active Column/Row context.
@@ -68,7 +69,7 @@ def render_temperature_section(aare: dict[str, Any] | None = None) -> None:
                 cssClass=f"text-6xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
             )
             Text(
-                "Wassertemperatur",
+                t("card_water_temp", lang),
                 cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-1 mb-0.5",
             )
             if trend_text:
@@ -89,7 +90,7 @@ def render_temperature_section(aare: dict[str, Any] | None = None) -> None:
 
 
 @temperature_app.ui()
-async def temperature_card(city: str = "Bern") -> PrefabApp:
+async def temperature_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show an interactive Aare water temperature card.
 
     Displays the current water temperature in the signature Aare cyan card
@@ -111,7 +112,7 @@ async def temperature_card(city: str = "Bern") -> PrefabApp:
             f"Aare — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] text-center uppercase",
         )
-        render_temperature_section(aare)
+        render_temperature_section(aare, lang=lang)
 
     return PrefabApp(
         view=view,

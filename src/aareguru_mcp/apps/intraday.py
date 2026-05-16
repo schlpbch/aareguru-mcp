@@ -29,6 +29,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_temp
+from ._i18n import t
 
 logger = structlog.get_logger(__name__)
 
@@ -45,7 +46,7 @@ async def refresh_intraday(city: str) -> dict[str, Any]:
 
 
 @intraday_app.ui()
-async def intraday_view(city: str = "Bern") -> PrefabApp:
+async def intraday_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show today's water temperature as an intraday area chart.
 
     Uses the past readings from the current-conditions response to plot
@@ -69,16 +70,16 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
     raw_past: list[dict[str, Any]] = data.get("aarepast") or []
     points: list[dict[str, Any]] = []
     for entry in raw_past:
-        t = entry.get("time")
+        ts = entry.get("time")
         v = entry.get("aare") or entry.get("temperature")
         if v is None:
             continue
-        if isinstance(t, int):
-            label = _dt.fromtimestamp(t).strftime("%H:%M")
-        elif isinstance(t, str) and len(t) >= 16:
-            label = t[11:16]
+        if isinstance(ts, int):
+            label = _dt.fromtimestamp(ts).strftime("%H:%M")
+        elif isinstance(ts, str) and len(ts) >= 16:
+            label = ts[11:16]
         else:
-            label = str(t)
+            label = str(ts)
         points.append({"Zeit": label, "Temperatur": round(float(v), 1)})
 
     # Delta: current vs first reading of the day
@@ -88,7 +89,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
 
     with Column(gap=0, cssClass="p-0 max-w-2xl mx-auto") as view:
         Text(
-            f"Tagesverlauf — {location}",
+            f"{t('page_intraday', lang)} — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
@@ -104,7 +105,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                         cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
-                        "Aktuell",
+                        t("label_current", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -121,7 +122,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                         f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
-                        "Veränderung heute",
+                        t("label_change_today", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -136,7 +137,7 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                         series=[
                             ChartSeries(
                                 dataKey="Temperatur",
-                                label="Wassertemperatur (°C)",
+                                label=t("chart_water_temp", lang),
                                 color=_AG_WASSER_TEMP,
                             )
                         ],
@@ -146,15 +147,13 @@ async def intraday_view(city: str = "Bern") -> PrefabApp:
                         height=160,
                     )
             Muted(
-                f"{len(points)} Messungen heute",
+                f"{len(points)} {t('label_measurements', lang)}",
                 cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
             with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):
-                AlertTitle("Keine Tagesdaten")
-                AlertDescription(
-                    "Keine heutigen Messungen verfügbar. Bitte später erneut versuchen."
-                )
+                AlertTitle(t("alert_no_daily", lang))
+                AlertDescription(t("alert_no_daily_desc", lang))
 
     return PrefabApp(
         view=view,

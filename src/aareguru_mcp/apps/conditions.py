@@ -16,6 +16,7 @@ from prefab_ui.components import (
 
 from ._constants import _AG_TXT_PRIMARY, _DK, _FONT_CSS, _FONT_INJECTION_ON_MOUNT
 from ._helpers import _safety_badge
+from ._i18n import t
 from .conditions_sun import render_sun_section
 from .conditions_temperature import render_temperature_section
 from .conditions_weather import render_weather_section
@@ -35,7 +36,7 @@ async def refresh_conditions(city: str) -> dict[str, Any]:
 
 
 @conditions_app.ui()
-async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
+async def conditions_dashboard(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show an interactive aare.guru-style dashboard of current Aare conditions.
 
     Displays water temperature in the signature Aare cyan (#2be6ff) card,
@@ -56,7 +57,7 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
     flow: float | None = aare.get("flow")
     location: str = aare.get("location_long") or aare.get("location") or city
 
-    safety_label, safety_variant, safety_color = _safety_badge(flow)
+    safety_label, safety_variant, safety_color = _safety_badge(flow, lang=lang)
 
     with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
         # Page header
@@ -68,14 +69,14 @@ async def conditions_dashboard(city: str = "Bern") -> PrefabApp:
         # Safety warning (only if dangerous)
         if warning:
             with Alert(variant="destructive", cssClass="rounded-lg"):
-                AlertTitle("⚠ Sicherheitswarnung")
+                AlertTitle(t("alert_safety_title", lang))
                 AlertDescription(warning)
 
         # Composed sections from standalone apps
-        render_temperature_section(aare)
-        ## render_flow_section(aare)
-        render_weather_section(data.get("weather") or {})
-        render_sun_section(data.get("sun") or {})
+        render_temperature_section(aare, lang=lang)
+        ## render_flow_section(aare, lang=lang)
+        render_weather_section(data.get("weather") or {}, lang=lang)
+        render_sun_section(data.get("sun") or {}, lang=lang)
 
         # Seasonal advice
         seasonal = data.get("seasonal_advice")

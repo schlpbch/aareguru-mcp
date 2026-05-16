@@ -1,16 +1,21 @@
 """Shared helper functions for the aare.guru FastMCP Apps."""
 
 from ._constants import _BEAUFORT, _SAFETY_LEVELS, _SY_EMOJI, _WEATHER_ICONS
+from ._i18n import t
 
 
-def _safety_badge(flow: float | None) -> tuple[str, str, str]:
+def _safety_badge(flow: float | None, lang: str = "de") -> tuple[str, str, str]:
     """Return (label, variant, hex_color) for a BAFU flow rate."""
     if flow is None:
-        return "Unbekannt", "secondary", "#9ca3af"
-    for threshold, label, variant, color in _SAFETY_LEVELS:
+        return t("safety_unknown", lang), "secondary", "#9ca3af"
+    for threshold, _de_label, variant, color in _SAFETY_LEVELS:
         if flow < threshold:
-            return label, variant, color
-    return "Sehr hoch", "destructive", "#7f1d1d"
+            # Map German constant label to the corresponding i18n key
+            from ._i18n import FLOW_LABEL_KEY
+
+            key = FLOW_LABEL_KEY.get(_de_label, "safety_safe")
+            return t(key, lang), variant, color
+    return t("safety_very_high", lang), "destructive", "#7f1d1d"
 
 
 def _fmt_temp(temp: float | None) -> str:

@@ -28,6 +28,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_flow, _safety_badge
+from ._i18n import t
 
 logger = structlog.get_logger(__name__)
 
@@ -44,7 +45,7 @@ async def refresh_cities(cities: list[str] | None = None) -> dict[str, Any]:
 
 
 @city_finder_app.ui()
-async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
+async def city_finder_view(sort_by: str = "temperature", lang: str = "de") -> PrefabApp:
     """Show all cities ranked by water temperature or safety.
 
     Fetches live data for every available city and ranks them so swimmers
@@ -80,7 +81,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
     rows: list[dict[str, Any]] = []
     for rank, c in enumerate(sorted_cities, 1):
         flow = c.get("flow")
-        safety_label, _, safety_color = _safety_badge(flow)
+        safety_label, _, safety_color = _safety_badge(flow, lang=lang)
         rows.append(
             {
                 "#": str(rank),
@@ -99,7 +100,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
 
     with Column(gap=0, cssClass="p-2 max-w-3xl mx-auto") as view:
         Text(
-            "Städtefinder",
+            t("page_city_finder", lang),
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
@@ -121,7 +122,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
                             f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
-                        "WÄRMSTE STADT",
+                        t("badge_warmest_city", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -135,7 +136,7 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
                         cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
-                        "SICHERE STÄDTE",
+                        t("badge_safe_cities", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -145,14 +146,14 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
             ):
                 with CardContent(cssClass="p-2 text-center"):
                     sort_label = (
-                        "Nach Sicherheit" if sort_by == "safety" else "Nach Temperatur"
+                        t("sort_by_safety", lang) if sort_by == "safety" else t("sort_by_temp", lang)
                     )
                     Text(
                         sort_label,
                         cssClass=f"text-xs font-semibold text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
-                        "SORTIERUNG",
+                        t("badge_sorting", lang),
                         cssClass=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
@@ -162,18 +163,18 @@ async def city_finder_view(sort_by: str = "temperature") -> PrefabApp:
                 DataTable(
                     columns=[
                         DataTableColumn(key="#", header="#", align="right"),
-                        DataTableColumn(key="Stadt", header="Stadt", sortable=True),
+                        DataTableColumn(key="Stadt", header=t("col_city", lang), sortable=True),
                         DataTableColumn(
                             key="Temp °C",
-                            header="Temp °C",
+                            header=t("col_temp", lang),
                             sortable=True,
                             align="right",
                         ),
                         DataTableColumn(
-                            key="m³/s", header="m³/s", sortable=True, align="right"
+                            key="m³/s", header=t("col_flow_ms", lang), sortable=True, align="right"
                         ),
                         DataTableColumn(
-                            key="Sicherheit", header="Sicherheit", sortable=True
+                            key="Sicherheit", header=t("col_safety", lang), sortable=True
                         ),
                     ],
                     rows=rows,  # type: ignore[arg-type]

@@ -25,6 +25,7 @@ from ._constants import (
     _FONT_INJECTION_ON_MOUNT,
 )
 from ._helpers import _fmt_pct, _fmt_temp, _sy_to_icon
+from ._i18n import t
 from ._skeletons import skeleton_weather_card
 
 logger = structlog.get_logger(__name__)
@@ -41,7 +42,7 @@ async def refresh_weather(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_weather_section(weather: dict[str, Any] | None = None) -> None:
+def render_weather_section(weather: dict[str, Any] | None = None, lang: str = "de") -> None:
     """Render weather section with current conditions and forecast.
 
     Must be called inside an active Column/Row context.
@@ -89,7 +90,7 @@ def render_weather_section(weather: dict[str, Any] | None = None) -> None:
                             cssClass=f"text-xl font-black tabular-nums text-[{_AG_AIR_TEMP}] dark:text-[{_DK.AIR_TEMP}]",
                         )
                         Muted(
-                            "Lufttemperatur",
+                            t("card_air_temp", lang),
                             cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         if tn is not None or tx is not None:
@@ -108,7 +109,7 @@ def render_weather_section(weather: dict[str, Any] | None = None) -> None:
                             cssClass=f"text-xl font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
-                            "Niederschlag",
+                            t("card_precipitation", lang),
                             cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         rr = weather_period.get("rr")
@@ -139,7 +140,7 @@ def render_weather_section(weather: dict[str, Any] | None = None) -> None:
 
 
 @weather_app.ui()
-async def weather_card(city: str = "Bern") -> PrefabApp:
+async def weather_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     """Show an interactive Aare weather card.
 
     Displays current air temperature, precipitation risk, and a 6-day forecast strip.
@@ -163,7 +164,7 @@ async def weather_card(city: str = "Bern") -> PrefabApp:
             f"Aare — {location}",
             cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
-        render_weather_section(data.get("weather") or {})
+        render_weather_section(data.get("weather") or {}, lang=lang)
 
     return PrefabApp(
         view=view,
