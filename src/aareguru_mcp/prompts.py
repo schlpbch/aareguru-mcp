@@ -1,4 +1,4 @@
-"""MCP prompts for querying Aareguru data.
+"""MCP prompts for querying Aareguru data and konsum.aare.guru shopping.
 
 Prompts provide template-based interaction patterns for common use cases.
 """
@@ -115,3 +115,81 @@ Use `get_historical_data` with days={days} to get the past {days} days of data, 
 3. **Outlook**: Based on trends and current forecast, what should swimmers expect?
 
 Include specific numbers and dates. Make recommendations for the best swimming times."""
+
+
+async def shop_browse(search: str | None = None) -> str:
+    """Guides the assistant through browsing the konsum.aare.guru merchandise catalog.
+
+    **Args:**
+        search: Optional keyword to filter products (e.g., `"swim buoy"`, `"towel"`).
+                Omit to browse the full catalog.
+
+    **Returns:**
+        Prompt template instructing the LLM to list products, present them
+        clearly, and offer to show detail or start a purchase.
+    """
+    search_clause = (
+        f' matching "{search}"' if search else ""
+    )
+    search_arg = f', search="{search}"' if search else ""
+
+    return f"""Please browse the Aareguru merchandise catalog{search_clause}.
+
+1. **List products**: Call `list_shop_products{search_arg}` to fetch the catalog.
+
+2. **Present the results** in a clear, friendly format:
+   - Product name and price in CHF
+   - Stock status (in stock / out of stock)
+   - One-line description if available
+   - Note any items currently on sale
+
+3. **Offer next steps** — for any product the user is interested in:
+   - Call `product_view(product_id=<id>)` to show the full product detail page with images
+   - Or offer to start a purchase with `create_checkout_session`
+
+Keep the tone friendly and conversational. If no products are found, suggest \
+broadening the search or browsing the full catalog."""
+
+
+async def shop_checkout(items: str = "") -> str:
+    """Guides the assistant through the full UCP checkout flow on konsum.aare.guru.
+
+    **Args:**
+        items: Optional description of what the user wants to buy
+               (e.g., `"swim buoy × 1"`). Leave empty if items are not yet known.
+
+    **Returns:**
+        Prompt template instructing the LLM to walk the user through the
+        complete purchase flow: browse → product detail → cart → billing → confirm.
+    """
+    items_clause = (
+        f" The user wants to buy: {items}." if items else ""
+    )
+
+    return f"""Please help the user complete a purchase from the Aareguru shop.{items_clause}
+
+Follow these steps in order:
+
+1. **Find the product** (if not already known):
+   - Call `list_shop_products` to browse the catalog
+   - Call `product_view(product_id=<id>)` to show images and details
+   - Confirm the user wants to proceed
+
+2. **Create the cart**:
+   - Call `create_checkout_session(items=[{{"product_id": <id>, "quantity": <n>}}])`
+   - Show the result with `shop_cart_view(session_id=<id>)` so the user sees their cart
+
+3. **Collect billing details** — ask the user for:
+   - First name, last name
+   - Email address
+   - Delivery address (street, postcode, city, country)
+   - Then call `update_checkout_session(session_id=<id>, billing={{...}})`
+
+4. **Confirm and complete**:
+   - Show the billing summary with `shop_cart_view(session_id=<id>)`
+   - Ask for explicit confirmation before placing the order
+   - Call `complete_checkout(session_id=<id>)`
+   - Display the PostFinance payment link prominently
+
+If the user changes their mind at any point, call `cancel_checkout_session`.
+Keep the user informed at every step — show the cart UI after each change."""

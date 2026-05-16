@@ -145,6 +145,18 @@ async def weekly_trend_analysis_prompt(city: str = "Bern", days: int = 7) -> str
     return await prompts.weekly_trend_analysis(city, days)
 
 
+@mcp.prompt(name="shop-browse")
+@functools.wraps(prompts.shop_browse)
+async def shop_browse_prompt(search: str | None = None) -> str:
+    return await prompts.shop_browse(search)
+
+
+@mcp.prompt(name="shop-checkout")
+@functools.wraps(prompts.shop_checkout)
+async def shop_checkout_prompt(items: str = "") -> str:
+    return await prompts.shop_checkout(items)
+
+
 # ============================================================================
 # Elicitation helpers
 # ============================================================================
