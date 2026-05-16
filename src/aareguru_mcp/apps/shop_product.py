@@ -12,6 +12,7 @@ from prefab_ui.components import (
     Badge,
     Card,
     CardContent,
+    Carousel,
     Column,
     Image,
     Muted,
@@ -98,8 +99,8 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
                 ),
             )
 
-            # ── Product image ─────────────────────────────────────────────────
-            if images:
+            # ── Product image(s) ──────────────────────────────────────────────
+            if len(images) == 1:
                 with Card(cssClass=f"{_AG_RADIUS} overflow-hidden"):
                     with CardContent(cssClass="p-0"):
                         Image(
@@ -107,6 +108,16 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
                             alt=name,
                             cssClass="w-full object-cover max-h-72",
                         )
+            elif len(images) > 1:
+                with Card(cssClass=f"{_AG_RADIUS} overflow-hidden"):
+                    with CardContent(cssClass="p-0"):
+                        with Carousel(loop=True, show_dots=True, height=288):
+                            for src in images:
+                                Image(
+                                    src=src,
+                                    alt=name,
+                                    cssClass="w-full object-cover h-72",
+                                )
 
             # ── Price + badges ────────────────────────────────────────────────
             with Card(
