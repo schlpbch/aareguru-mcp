@@ -8,10 +8,6 @@ from urllib.parse import quote
 import httpx
 import structlog
 from pydantic import ValidationError
-from swiss_ai_mcp_commons.serialization import (  # type: ignore[import-untyped]
-    JsonSerializableMixin,
-)
-
 from .config import get_settings
 from .models import CitiesResponse, CurrentResponse, TodayResponse
 
@@ -39,7 +35,7 @@ class CacheEntry:
         return f"CacheEntry(data={type(self.data).__name__}, expires_at={self.expires_at!r})"
 
 
-class AareguruClient(JsonSerializableMixin):  # type: ignore[misc]
+class AareguruClient:
     """Async HTTP client for Aareguru API.
 
     Features:

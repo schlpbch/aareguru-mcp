@@ -19,7 +19,6 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
     { name = "structlog" },
-    { name = "swiss-ai-mcp-commons" },
     { name = "ucp-sdk" },
 ]
 
@@ -44,7 +43,6 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "structlog", specifier = ">=23.1.0" },
-    { name = "swiss-ai-mcp-commons", git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.1.0" },
     { name = "ucp-sdk", specifier = ">=0.3.0" },
 ]
 
@@ -1531,17 +1529,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/44/30/1f73c8813fa47208cf17dc1239c148298ffafb11301b18071b8c6ba19f37/structlog-23.3.0.tar.gz", hash = "sha256:24b42b914ac6bc4a4e6f716e82ac70d7fb1e8c3b1035a765591953bfc37101a5", size = 1340937, upload-time = "2023-12-29T14:02:33.487Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/5d/8afc87f72e8ba11001c0122e62fc1e19f580f8607f9d1078012cf1492325/structlog-23.3.0-py3-none-any.whl", hash = "sha256:d6922a88ceabef5b13b9eda9c4043624924f60edbb00397f4d193bd754cde60a", size = 66004, upload-time = "2023-12-29T14:02:31.501Z" },
-]
-
-[[package]]
-name = "swiss-ai-mcp-commons"
-version = "1.1.0"
-source = { git = "https://github.com/schlpbch/swiss-ai-mcp-commons.git?rev=v1.1.0#66adc621e214a0561bcc0e8ed4cf55c324583493" }
-dependencies = [
-    { name = "httpx" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "structlog" },
 ]
 
 [[package]]
