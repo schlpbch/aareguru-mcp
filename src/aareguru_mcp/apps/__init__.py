@@ -34,6 +34,7 @@ from .intraday import intraday_app, intraday_view, refresh_intraday
 from .map import aare_map, map_app, refresh_map
 from .safety import refresh_safety, safety_app, safety_briefing
 from .shop import refresh_shop_cart, shop_app, shop_cart_view
+from .shop_product import product_view, refresh_product, shop_product_app
 
 __all__ = [
     # App instances (used by server.py)
@@ -50,6 +51,7 @@ __all__ = [
     "safety_app",
     "map_app",
     "shop_app",
+    "shop_product_app",
     # UI functions (used by tests)
     "conditions_dashboard",
     "temperature_card",
@@ -64,6 +66,7 @@ __all__ = [
     "safety_briefing",
     "aare_map",
     "shop_cart_view",
+    "product_view",
     # Render functions (used by conditions_dashboard and tests)
     "render_temperature_section",
     "render_flow_section",
@@ -79,6 +82,7 @@ __all__ = [
     "refresh_safety",
     "refresh_map",
     "refresh_shop_cart",
+    "refresh_product",
     # Helper (used by tests)
     "_safety_badge",
     # i18n

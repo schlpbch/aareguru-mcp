@@ -4,7 +4,7 @@ Tests client initialization, caching, and basic operations without external API 
 """
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -181,42 +181,42 @@ class TestResolveTimestamp:
     """Tests for AareguruClient._resolve_timestamp."""
 
     def test_now(self) -> None:
-        before = int(datetime.now(tz=timezone.utc).timestamp())
+        before = int(datetime.now(tz=UTC).timestamp())
         result = int(AareguruClient._resolve_timestamp("now"))
-        after = int(datetime.now(tz=timezone.utc).timestamp())
+        after = int(datetime.now(tz=UTC).timestamp())
         assert before <= result <= after
 
     def test_unix_timestamp_passthrough(self) -> None:
         assert AareguruClient._resolve_timestamp("1700000000") == "1700000000"
 
     def test_negative_days(self) -> None:
-        before = int(datetime.now(tz=timezone.utc).timestamp()) - 7 * 86400 - 1
+        before = int(datetime.now(tz=UTC).timestamp()) - 7 * 86400 - 1
         result = int(AareguruClient._resolve_timestamp("-7 days"))
-        after = int(datetime.now(tz=timezone.utc).timestamp()) - 7 * 86400 + 1
+        after = int(datetime.now(tz=UTC).timestamp()) - 7 * 86400 + 1
         assert before <= result <= after
 
     def test_days_singular(self) -> None:
         result = int(AareguruClient._resolve_timestamp("-1 day"))
-        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 86400
+        expected = int(datetime.now(tz=UTC).timestamp()) - 86400
         assert abs(result - expected) < 2
 
     def test_weeks(self) -> None:
         result = int(AareguruClient._resolve_timestamp("-2 weeks"))
-        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 14 * 86400
+        expected = int(datetime.now(tz=UTC).timestamp()) - 14 * 86400
         assert abs(result - expected) < 2
 
     def test_months(self) -> None:
         result = int(AareguruClient._resolve_timestamp("-1 month"))
-        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 30 * 86400
+        expected = int(datetime.now(tz=UTC).timestamp()) - 30 * 86400
         assert abs(result - expected) < 2
 
     def test_iso_date(self) -> None:
         result = AareguruClient._resolve_timestamp("2025-06-15")
-        assert result == str(int(datetime(2025, 6, 15, tzinfo=timezone.utc).timestamp()))
+        assert result == str(int(datetime(2025, 6, 15, tzinfo=UTC).timestamp()))
 
     def test_iso_datetime(self) -> None:
         result = AareguruClient._resolve_timestamp("2025-06-15T12:00:00Z")
-        assert result == str(int(datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc).timestamp()))
+        assert result == str(int(datetime(2025, 6, 15, 12, 0, 0, tzinfo=UTC).timestamp()))
 
     def test_unknown_passthrough(self) -> None:
         assert AareguruClient._resolve_timestamp("something-weird") == "something-weird"

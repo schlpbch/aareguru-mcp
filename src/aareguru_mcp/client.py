@@ -2,7 +2,7 @@
 
 import asyncio
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 from urllib.parse import quote
 
@@ -294,7 +294,7 @@ class AareguruClient:
         """
         expr = expr.strip()
         if expr == "now":
-            return str(int(datetime.now(tz=timezone.utc).timestamp()))
+            return str(int(datetime.now(tz=UTC).timestamp()))
         # Already a Unix timestamp (digits only, optionally negative)
         if re.fullmatch(r"-?\d+", expr):
             return expr
@@ -309,11 +309,11 @@ class AareguruClient:
                 delta = timedelta(weeks=amount)
             else:
                 delta = timedelta(days=amount)
-            return str(int((datetime.now(tz=timezone.utc) + delta).timestamp()))
+            return str(int((datetime.now(tz=UTC) + delta).timestamp()))
         # ISO 8601 (with or without timezone)
         for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
             try:
-                dt = datetime.strptime(expr, fmt).replace(tzinfo=timezone.utc)
+                dt = datetime.strptime(expr, fmt).replace(tzinfo=UTC)
                 return str(int(dt.timestamp()))
             except ValueError:
                 continue

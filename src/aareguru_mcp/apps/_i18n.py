@@ -108,6 +108,16 @@ STRINGS: dict[str, dict[str, str]] = {
         "chart_flow": "Wasserstand (m³/s)",
         "chart_air_temp_label": "Lufttemperatur (°C)",
         "chart_precipitation_label": "Niederschlag (mm)",
+        # Product view
+        "page_product": "Produkt",
+        "label_price": "Preis",
+        "label_in_stock": "Vorrätig",
+        "label_out_of_stock": "Nicht vorrätig",
+        "label_on_sale": "Sonderangebot",
+        "label_add_to_cart_hint": "Zum Warenkorb hinzufügen:",
+        "label_view_online": "Online ansehen",
+        "alert_product_not_found": "Produkt nicht gefunden",
+        "alert_product_not_found_desc": "Produkt-ID ungültig oder nicht verfügbar.",
     },
     "en": {
         # Safety badge labels
@@ -209,6 +219,16 @@ STRINGS: dict[str, dict[str, str]] = {
         "chart_flow": "Flow Rate (m³/s)",
         "chart_air_temp_label": "Air Temperature (°C)",
         "chart_precipitation_label": "Precipitation (mm)",
+        # Product view
+        "page_product": "Product",
+        "label_price": "Price",
+        "label_in_stock": "In Stock",
+        "label_out_of_stock": "Out of Stock",
+        "label_on_sale": "On Sale",
+        "label_add_to_cart_hint": "Add to cart:",
+        "label_view_online": "View Online",
+        "alert_product_not_found": "Product Not Found",
+        "alert_product_not_found_desc": "Invalid product ID or product unavailable.",
     },
     "fr": {
         # Safety badge labels
@@ -310,6 +330,16 @@ STRINGS: dict[str, dict[str, str]] = {
         "chart_flow": "Débit (m³/s)",
         "chart_air_temp_label": "Température de l'air (°C)",
         "chart_precipitation_label": "Précipitations (mm)",
+        # Product view
+        "page_product": "Produit",
+        "label_price": "Prix",
+        "label_in_stock": "En stock",
+        "label_out_of_stock": "Rupture de stock",
+        "label_on_sale": "Promotion",
+        "label_add_to_cart_hint": "Ajouter au panier:",
+        "label_view_online": "Voir en ligne",
+        "alert_product_not_found": "Produit introuvable",
+        "alert_product_not_found_desc": "ID de produit invalide ou produit non disponible.",
     },
     "it": {
         # Safety badge labels
@@ -411,6 +441,16 @@ STRINGS: dict[str, dict[str, str]] = {
         "chart_flow": "Portata (m³/s)",
         "chart_air_temp_label": "Temperatura dell'aria (°C)",
         "chart_precipitation_label": "Precipitazioni (mm)",
+        # Product view
+        "page_product": "Prodotto",
+        "label_price": "Prezzo",
+        "label_in_stock": "Disponibile",
+        "label_out_of_stock": "Non disponibile",
+        "label_on_sale": "Offerta",
+        "label_add_to_cart_hint": "Aggiungi al carrello:",
+        "label_view_online": "Vedi online",
+        "alert_product_not_found": "Prodotto non trovato",
+        "alert_product_not_found_desc": "ID prodotto non valido o prodotto non disponibile.",
     },
 }
 

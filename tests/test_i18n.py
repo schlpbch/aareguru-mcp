@@ -230,6 +230,28 @@ async def test_compare_cities_table_accepts_lang(lang: str) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("lang", ["de", "en", "fr", "it"])
+async def test_product_view_accepts_lang(lang: str) -> None:
+    from aareguru_mcp.apps.shop_product import product_view
+
+    _PRODUCT = {
+        "id": 42,
+        "name": "Aareguru Swim Buoy",
+        "price_chf": 24.90,
+        "permalink": "https://konsum.aare.guru/produkt/swim-buoy/",
+        "description": "<p>A great swim buoy.</p>",
+        "short_description": "Bright orange swim buoy.",
+        "on_sale": False,
+        "stock_status": "instock",
+        "images": [],
+    }
+    with patch("aareguru_mcp.shop_service.ShopService") as MockService:
+        MockService.return_value.get_product = AsyncMock(return_value=_PRODUCT)
+        result = await product_view(product_id=42, lang=lang)
+    assert result is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("lang", ["de", "en", "fr", "it"])
 async def test_city_finder_view_accepts_lang(lang: str) -> None:
     from aareguru_mcp.apps.city_finder import city_finder_view
 
