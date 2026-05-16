@@ -1,8 +1,8 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-365%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
+[![Tests](https://img.shields.io/badge/tests-376%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-76%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
 [![Version](https://img.shields.io/badge/version-4.6.0-blue)](CHANGELOG.md)
@@ -12,9 +12,9 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.6.0** — governance documentation (CONSTITUTION.md,
-SKILLS.md), 8 FastMCPApps (incl. OpenStreetMap), 7 MCP resources, MCP
-elicitation, 365 tests (80% coverage). See
+**Latest Release: v4.6.0** — 12 MCP tools (incl. 6 shop tools with UCP
+checkout), 9 FastMCPApps (incl. cart/checkout UI and OpenStreetMap), 8 MCP
+resources, MCP elicitation, 376 tests (76% coverage). See
 [docs/RELEASE_NOTES_v4.6.0.md](docs/RELEASE_NOTES_v4.6.0.md) for details.
 
 ## 🚀 Quick Start
@@ -49,21 +49,24 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 
 ## 🎯 Features
 
-| Feature             | Description                                                      |
-| ------------------- | ---------------------------------------------------------------- |
-| **6 MCP Tools**     | Temperature, flow, safety, forecasts, history, comparisons       |
-| **7 MCP Resources** | Direct data access via `aareguru://` URIs                        |
-| **3 MCP Prompts**   | Daily reports, spot comparisons, weekly trends                   |
-| **8 FastMCPApps**   | Interactive dashboards, charts, map — rendered in conversation   |
-| **MCP Elicitation** | Asks for confirmation on dangerous flows and large data requests |
-| **Rate Limiting**   | 100 req/min, 1000 req/hour protection against abuse              |
-| **Metrics**         | Prometheus endpoint for monitoring and observability             |
-| **Swiss German**    | Authentic temperature descriptions ("geil aber chli chalt")      |
-| **BAFU Safety**     | Official flow danger levels and thresholds                       |
-| **365 Tests**       | 80% coverage, comprehensive test suite (0 skipped)               |
-| **Async-First**     | Context managers, parallel API fetching with asyncio.gather()    |
+| Feature              | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| **12 MCP Tools**     | Temperature, flow, safety, forecasts, history, comparisons + shop/checkout |
+| **8 MCP Resources**  | Direct data access via `aareguru://` URIs incl. shop catalog               |
+| **3 MCP Prompts**    | Daily reports, spot comparisons, weekly trends                             |
+| **9 FastMCPApps**    | Interactive dashboards, charts, map, cart/checkout — rendered in conversation |
+| **UCP Checkout**     | Shop cart and checkout via Universal Commerce Protocol over WooCommerce    |
+| **MCP Elicitation**  | Asks for confirmation on dangerous flows and large data requests           |
+| **Rate Limiting**    | 100 req/min, 1000 req/hour protection against abuse                        |
+| **Metrics**          | Prometheus endpoint for monitoring and observability                       |
+| **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")                |
+| **BAFU Safety**      | Official flow danger levels and thresholds                                 |
+| **376 Tests**        | 76% coverage, comprehensive test suite (0 skipped)                         |
+| **Async-First**      | Context managers, parallel API fetching with asyncio.gather()              |
 
 ## 🛠️ Tools
+
+### Aare river tools
 
 | Tool                      | Description                              | Example Query                   |
 | ------------------------- | ---------------------------------------- | ------------------------------- |
@@ -73,6 +76,17 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | `compare_cities`          | Compare all cities (parallel fetching)   | "Which city is warmest?"        |
 | `get_forecasts`           | Forecasts for multiple cities (parallel) | "Show forecasts for all cities" |
 | `get_historical_data`     | Temperature/flow history (hourly data)   | "Show last 7 days for Bern"     |
+
+### Shop tools (konsum.aare.guru — UCP checkout)
+
+| Tool                       | Description                                               | Example Query                        |
+| -------------------------- | --------------------------------------------------------- | ------------------------------------ |
+| `list_shop_products`       | Browse merchandise catalog with prices in CHF             | "What merch is available?"           |
+| `get_shop_product`         | Full details for a specific product                       | "Tell me more about the swim buoy"   |
+| `create_checkout_session`  | Start a UCP checkout session (adds items to cart)         | "I want to buy the beach towel"      |
+| `update_checkout_session`  | Attach billing/shipping address to a session              | "My address is Bahnhofplatz 1, Bern" |
+| `complete_checkout`        | Submit the order and return the PostFinance payment URL   | "Confirm my order"                   |
+| `cancel_checkout_session`  | Cancel a session and clear the cart                       | "Never mind, cancel my order"        |
 
 ### BAFU Safety Thresholds
 
@@ -95,21 +109,23 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | `aareguru://history/{city}/{start}/{end}` | Historical hourly time series         |
 | `aareguru://safety-levels`                | BAFU 1–5 danger level reference table |
 | `aareguru://thresholds`                   | Flow zone breakpoints with hex colors |
+| `aareguru://shop`                         | Merchandise catalog from konsum.aare.guru |
 
 ## 🖥️ Interactive Apps (FastMCPApps)
 
-Eight apps render rich UIs directly inside AI conversations via `fastmcp[apps]`:
+Nine apps render rich UIs directly inside AI conversations via `fastmcp[apps]`:
 
-| App           | Description                                                   |
-| ------------- | ------------------------------------------------------------- |
-| `conditions`  | Dashboard: water temp, flow, weather, BAFU level              |
-| `history`     | Area chart of temperature and flow over time                  |
-| `compare`     | Sortable table comparing all cities                           |
-| `forecast`    | 24-hour forecast with air-temperature chart                   |
-| `intraday`    | Today's intraday water temperature sparkline                  |
-| `city_finder` | All cities ranked by temperature or safety                    |
-| `safety`      | BAFU 1–5 danger level briefing with current reading           |
-| `map`         | Interactive OpenStreetMap with all stations, satellite toggle |
+| App           | Description                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| `conditions`  | Dashboard: water temp, flow, weather, BAFU level                   |
+| `history`     | Area chart of temperature and flow over time                       |
+| `compare`     | Sortable table comparing all cities                                |
+| `forecast`    | 24-hour forecast with air-temperature chart                        |
+| `intraday`    | Today's intraday water temperature sparkline                       |
+| `city_finder` | All cities ranked by temperature or safety                         |
+| `safety`      | BAFU 1–5 danger level briefing with current reading                |
+| `map`         | Interactive OpenStreetMap with all stations, satellite toggle      |
+| `shop`        | Cart and UCP checkout UI: items, total, billing, payment URL       |
 
 ## 💬 Prompts
 
@@ -227,11 +243,11 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (365 tests, all passing)
-uv run pytest --cov=aareguru_mcp # With coverage (80%)
+uv run pytest                    # Run tests (376 tests, all passing)
+uv run pytest --cov=aareguru_mcp # With coverage (76%)
 uv run ruff check src/ tests/    # Lint (all passing)
 uv run mypy src/                 # Type check (0 errors)
-uv run fastmcp dev apps run-ext-apps.py  # Preview all 8 apps
+uv run fastmcp dev apps run-ext-apps.py  # Preview all 9 apps
 ```
 
 ### Visual Debugging - All Apps on One Page
@@ -251,6 +267,7 @@ This debug page includes:
 - ✅ City comparison table and city finder
 - ✅ Safety briefing with BAFU levels
 - ✅ Interactive OpenStreetMap with all stations
+- ✅ Shop cart and checkout (UCP)
 
 Perfect for:
 
@@ -272,7 +289,7 @@ Perfect for:
 ```text
 aareguru-mcp/
 ├── src/aareguru_mcp/
-│   ├── apps/          # 8 FastMCPApps (conditions, history, compare, …, map)
+│   ├── apps/          # 9 FastMCPApps (conditions, history, compare, …, map, shop)
 │   ├── server.py      # FastMCP server, tools, resources, prompts
 │   ├── service.py     # Business logic service layer
 │   ├── client.py      # Async HTTP client with caching
