@@ -155,6 +155,14 @@ class ShopService:
         session.continue_url = order.get("payment_url")
         return session.model_dump()
 
+    async def get_session(self, session_id: str) -> dict[str, Any]:
+        """Return current session state, or error dict if not found."""
+        logger.info("shop_service.get_session", session_id=session_id)
+        session = _checkout_sessions.get(session_id)
+        if session is None:
+            return {"error": f"Session '{session_id}' not found."}
+        return session.model_dump()
+
     async def cancel_checkout_session(self, session_id: str) -> dict[str, Any]:
         """UCP: cancel session and clear the WooCommerce cart."""
         logger.info("shop_service.cancel_checkout_session", session_id=session_id)

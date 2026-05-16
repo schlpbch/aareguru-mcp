@@ -32,6 +32,7 @@ from .history import fetch_history, historical_chart, history_app
 from .intraday import intraday_app, intraday_view, refresh_intraday
 from .map import aare_map, map_app, refresh_map
 from .safety import refresh_safety, safety_app, safety_briefing
+from .shop import refresh_shop_cart, shop_app, shop_cart_view
 
 __all__ = [
     # App instances (used by server.py)
@@ -47,6 +48,7 @@ __all__ = [
     "city_finder_app",
     "safety_app",
     "map_app",
+    "shop_app",
     # UI functions (used by tests)
     "conditions_dashboard",
     "temperature_card",
@@ -60,6 +62,7 @@ __all__ = [
     "city_finder_view",
     "safety_briefing",
     "aare_map",
+    "shop_cart_view",
     # Render functions (used by conditions_dashboard and tests)
     "render_temperature_section",
     "render_flow_section",
@@ -74,6 +77,7 @@ __all__ = [
     "refresh_cities",
     "refresh_safety",
     "refresh_map",
+    "refresh_shop_cart",
     # Helper (used by tests)
     "_safety_badge",
     # Service class (re-exported so patch("aareguru_mcp.apps.AareguruService") works)
