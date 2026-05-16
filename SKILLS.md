@@ -154,23 +154,33 @@ Three guided workflows that compose multiple tool calls into a single structured
 narrative. The AI assistant can use MCP elicitation to ask for missing parameter
 values interactively.
 
+### Swimming prompts
+
 | Prompt | Parameters | Output |
 | --- | --- | --- |
 | `daily-swimming-report` | `city` (default: Bern), `include_forecast` (bool) | Conditions + safety + forecast + recommendation |
 | `compare-swimming-spots` | `min_temperature?` (float), `safety_only?` (bool) | Ranked city comparison filtered by criteria |
 | `weekly-trend-analysis` | `city`, `days` (3 / 7 / 14) | Temperature and flow pattern analysis with observations |
 
+### Shop prompts
+
+| Prompt | Parameters | Output |
+| --- | --- | --- |
+| `shop-browse` | `search?` (keyword filter) | Catalog listing with prices, stock, and offer to inspect or buy |
+| `shop-checkout` | `items?` (description of desired items) | Full guided flow: browse → product detail → cart → billing → confirm → payment |
+
 **When to use prompts vs. tools:**
 
 - Use **prompts** when the user wants a complete, structured narrative response.
 - Use **tools** directly when you need a specific data field to answer a focused question.
 - Prompts compose multiple tool calls internally; tools are atomic.
+- Use `shop-browse` when the user is exploring; use `shop-checkout` when they're ready to buy.
 
 ---
 
 ## Interactive Apps (FastMCPApps)
 
-Thirteen app views across nine FastMCPApps render rich HTML UIs directly inside
+Fourteen app views across ten FastMCPApps render rich HTML UIs directly inside
 AI conversations via FastMCP's app rendering layer. Each app returns a
 self-contained visual component — no external assets fetched at render time
 (fonts embedded as base64).
@@ -206,10 +216,11 @@ legend, and BAFU description in the user's language.
 | `city_finder_view` | `city_finder_view(sort_by, lang?)` | All cities ranked by temperature or safety |
 | `aare_map` | `aare_map(city?, lang?)` | Leaflet.js interactive map, all stations, color-coded by BAFU level |
 
-### Shop & Checkout App
+### Shop & Checkout Apps
 
 | App | Invocation | What it shows |
 | --- | --- | --- |
+| `product_view` | `product_view(product_id, lang?)` | Product detail: image carousel, price, stock badges, description, add-to-cart hint |
 | `shop_cart_view` | `shop_cart_view(session_id?, lang?)` | Cart items, total, billing summary, payment URL |
 
 **When to use apps vs. tools:**
@@ -218,6 +229,7 @@ legend, and BAFU description in the user's language.
 - Use **tools** when you need structured data to reason over or combine with other information.
 - `conditions_dashboard` covers most display scenarios without needing to call `get_current_conditions` manually.
 - `historical_chart` avoids formatting raw `get_historical_data` output into prose.
+- `product_view` shows product images via a Carousel before the user commits to buying.
 - `shop_cart_view` gives the user a visual cart/checkout summary at each step of the purchase flow.
 
 ---
@@ -340,9 +352,12 @@ Step 2: `get_current_conditions(warmest_city)` or `conditions_dashboard(warmest_
 >
 > "What merch is available?" / "I want to buy the swim buoy" / "Show my cart"
 
-Browse: `list_shop_products` → `get_shop_product`  
+Prompt (browse): `shop-browse` — lists catalog, shows product detail with images, offers to buy  
+Prompt (buy):    `shop-checkout` — full guided flow from browse to payment link  
+Browse: `list_shop_products` → `product_view(product_id)` (images + detail)  
 Buy:    `create_checkout_session` → `update_checkout_session` → `complete_checkout`  
-Visual: `shop_cart_view(session_id)` — shows cart at every step  
+Visual: `product_view` — product images carousel before purchase  
+Visual: `shop_cart_view(session_id)` — cart at every checkout step  
 Cancel: `cancel_checkout_session`  
 Resource: `aareguru://shop` — static catalog snapshot  
 Note: checkout uses UCP over WooCommerce Store API; payment via PostFinance.
