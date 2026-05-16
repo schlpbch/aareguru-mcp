@@ -11,8 +11,10 @@
 aareguru-mcp v4.7.0 adds full internationalisation (de / en / fr / it) to all 9
 FastMCPApps. Every user-visible label, section header, chart legend, alert, and
 BAFU safety description can now be rendered in German (default), English, French,
-or Italian via a `lang: str = "de"` parameter on every app UI function. 420
-tests pass at 80% coverage. No MCP API surface changes.
+or Italian via a `lang: str = "de"` parameter on every app UI function. Also
+fixes a 400 Bad Request on the historical chart caused by the upstream API
+dropping support for relative date expressions. 429 tests pass at 80% coverage.
+No MCP API surface changes.
 
 ---
 
@@ -89,6 +91,35 @@ are not modified. Apps translate their display strings through `t()` lookups
 keyed by `FLOW_LABEL_KEY` mapping. Authoritative German safety data remains the
 primary source.
 
+---
+
+## Bug Fixes
+
+### Historical chart: 400 Bad Request on relative date expressions
+
+`historical_chart` and `get_historical_data` were returning a 400 Bad Request
+when called with relative start/end expressions such as `"-7 days"` or `"now"`.
+
+**Root cause**: The upstream `/v2018/history` endpoint stopped accepting
+human-readable relative date strings and now requires Unix timestamps.
+
+**Fix**: `AareguruClient._resolve_timestamp(expr)` is called on both `start` and
+`end` before the request is sent. It converts:
+
+| Input | Example | Output |
+| --- | --- | --- |
+| `"now"` | — | current Unix timestamp |
+| Relative | `"-7 days"`, `"-2 weeks"`, `"-1 month"` | computed Unix timestamp |
+| ISO 8601 | `"2025-06-15"`, `"2025-06-15T12:00:00Z"` | Unix timestamp |
+| Unix timestamp | `"1700000000"` | passed through unchanged |
+| Unknown | anything else | passed through unchanged |
+
+No caller changes required — all existing invocations continue to work.
+
+9 new unit tests added to `tests/test_unit_client.py`.
+
+---
+
 ### New tests: `tests/test_i18n.py`
 
 44 new tests covering:
@@ -107,7 +138,7 @@ primary source.
 
 | Metric | v4.6.0 | v4.7.0 |
 | --- | --- | --- |
-| Tests passing | 376 | 420 |
+| Tests passing | 376 | 429 |
 | Coverage | 76% | 80% |
 | MCP tools | 12 | 12 |
 | MCP resources | 8 | 8 |
@@ -115,6 +146,7 @@ primary source.
 | Supported UI languages | 1 (de) | 4 (de, en, fr, it) |
 | i18n string keys | — | ~85 |
 | New i18n tests | — | 44 |
+| New client tests | — | 9 |
 | New ADRs | — | — |
 
 ---
