@@ -4,6 +4,7 @@ Tests client initialization, caching, and basic operations without external API 
 """
 
 import time
+from datetime import datetime, timezone
 
 import pytest
 
@@ -174,3 +175,48 @@ class TestURLEncoding:
         # No unencoded & or + in the middle
         parts = cache_key.split("?")[1].split("&")
         assert len(parts) == 3, f"Should have 3 params: {cache_key}"
+
+
+class TestResolveTimestamp:
+    """Tests for AareguruClient._resolve_timestamp."""
+
+    def test_now(self) -> None:
+        before = int(datetime.now(tz=timezone.utc).timestamp())
+        result = int(AareguruClient._resolve_timestamp("now"))
+        after = int(datetime.now(tz=timezone.utc).timestamp())
+        assert before <= result <= after
+
+    def test_unix_timestamp_passthrough(self) -> None:
+        assert AareguruClient._resolve_timestamp("1700000000") == "1700000000"
+
+    def test_negative_days(self) -> None:
+        before = int(datetime.now(tz=timezone.utc).timestamp()) - 7 * 86400 - 1
+        result = int(AareguruClient._resolve_timestamp("-7 days"))
+        after = int(datetime.now(tz=timezone.utc).timestamp()) - 7 * 86400 + 1
+        assert before <= result <= after
+
+    def test_days_singular(self) -> None:
+        result = int(AareguruClient._resolve_timestamp("-1 day"))
+        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 86400
+        assert abs(result - expected) < 2
+
+    def test_weeks(self) -> None:
+        result = int(AareguruClient._resolve_timestamp("-2 weeks"))
+        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 14 * 86400
+        assert abs(result - expected) < 2
+
+    def test_months(self) -> None:
+        result = int(AareguruClient._resolve_timestamp("-1 month"))
+        expected = int(datetime.now(tz=timezone.utc).timestamp()) - 30 * 86400
+        assert abs(result - expected) < 2
+
+    def test_iso_date(self) -> None:
+        result = AareguruClient._resolve_timestamp("2025-06-15")
+        assert result == str(int(datetime(2025, 6, 15, tzinfo=timezone.utc).timestamp()))
+
+    def test_iso_datetime(self) -> None:
+        result = AareguruClient._resolve_timestamp("2025-06-15T12:00:00Z")
+        assert result == str(int(datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc).timestamp()))
+
+    def test_unknown_passthrough(self) -> None:
+        assert AareguruClient._resolve_timestamp("something-weird") == "something-weird"

@@ -1,7 +1,8 @@
 """Async HTTP client for Aareguru API with caching and rate limiting."""
 
 import asyncio
-from datetime import datetime, timedelta
+import re
+from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 from urllib.parse import quote
 
@@ -284,6 +285,41 @@ class AareguruClient:
             logger.error(f"Validation error for current response: {e}")
             raise
 
+    @staticmethod
+    def _resolve_timestamp(expr: str) -> str:
+        """Convert a date expression to a Unix timestamp string.
+
+        Accepts: Unix timestamp, ISO 8601, "now", or relative expressions
+        like "-7 days", "-1 week", "-2 months".
+        """
+        expr = expr.strip()
+        if expr == "now":
+            return str(int(datetime.now(tz=timezone.utc).timestamp()))
+        # Already a Unix timestamp (digits only, optionally negative)
+        if re.fullmatch(r"-?\d+", expr):
+            return expr
+        # Relative: "-N days|weeks|months"
+        m = re.fullmatch(r"(-?\d+)\s*(day|days|week|weeks|month|months)", expr)
+        if m:
+            amount = int(m.group(1))
+            unit = m.group(2).rstrip("s")  # normalize to singular
+            if unit == "month":
+                delta = timedelta(days=amount * 30)
+            elif unit == "week":
+                delta = timedelta(weeks=amount)
+            else:
+                delta = timedelta(days=amount)
+            return str(int((datetime.now(tz=timezone.utc) + delta).timestamp()))
+        # ISO 8601 (with or without timezone)
+        for fmt in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+            try:
+                dt = datetime.strptime(expr, fmt).replace(tzinfo=timezone.utc)
+                return str(int(dt.timestamp()))
+            except ValueError:
+                continue
+        # Unknown format — pass through and let the API reject it
+        return expr
+
     async def get_history(
         self,
         city: str,
@@ -305,7 +341,7 @@ class AareguruClient:
         """
         params = {
             "city": city,
-            "start": start,
-            "end": end,
+            "start": self._resolve_timestamp(start),
+            "end": self._resolve_timestamp(end),
         }
         return await self._request("/v2018/history", params, use_cache=False)
