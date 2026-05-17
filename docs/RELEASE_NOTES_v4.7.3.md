@@ -1,4 +1,4 @@
-# Release Notes: v4.7.2
+# Release Notes: v4.7.3
 
 **Date**: 2026-05-17
 

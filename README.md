@@ -5,15 +5,15 @@
 [![Coverage](https://img.shields.io/badge/coverage-80%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-3.x-purple)](https://github.com/jlowin/fastmcp)
-[![Version](https://img.shields.io/badge/version-4.7.2-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.7.3-blue)](CHANGELOG.md)
 [![Privacy Policy](https://img.shields.io/badge/privacy-policy-informational)](PRIVACY.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.7.2** — WooCommerce checkout nonce header fix (400 Bad Request).
-See [docs/RELEASE_NOTES_v4.7.2.md](docs/RELEASE_NOTES_v4.7.2.md) for details.
+**Latest Release: v4.7.3** — WooCommerce checkout nonce header fix (400 Bad Request).
+See [docs/RELEASE_NOTES_v4.7.3.md](docs/RELEASE_NOTES_v4.7.3.md) for details.
 
 ## 🚀 Quick Start
 
