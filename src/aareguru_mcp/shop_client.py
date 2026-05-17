@@ -57,7 +57,7 @@ class ShopClient:
             )
 
     def _write_headers(self) -> dict[str, str]:
-        return {"Nonce": self._nonce or ""}
+        return {"X-WC-Store-API-Nonce": self._nonce or ""}
 
     async def get_products(
         self, search: str | None = None, per_page: int = 20
