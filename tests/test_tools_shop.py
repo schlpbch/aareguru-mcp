@@ -35,9 +35,12 @@ def _make_mock_client(product: dict[str, Any] | None = None) -> MagicMock:
     client.add_to_cart = AsyncMock(return_value={"key": "abc123", "id": p["id"]})
     client.submit_checkout = AsyncMock(
         return_value={
-            "id": 999,
+            "order_id": 999,
             "status": "pending",
-            "payment_url": "https://pay.example.com/999",
+            "payment_result": {
+                "payment_status": "success",
+                "redirect_url": "https://pay.example.com/999",
+            },
         }
     )
     client.close = AsyncMock()

@@ -151,8 +151,11 @@ class ShopService:
             shipping=session.shipping or session.billing,
         )
         session.status = "completed"
-        session.order_id = order.get("id")
-        session.continue_url = order.get("payment_url")
+        # WooCommerce Store API's checkout resource nests the order id and
+        # payment redirect under order_id / payment_result.redirect_url, not
+        # id / payment_url.
+        session.order_id = order.get("order_id")
+        session.continue_url = (order.get("payment_result") or {}).get("redirect_url")
         return session.model_dump()
 
     async def get_session(self, session_id: str) -> dict[str, Any]:

@@ -1,7 +1,13 @@
 """WooCommerce Store API client for konsum.aare.guru.
 
-Singleton async HTTP client that maintains a persistent cookie jar and nonce
-so cart state is preserved across consecutive tool calls within a server session.
+Singleton async HTTP client that maintains a nonce and Cart-Token so cart
+state is preserved across consecutive tool calls within a server session.
+
+The store no longer relies on cookies for cart identity (no Set-Cookie is
+sent); instead the Store API issues a JWT `Cart-Token` response header that
+must be echoed back as a request header on every subsequent call, or writes
+(add-item, cart/items DELETE, checkout) are rejected with 401 Unauthorized
+even with a valid nonce.
 """
 
 import asyncio
@@ -32,6 +38,7 @@ class ShopClient:
             headers={"Content-Type": "application/json"},
         )
         self._nonce: str | None = None
+        self._cart_token: str | None = None
         self._init_lock: asyncio.Lock = asyncio.Lock()
 
     @classmethod
@@ -40,24 +47,36 @@ class ShopClient:
             cls._instance = cls()
         return cls._instance
 
+    def _capture_session_headers(self, resp: httpx.Response) -> None:
+        """Capture the rolling Nonce and Cart-Token from any Store API response."""
+        nonce = resp.headers.get("Nonce") or resp.headers.get("X-WC-Store-API-Nonce")
+        if nonce:
+            self._nonce = nonce
+        cart_token = resp.headers.get("Cart-Token")
+        if cart_token:
+            self._cart_token = cart_token
+
     async def _ensure_nonce(self) -> None:
-        """Fetch and cache the Nonce required for write operations."""
-        if self._nonce is not None:
+        """Fetch and cache the Nonce and Cart-Token required for write operations."""
+        if self._nonce is not None and self._cart_token is not None:
             return
         async with self._init_lock:
-            if self._nonce is not None:
+            if self._nonce is not None and self._cart_token is not None:
                 return
             resp = await self._http.get(f"{_STORE_API}/cart")
             resp.raise_for_status()
-            self._nonce = resp.headers.get("Nonce") or resp.headers.get(
-                "X-WC-Store-API-Nonce"
-            )
+            self._capture_session_headers(resp)
             logger.info(
-                "shop_client.nonce_fetched", nonce_present=self._nonce is not None
+                "shop_client.session_initialized",
+                nonce_present=self._nonce is not None,
+                cart_token_present=self._cart_token is not None,
             )
 
     def _write_headers(self) -> dict[str, str]:
-        return {"X-WC-Store-API-Nonce": self._nonce or ""}
+        headers = {"X-WC-Store-API-Nonce": self._nonce or ""}
+        if self._cart_token:
+            headers["Cart-Token"] = self._cart_token
+        return headers
 
     async def get_products(
         self, search: str | None = None, per_page: int = 20
@@ -77,11 +96,9 @@ class ShopClient:
         return data
 
     async def get_cart(self) -> dict[str, Any]:
-        resp = await self._http.get(f"{_STORE_API}/cart")
+        resp = await self._http.get(f"{_STORE_API}/cart", headers=self._write_headers())
         resp.raise_for_status()
-        nonce = resp.headers.get("Nonce") or resp.headers.get("X-WC-Store-API-Nonce")
-        if nonce:
-            self._nonce = nonce
+        self._capture_session_headers(resp)
         data: dict[str, Any] = resp.json()
         return data
 
@@ -92,6 +109,7 @@ class ShopClient:
             headers=self._write_headers(),
         )
         resp.raise_for_status()
+        self._capture_session_headers(resp)
 
     async def add_to_cart(self, product_id: int, quantity: int = 1) -> dict[str, Any]:
         await self._ensure_nonce()
@@ -101,16 +119,38 @@ class ShopClient:
             headers=self._write_headers(),
         )
         resp.raise_for_status()
+        self._capture_session_headers(resp)
         data: dict[str, Any] = resp.json()
         return data
+
+    async def _default_payment_method(self) -> str:
+        """Look up the store's current default payment gateway ID.
+
+        PostFinance Checkout registers one WooCommerce gateway ID per payment
+        method (e.g. "postfinancecheckout_6" for a specific card/wallet
+        option), not a single "postfinance_checkout" ID — and the numbering
+        is store-config-dependent. The checkout draft (GET /checkout)
+        reports the store's current default, so that's used rather than a
+        hardcoded value that can silently go stale.
+        """
+        resp = await self._http.get(
+            f"{_STORE_API}/checkout", headers=self._write_headers()
+        )
+        resp.raise_for_status()
+        self._capture_session_headers(resp)
+        data: dict[str, Any] = resp.json()
+        method = data.get("payment_method")
+        return str(method) if method else ""
 
     async def submit_checkout(
         self,
         billing: dict[str, Any],
         shipping: dict[str, Any],
-        payment_method: str = "postfinance_checkout",
+        payment_method: str | None = None,
     ) -> dict[str, Any]:
         await self._ensure_nonce()
+        if payment_method is None:
+            payment_method = await self._default_payment_method()
         resp = await self._http.post(
             f"{_STORE_API}/checkout",
             json={
@@ -122,6 +162,7 @@ class ShopClient:
             headers=self._write_headers(),
         )
         resp.raise_for_status()
+        self._capture_session_headers(resp)
         data: dict[str, Any] = resp.json()
         return data
 
