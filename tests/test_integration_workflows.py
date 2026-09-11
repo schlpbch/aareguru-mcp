@@ -67,7 +67,7 @@ class TestMultiToolWorkflows:
     @pytest.mark.asyncio
     async def test_multiple_cities_sequential(self):
         """Test querying multiple cities in sequence."""
-        cities_to_test = ["Bern", "Thun", "basel"]
+        cities_to_test = ["Bern", "Thun", "Biel"]
         results = []
 
         for city in cities_to_test:
@@ -193,7 +193,7 @@ class TestDataConsistency:
     @pytest.mark.asyncio
     async def test_swiss_german_text_present(self):
         """Verify all temperature responses include Swiss German text."""
-        cities = ["Bern", "Thun", "basel"]
+        cities = ["Bern", "Thun", "Biel"]
 
         for city in cities:
             result = await tools.get_current_temperature(city)

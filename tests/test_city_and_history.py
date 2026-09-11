@@ -1,5 +1,6 @@
 """Tests for city normalization, multi-city differentiation, and historical date formats."""
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -54,6 +55,9 @@ def _make_mock_client(city_responses: dict) -> AsyncMock:
     client = AsyncMock()
     client.get_current = _get_current
     client.get_today = AsyncMock(side_effect=Exception("fallback"))
+    client.get_cities = AsyncMock(
+        return_value=[SimpleNamespace(city=k) for k in city_responses]
+    )
     client.__aenter__ = AsyncMock(return_value=client)
     client.__aexit__ = AsyncMock(return_value=None)
     return client

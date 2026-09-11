@@ -34,6 +34,7 @@ class TestGetCurrentTemperature:
             mock_response.aare.location_long = "Bern, Schönau"
             mock_response.aare.flow = 85.0
             mock_client.get_current = AsyncMock(return_value=mock_response)
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -64,6 +65,7 @@ class TestGetCurrentTemperature:
 
             mock_client.get_current.return_value = mock_current
             mock_client.get_today.return_value = mock_today
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -98,6 +100,7 @@ class TestGetCurrentConditions:
             mock_response.sun = None
 
             mock_client.get_current.return_value = mock_response
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -125,6 +128,7 @@ class TestGetCurrentConditions:
             mock_response.sun = None
 
             mock_client.get_current.return_value = mock_response
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -150,6 +154,7 @@ class TestGetFlowDangerLevel:
             mock_response.aare.flow_text = "Low flow"
             mock_response.aare.flow_scale_threshold = 220
             mock_client.get_current = AsyncMock(return_value=mock_response)
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -171,6 +176,7 @@ class TestGetFlowDangerLevel:
             mock_response.aare = None
 
             mock_client.get_current.return_value = mock_response
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client

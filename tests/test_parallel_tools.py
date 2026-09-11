@@ -36,6 +36,13 @@ class TestCompareCitiesFast:
                     {"Bern": 100, "Thun": 120, "basel": 90}[city],
                 )
             )
+            mock_client.get_cities = AsyncMock(
+                return_value=[
+                    MagicMock(city="Bern"),
+                    MagicMock(city="Thun"),
+                    MagicMock(city="basel"),
+                ]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -106,6 +113,9 @@ class TestCompareCitiesFast:
                     {"Bern": 100, "Thun": 250}[city],  # Thun is unsafe
                 )
             )
+            mock_client.get_cities = AsyncMock(
+                return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -146,6 +156,13 @@ class TestGetForecastsBatch:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
+            mock_client.get_cities = AsyncMock(
+                return_value=[
+                    MagicMock(city="Bern"),
+                    MagicMock(city="Thun"),
+                    MagicMock(city="basel"),
+                ]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -184,6 +201,9 @@ class TestGetForecastsBatch:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
+            mock_client.get_cities = AsyncMock(
+                return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -208,6 +228,7 @@ class TestGetForecastsBatch:
             response.aare.forecast2h = None
 
             mock_client.get_current = AsyncMock(return_value=response)
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client

@@ -84,6 +84,9 @@ class ShopService:
         """UCP: create a new checkout session, adding items to the WooCommerce cart."""
         logger.info("shop_service.create_checkout_session", item_count=len(items))
 
+        if not items:
+            return {"error": "items must contain at least one product."}
+
         await self.client.clear_cart()
 
         line_items: list[UCPLineItem] = []

@@ -16,6 +16,7 @@ class TestServiceErrorHandling:
         with patch("aareguru_mcp.service.AareguruClient") as MockClient:
             mock_client = AsyncMock()
             mock_client.get_current.side_effect = Exception("API Error")
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
             MockClient.return_value = mock_client
@@ -35,6 +36,7 @@ class TestServiceErrorHandling:
             mock_response.weatherprognosis = None
             mock_response.sun = None
             mock_client.get_current.return_value = mock_response
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
             MockClient.return_value = mock_client
@@ -64,6 +66,7 @@ class TestServiceErrorHandling:
             mock_response.aare.location = "Bern"
             mock_response.aare.flow = 100.0
             mock_client.get_current.return_value = mock_response
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
             MockClient.return_value = mock_client
@@ -131,6 +134,7 @@ class TestServiceDataEnrichment:
             mock_response.aare.temperature_text_short = "kalt"
             mock_client.get_current.return_value = mock_response
             mock_client.get_today.return_value = None
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
             MockClient.return_value = mock_client
@@ -160,6 +164,13 @@ class TestServiceDataEnrichment:
                 return response
 
             mock_client.get_current = AsyncMock(side_effect=make_response)
+            mock_client.get_cities = AsyncMock(
+                return_value=[
+                    MagicMock(city="Bern"),
+                    MagicMock(city="Thun"),
+                    MagicMock(city="Basel"),
+                ]
+            )
             mock_client.__aenter__.return_value = mock_client
             mock_client.__aexit__.return_value = None
             MockClient.return_value = mock_client

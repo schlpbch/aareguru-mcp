@@ -109,6 +109,7 @@ class TestServiceFallbackPath:
             mock_today.text = "warm"
             mock_client.get_current = AsyncMock(return_value=mock_current)
             mock_client.get_today = AsyncMock(return_value=mock_today)
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -135,6 +136,7 @@ class TestServiceFallbackPath:
             mock_today.text = "chli chalt"
             mock_client.get_current = AsyncMock(return_value=mock_current)
             mock_client.get_today = AsyncMock(return_value=mock_today)
+            mock_client.get_cities = AsyncMock(return_value=[MagicMock(city="Bern")])
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client
@@ -223,6 +225,9 @@ class TestServiceParallelFetchErrors:
                 raise RuntimeError(f"fail {city}")
 
             mock_client.get_current = AsyncMock(side_effect=_side)
+            mock_client.get_cities = AsyncMock(
+                return_value=[MagicMock(city="Bern"), MagicMock(city="Thun")]
+            )
             mock_client.__aenter__ = AsyncMock(return_value=mock_client)
             mock_client.__aexit__ = AsyncMock(return_value=None)
             MockClient.return_value = mock_client

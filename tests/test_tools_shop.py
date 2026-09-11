@@ -110,6 +110,19 @@ class TestCreateCheckoutSession:
         mock_client.clear_cart.assert_called_once()
         mock_client.add_to_cart.assert_called_once_with(1, 1)
 
+    @pytest.mark.asyncio
+    async def test_empty_items_rejected_without_touching_cart(self) -> None:
+        """Empty items must not clear the user's existing cart or create a
+        CHF 0.00 session — it should be rejected outright."""
+        mock_client = _make_mock_client()
+        with patch("aareguru_mcp.shop_service.ShopClient") as MockClient:
+            MockClient.get_instance.return_value = mock_client
+            result = await tools.create_checkout_session([])
+        assert "error" in result
+        assert "session_id" not in result
+        mock_client.clear_cart.assert_not_called()
+        mock_client.add_to_cart.assert_not_called()
+
 
 class TestUpdateCheckoutSession:
     @pytest.mark.asyncio

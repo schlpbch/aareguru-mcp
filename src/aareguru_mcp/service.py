@@ -58,6 +58,24 @@ class AareguruService:
         """
         self.settings = settings or get_settings()
 
+    @staticmethod
+    async def _known_city_slugs(client: AareguruClient) -> set[str]:
+        """Fetch the set of normalised, valid city slugs from the API.
+
+        The upstream /v2018/current and /v2018/today endpoints silently
+        substitute Bern's data for an unrecognised city instead of erroring
+        (unlike /v2018/history, which 400s) — so callers must validate city
+        identifiers explicitly before trusting the response.
+        """
+        cities = await client.get_cities()
+        return {_normalize_city(c.city) for c in cities}
+
+    @staticmethod
+    def _check_city(city: str, known: set[str]) -> None:
+        """Raise ValueError if `city` isn't in the known-valid set."""
+        if _normalize_city(city) not in known:
+            raise ValueError(f"Unknown city: {city!r}")
+
     async def get_current_temperature(self, city: str = "Bern") -> dict[str, Any]:
         """Get current temperature with enrichment (warnings, suggestions, seasonal advice).
 
@@ -86,6 +104,8 @@ class AareguruService:
         logger.info("service.get_current_temperature", city=city)
 
         async with AareguruClient(settings=self.settings) as client:
+            self._check_city(city, await self._known_city_slugs(client))
+
             # Try current endpoint first (has nested aare data + flow)
             current_response = await client.get_current(city)
 
@@ -169,6 +189,8 @@ class AareguruService:
         logger.info("service.get_current_conditions", city=city)
 
         async with AareguruClient(settings=self.settings) as client:
+            self._check_city(city, await self._known_city_slugs(client))
+
             response = await client.get_current(city)
 
             result: dict[str, Any] = {"city": city}
@@ -274,6 +296,8 @@ class AareguruService:
         logger.info("service.get_flow_danger_level", city=city)
 
         async with AareguruClient(settings=self.settings) as client:
+            self._check_city(city, await self._known_city_slugs(client))
+
             response = await client.get_current(city)
 
             if not response.aare:
@@ -324,16 +348,22 @@ class AareguruService:
             RuntimeError if ALL cities fail to fetch
         """
         async with AareguruClient(settings=self.settings) as client:
-            if cities is None:
-                # Get all available cities
+            known: set[str] = set()
+            if cities is None or cities:
+                # Fetch the known-city set whenever there's something to
+                # validate — skipped for an explicit empty list, which has
+                # nothing to fetch or validate.
                 all_cities = await client.get_cities()
-                cities = [city.city for city in all_cities]
+                known = {_normalize_city(c.city) for c in all_cities}
+                if cities is None:
+                    cities = [city.city for city in all_cities]
 
             logger.info(f"Comparing {len(cities)} cities in parallel: {cities}")
 
             async def fetch_conditions(city: str) -> dict[str, Any]:
                 logger.info(f"→ Starting fetch for {city}")
                 try:
+                    self._check_city(city, known)
                     result = await client.get_current(city)
                     logger.info(f"✓ Successfully fetched {city}")
                     return {"city": city, "result": result, "error": None}
@@ -456,11 +486,13 @@ class AareguruService:
             RuntimeError if ALL cities fail to fetch
         """
         async with AareguruClient(settings=self.settings) as client:
+            known = await self._known_city_slugs(client) if cities else set()
             logger.info(f"Fetching forecasts for {len(cities)} cities: {cities}")
 
             async def fetch_forecast(city: str) -> dict[str, Any]:
                 logger.info(f"→ Starting forecast fetch for {city}")
                 try:
+                    self._check_city(city, known)
                     response = await client.get_current(city)
                     if not response.aare:
                         logger.warning(f"No aare data for {city}")
