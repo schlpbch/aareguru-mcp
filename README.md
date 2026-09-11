@@ -12,7 +12,8 @@ MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.8.0** — Upgraded to FastMCP 4.x and other dependencies.
+**Latest Release: v4.8.0** — Upgraded to FastMCP 4.x, fixed an elicitation
+regression, and repaired UCP checkout against the live WooCommerce store.
 See [docs/RELEASE_NOTES_v4.8.0.md](docs/RELEASE_NOTES_v4.8.0.md) for details.
 
 ## 🚀 Quick Start

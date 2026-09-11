@@ -62,6 +62,45 @@ ask the client:
 An explicit decline/cancel from a client that *does* support elicitation
 is unaffected — only the "can't ask at all" case changed behavior.
 
+## Bugfix: UCP Checkout Broken Against the Live WooCommerce Store
+
+**Issue**: Found by walking the actual shop/checkout tools end-to-end
+against the live `konsum.aare.guru` store (`create_checkout_session` →
+`update_checkout_session` → `complete_checkout`), not by the unit test
+suite — the existing mocks had drifted from the real Store API shape and
+masked all three of the following:
+
+1. **Every cart write failed with 401 Unauthorized.** The store no longer
+   uses cookies for cart identity; the WooCommerce Store API instead
+   issues a JWT `Cart-Token` response header that must be echoed back on
+   every subsequent write (`add-item`, `cart/items` DELETE, `checkout`),
+   or the request is rejected even with a valid nonce. `shop_client.py`
+   never captured or resent it.
+2. **`complete_checkout` failed with 400 Bad Request.** The hardcoded
+   `payment_method="postfinance_checkout"` default didn't match any
+   registered gateway ID — PostFinance Checkout registers one ID per
+   payment method (e.g. `postfinancecheckout_6`), not a single fixed
+   string.
+3. **`order_id` and `continue_url` always came back `null`.** The code
+   read `order.get("id")` / `order.get("payment_url")`, but the Store
+   API's checkout response nests these under `order_id` and
+   `payment_result.redirect_url`. The unit test's mock had used the same
+   wrong (aspirational) field names, so this passed tests while failing
+   on every real order.
+
+**Fix**: `shop_client.py` now captures and forwards the `Cart-Token`
+header alongside the nonce on every request; `submit_checkout` looks up
+the store's current default payment gateway from the checkout draft
+instead of a hardcoded string; `shop_service.py` reads `order_id` and
+`payment_result.redirect_url` from the real response shape. The test
+mock in `tests/test_tools_shop.py` was corrected to match.
+
+**Verified live**: walked the full flow against `konsum.aare.guru` with
+test billing data — `create_checkout_session` and `update_checkout_session`
+now succeed (previously 401), and `complete_checkout` returned a real
+order (`order_id: 4127`) with a populated `continue_url` payment link
+(previously both `null`).
+
 ## Test Coverage
 
 - 471 tests passing (7 new, in `tests/test_elicitation_fallback.py`,
@@ -77,11 +116,14 @@ is unaffected — only the "can't ask at all" case changed behavior.
   prompts, checkout session lifecycle, and edge cases (unicode/empty city,
   malformed dates, invalid sessions, parallel calls) — this is what
   surfaced the elicitation regression above.
-- After the fix: reproduced the exact failing scenario
+- After the elicitation fix: reproduced the exact failing scenario
   (`get_historical_data` with a 400-day range under `Client(mode="auto")`)
   and confirmed it now succeeds; confirmed a `mode="legacy"` client's
   elicitation handler is still invoked and an explicit decline still
   aborts as before.
+- After the checkout fix: completed a real order against the live store
+  (see above) confirming the Cart-Token, payment-method, and response
+  field-name fixes all work together end-to-end.
 
 ## Files Changed
 
@@ -92,10 +134,18 @@ is unaffected — only the "can't ask at all" case changed behavior.
 - `src/aareguru_mcp/server.py` — removed stale `type: ignore` comments;
   added `_elicit_safe()` and updated all four `ctx.elicit()` call sites
 - `tests/test_elicitation_fallback.py` — new regression tests
+- `src/aareguru_mcp/shop_client.py` — Cart-Token capture/forwarding,
+  dynamic payment-method lookup
+- `src/aareguru_mcp/shop_service.py` — corrected `order_id` /
+  `continue_url` field mapping
+- `tests/test_tools_shop.py` — corrected mock to match the real Store API
+  response shape
 - `CLAUDE.md`, `README.md` — FastMCP 3.x → 4.x references, test count/coverage
 
 ---
 
-**Summary**: Dependency upgrade to FastMCP 4.x / MCP SDK v2, plus a fix for
-an elicitation regression the upgrade introduced for clients on the modern
-MCP protocol. No breaking changes for consumers of this MCP server.
+**Summary**: Dependency upgrade to FastMCP 4.x / MCP SDK v2, a fix for an
+elicitation regression the upgrade introduced for clients on the modern
+MCP protocol, and a fix for three checkout bugs that broke UCP purchases
+against the live WooCommerce store. No breaking changes for consumers of
+this MCP server.
