@@ -11,7 +11,7 @@ MCP tools (incl. 6 shop/UCP checkout tools), 8 MCP resources, 3 MCP prompts,
 and 9 interactive FastMCPApps for querying water temperature, flow rates,
 weather conditions, safety assessments, and merchandise checkout.
 
-**Status**: Production ready with 471 tests passing (81% coverage, 0 skipped)
+**Status**: Production ready with 483 tests passing (84% coverage, 0 skipped)
 complete **Stack**: FastMCP 4.x, HTTP/SSE transport, Python 3.13, async/await
 **Features**: Service layer pattern, 9 FastMCPApps (incl. OpenStreetMap and
 shop/checkout), UCP checkout over WooCommerce, MCP elicitation, rate limiting,
@@ -397,7 +397,7 @@ time across all question categories.
 
 Tests use pytest with async support (`pytest-asyncio`):
 
-- **471 passing tests, 0 skipped** (81% coverage)
+- **483 passing tests, 0 skipped** (84% coverage)
 - **Organization**:
   - `test_unit_*.py`: Models, config, client, helpers
   - `test_tools_*.py`: Tool functionality (basic & advanced)
