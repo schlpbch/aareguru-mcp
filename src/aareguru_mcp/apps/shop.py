@@ -9,8 +9,8 @@ from prefab_ui.components import (
     Card,
     CardContent,
     Column,
-    DataTable,
-    DataTableColumn,
+    Image,
+    Link,
     Muted,
     Row,
     Separator,
@@ -106,36 +106,45 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
             order_id: int | None = session.get("order_id")
             continue_url: str | None = session.get("continue_url")
 
-            # Cart items table
-            rows = [
-                {
-                    "Artikel": item.get("name", "—"),
-                    "Menge": str(item.get("quantity", 1)),
-                    "Einzelpreis": f"CHF {item.get('unit_price_chf', 0):.2f}",
-                    "Total": f"CHF {item.get('total_chf', 0):.2f}",
-                }
-                for item in line_items
-            ]
+            # Cart items — thumbnail, name, quantity × unit price, line total
             with Card(css_class=f"{_AG_RADIUS}"):
-                with CardContent(css_class="p-0"):
-                    DataTable(
-                        columns=[
-                            DataTableColumn(key="Artikel", header=t("col_item", lang)),
-                            DataTableColumn(
-                                key="Menge", header=t("col_qty", lang), align="right"
-                            ),
-                            DataTableColumn(
-                                key="Einzelpreis",
-                                header=t("col_unit_price", lang),
-                                align="right",
-                            ),
-                            DataTableColumn(
-                                key="Total", header=t("col_total", lang), align="right"
-                            ),
-                        ],
-                        rows=rows,  # type: ignore[arg-type]
-                        search=False,
-                    )
+                with CardContent(
+                    css_class="p-0 divide-y divide-black/5 dark:divide-white/10"
+                ):
+                    for item in line_items:
+                        with Row(css_class="items-center gap-3 p-3"):
+                            image_url = item.get("image_url")
+                            if image_url:
+                                Image(
+                                    src=image_url,
+                                    alt=item.get("name", ""),
+                                    css_class=(
+                                        f"{_AG_RADIUS} w-12 h-12 object-cover shrink-0"
+                                        " border border-black/10 dark:border-white/10"
+                                    ),
+                                )
+                            with Column(gap=0, css_class="flex-1 min-w-0"):
+                                Text(
+                                    item.get("name", "—"),
+                                    css_class=(
+                                        f"text-sm font-bold truncate"
+                                        f" text-[{_AG_TXT_PRIMARY}]"
+                                        f" dark:text-[{_DK.TXT_PRIMARY}]"
+                                    ),
+                                )
+                                Muted(
+                                    f"{item.get('quantity', 1)} × "
+                                    f"CHF {item.get('unit_price_chf', 0):.2f}",
+                                    css_class="text-xs",
+                                )
+                            Text(
+                                f"CHF {item.get('total_chf', 0):.2f}",
+                                css_class=(
+                                    f"text-sm font-black tabular-nums shrink-0"
+                                    f" text-[{_AG_TXT_PRIMARY}]"
+                                    f" dark:text-[{_DK.TXT_PRIMARY}]"
+                                ),
+                            )
 
             # Total card
             with Card(
@@ -175,21 +184,17 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
                             ),
                         )
                         Muted(
-                            f'1.  update_checkout_session("{session_id}", billing={{...}})',
-                            css_class="text-xs font-mono mt-1",
-                        )
-                        Muted(
-                            f'2.  complete_checkout("{session_id}")',
-                            css_class="text-xs font-mono",
+                            t("label_next_step_hint", lang),
+                            css_class="text-xs mt-1",
                         )
 
             # State 3 — billing attached, ready to complete
             elif status == "ready_for_complete":
-                _render_billing_card(billing, session_id, confirmed=False, lang=lang)
+                _render_billing_card(billing, confirmed=False, lang=lang)
 
             # State 4 — order completed
             elif status == "completed":
-                _render_billing_card(billing, session_id, confirmed=True, lang=lang)
+                _render_billing_card(billing, confirmed=True, lang=lang)
                 with Card(
                     css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"
                     f" dark:border-t-[{_DK.BFU}]"
@@ -209,20 +214,20 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
                             )
                         if continue_url:
                             Separator(css_class="my-2")
-                            Text(
-                                t("label_payment_link", lang),
+                            Link(
+                                t("label_open_payment", lang),
+                                href=continue_url,
+                                target="_blank",
                                 css_class=(
-                                    f"text-xs font-bold text-[{_AG_TXT_PRIMARY}]"
-                                    f" dark:text-[{_DK.TXT_PRIMARY}]"
+                                    f"{_AG_RADIUS} block w-full text-center py-2"
+                                    " font-black uppercase tracking-wide no-underline"
+                                    f" text-white bg-[{_AG_BFU}] dark:bg-[{_DK.BFU}]"
+                                    f" dark:text-[{_DK.CARD_BG}]"
                                 ),
-                            )
-                            Text(
-                                continue_url,
-                                css_class="text-xs font-mono break-all text-blue-600 dark:text-blue-400",
                             )
                             Muted(
                                 t("label_payment_desc", lang),
-                                css_class="text-[10px] mt-1",
+                                css_class="text-[10px] mt-2 text-center",
                             )
 
     return PrefabApp(
@@ -239,7 +244,7 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
 
 
 def _render_billing_card(
-    billing: dict[str, Any], session_id: str, confirmed: bool, lang: str = "de"
+    billing: dict[str, Any], confirmed: bool, lang: str = "de"
 ) -> None:
     """Render billing address summary card (state 3 and 4)."""
     border_color = _AG_BFU if confirmed else _AG_WASSER_FLOW
@@ -281,6 +286,6 @@ def _render_billing_card(
             if not confirmed:
                 Separator(css_class="my-2")
                 Muted(
-                    f'complete_checkout("{session_id}")',
-                    css_class="text-xs font-mono",
+                    t("label_ready_hint", lang),
+                    css_class="text-xs",
                 )

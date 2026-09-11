@@ -65,6 +65,7 @@ class UCPLineItem(BaseModel):
     quantity: int
     unit_price_chf: float
     total_chf: float
+    image_url: str | None = None
 
 
 class UCPCheckoutSession(BaseModel):

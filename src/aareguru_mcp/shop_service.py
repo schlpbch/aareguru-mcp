@@ -94,6 +94,7 @@ class ShopService:
             await self.client.add_to_cart(product_id, quantity)
             product = await self.client.get_product(product_id)
             price = _parse_price(product.get("prices", {}))
+            images: list[dict[str, Any]] = product.get("images", [])
 
             line_items.append(
                 UCPLineItem(
@@ -103,6 +104,7 @@ class ShopService:
                     quantity=quantity,
                     unit_price_chf=price,
                     total_chf=round(price * quantity, 2),
+                    image_url=images[0]["src"] if images else None,
                 )
             )
 

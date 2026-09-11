@@ -15,6 +15,7 @@ from prefab_ui.components import (
     Carousel,
     Column,
     Image,
+    Link,
     Muted,
     Row,
     Separator,
@@ -158,26 +159,28 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
                         )
 
             # ── Add to cart hint ──────────────────────────────────────────────
-            with Card(
-                css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_BFU}]"
-                f" dark:border-l-[{_DK.BFU}]"
-            ):
-                with CardContent(css_class="p-3"):
-                    Muted(
-                        t("label_add_to_cart_hint", lang),
-                        css_class="text-xs uppercase tracking-[0.15em]",
-                    )
-                    Muted(
-                        f'create_checkout_session(items=[{{"product_id": {product_id}, "quantity": 1}}])',
-                        css_class="text-xs font-mono mt-1",
-                    )
+            if in_stock:
+                with Card(
+                    css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_BFU}]"
+                    f" dark:border-l-[{_DK.BFU}]"
+                ):
+                    with CardContent(css_class="p-3"):
+                        Muted(
+                            t("label_add_to_cart_hint", lang),
+                            css_class="text-xs",
+                        )
 
             # ── Online link ───────────────────────────────────────────────────
             if permalink:
                 Separator(css_class="my-1")
-                Muted(
-                    f"{t('label_view_online', lang)}: {permalink}",
-                    css_class="text-[10px] text-center break-all",
+                Link(
+                    t("label_view_online", lang),
+                    href=permalink,
+                    target="_blank",
+                    css_class=(
+                        f"{_AG_RADIUS} block text-center text-xs font-bold"
+                        f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
+                    ),
                 )
 
     return PrefabApp(
