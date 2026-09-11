@@ -9,7 +9,7 @@ resolution-markers = [
 
 [[package]]
 name = "aareguru-mcp"
-version = "4.8.1"
+version = "4.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp", extra = ["apps"] },

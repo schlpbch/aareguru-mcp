@@ -1,21 +1,21 @@
 # Aareguru MCP Server
 
 [![FastMCP Cloud](https://img.shields.io/badge/FastMCP%20Cloud-deployed-success?logo=cloud)](https://aareguru.fastmcp.app/health/)
-[![Tests](https://img.shields.io/badge/tests-489%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-505%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-green)](tests/)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](pyproject.toml)
 [![FastMCP](https://img.shields.io/badge/FastMCP-4.x-purple)](https://github.com/jlowin/fastmcp)
-[![Version](https://img.shields.io/badge/version-4.8.1-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-4.9.0-blue)](CHANGELOG.md)
 [![Privacy Policy](https://img.shields.io/badge/privacy-policy-informational)](PRIVACY.md)
 
 MCP server for Swiss Aare river data, enabling AI assistants like Claude to
 answer questions about swimming conditions, water temperature, flow rates, and
 safety.
 
-**Latest Release: v4.8.1** — Polished the shop cart and product views for
-customers: item thumbnails, plain-language guidance, and real clickable
-payment/product links instead of raw tool-call code.
-See [docs/RELEASE_NOTES_v4.8.1.md](docs/RELEASE_NOTES_v4.8.1.md) for details.
+**Latest Release: v4.9.0** — Added a full merchandise catalog browsing view,
+and fixed two correctness bugs: unknown cities no longer silently return
+Bern's data, and empty checkout requests no longer clear your cart.
+See [docs/RELEASE_NOTES_v4.9.0.md](docs/RELEASE_NOTES_v4.9.0.md) for details.
 
 ## 🚀 Quick Start
 
@@ -61,7 +61,7 @@ Alternatively, add the [aareguru-mcp.mcpb](aareguru-mcp.mcpb) file via
 | **Metrics**          | Prometheus endpoint for monitoring and observability                       |
 | **Swiss German**     | Authentic temperature descriptions ("geil aber chli chalt")                |
 | **BAFU Safety**      | Official flow danger levels and thresholds                                 |
-| **489 Tests**        | 85% coverage, comprehensive test suite (0 skipped)                         |
+| **505 Tests**        | 85% coverage, comprehensive test suite (0 skipped)                         |
 | **Async-First**      | Context managers, parallel API fetching with asyncio.gather()              |
 
 ## 🛠️ Tools
@@ -245,7 +245,7 @@ HTTP endpoints are protected with rate limiting:
 ## 🧪 Development
 
 ```bash
-uv run pytest                    # Run tests (489 tests, all passing)
+uv run pytest                    # Run tests (505 tests, all passing)
 uv run pytest --cov=aareguru_mcp # With coverage (85%)
 uv run ruff check src/ tests/    # Lint (all passing)
 uv run mypy src/                 # Type check (0 errors)
@@ -297,7 +297,7 @@ aareguru-mcp/
 │   ├── client.py      # Async HTTP client with caching
 │   ├── models.py      # Pydantic models
 │   └── helpers.py     # Shared utilities
-├── tests/             # 489 tests, 85% coverage (0 skipped)
+├── tests/             # 505 tests, 85% coverage (0 skipped)
 ├── docs/              # API docs, testing, implementation notes
 ├── ARCHITECTURE.md
 ├── CLAUDE.md
