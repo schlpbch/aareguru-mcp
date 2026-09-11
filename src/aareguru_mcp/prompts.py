@@ -133,7 +133,9 @@ async def shop_browse(search: str | None = None) -> str:
 
     return f"""Please browse the Aareguru merchandise catalog{search_clause}.
 
-1. **List products**: Call `list_shop_products{search_arg}` to fetch the catalog.
+1. **List products**: Call `list_shop_products{search_arg}` to fetch the catalog,
+   or call `shop_catalog_view({search_arg.lstrip(', ')})` to show it as a
+   browsable visual grid with thumbnails.
 
 2. **Present the results** in a clear, friendly format:
    - Product name and price in CHF

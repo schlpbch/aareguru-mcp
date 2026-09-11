@@ -8,14 +8,14 @@ code in this repository.
 Aareguru MCP Server is a Model Context Protocol (MCP) server that exposes Swiss
 Aare river data from the Aareguru API to AI assistants. The server provides 12
 MCP tools (incl. 6 shop/UCP checkout tools), 8 MCP resources, 3 MCP prompts,
-and 9 interactive FastMCPApps for querying water temperature, flow rates,
-weather conditions, safety assessments, and merchandise checkout.
+and 11 interactive FastMCPApps for querying water temperature, flow rates,
+weather conditions, safety assessments, and merchandise browsing/checkout.
 
-**Status**: Production ready with 483 tests passing (84% coverage, 0 skipped)
+**Status**: Production ready with 489 tests passing (85% coverage, 0 skipped)
 complete **Stack**: FastMCP 4.x, HTTP/SSE transport, Python 3.13, async/await
-**Features**: Service layer pattern, 9 FastMCPApps (incl. OpenStreetMap and
-shop/checkout), UCP checkout over WooCommerce, MCP elicitation, rate limiting,
-caching, structured logging (structlog), FastMCP Cloud ready
+**Features**: Service layer pattern, 11 FastMCPApps (incl. OpenStreetMap and
+shop catalog/cart/checkout), UCP checkout over WooCommerce, MCP elicitation,
+rate limiting, caching, structured logging (structlog), FastMCP Cloud ready
 
 ## Development Commands
 

@@ -50,6 +50,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "page_city_finder": "Städtefinder",
         "page_compare": "Städtevergleich",
         "page_shop": "Aareguru Shop — Warenkorb",
+        "page_shop_catalog": "Aareguru Shop — Sortiment",
         # Section headers
         "section_bafu_levels": "BAFU Gefahrenstufen",
         "section_weather_forecast": "Wettervorhersage",
@@ -121,6 +122,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "label_view_online": "Online ansehen",
         "alert_product_not_found": "Produkt nicht gefunden",
         "alert_product_not_found_desc": "Produkt-ID ungültig oder nicht verfügbar.",
+        "alert_no_products": "Keine Produkte gefunden",
+        "alert_no_products_desc": "Versuche einen anderen Suchbegriff oder zeige das ganze Sortiment.",
     },
     "en": {
         # Safety badge labels
@@ -164,6 +167,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "page_city_finder": "City Finder",
         "page_compare": "City Comparison",
         "page_shop": "Aareguru Shop — Cart",
+        "page_shop_catalog": "Aareguru Shop — Merchandise",
         # Section headers
         "section_bafu_levels": "BAFU Danger Levels",
         "section_weather_forecast": "Weather Forecast",
@@ -235,6 +239,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "label_view_online": "View Online",
         "alert_product_not_found": "Product Not Found",
         "alert_product_not_found_desc": "Invalid product ID or product unavailable.",
+        "alert_no_products": "No Products Found",
+        "alert_no_products_desc": "Try a different search term or browse the full catalog.",
     },
     "fr": {
         # Safety badge labels
@@ -278,6 +284,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "page_city_finder": "Sélecteur de villes",
         "page_compare": "Comparaison des villes",
         "page_shop": "Aareguru Shop — Panier",
+        "page_shop_catalog": "Aareguru Shop — Assortiment",
         # Section headers
         "section_bafu_levels": "Niveaux de danger OFEV",
         "section_weather_forecast": "Prévision météo",
@@ -349,6 +356,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "label_view_online": "Voir en ligne",
         "alert_product_not_found": "Produit introuvable",
         "alert_product_not_found_desc": "ID de produit invalide ou produit non disponible.",
+        "alert_no_products": "Aucun produit trouvé",
+        "alert_no_products_desc": "Essayez un autre terme de recherche ou parcourez tout l'assortiment.",
     },
     "it": {
         # Safety badge labels
@@ -392,6 +401,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "page_city_finder": "Ricerca città",
         "page_compare": "Confronto città",
         "page_shop": "Aareguru Shop — Carrello",
+        "page_shop_catalog": "Aareguru Shop — Assortimento",
         # Section headers
         "section_bafu_levels": "Livelli di pericolo UFAM",
         "section_weather_forecast": "Previsione meteo",
@@ -463,6 +473,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "label_view_online": "Vedi online",
         "alert_product_not_found": "Prodotto non trovato",
         "alert_product_not_found_desc": "ID prodotto non valido o prodotto non disponibile.",
+        "alert_no_products": "Nessun prodotto trovato",
+        "alert_no_products_desc": "Prova un altro termine di ricerca o sfoglia l'intero assortimento.",
     },
 }
 

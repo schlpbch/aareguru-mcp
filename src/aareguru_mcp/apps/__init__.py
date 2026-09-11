@@ -1,17 +1,20 @@
-"""FastMCP Apps for interactive Aare river data UIs.
+"""FastMCP Apps for interactive Aare river data and shop UIs.
 
-Provides eight FastMCPApps that render interactive UIs directly in conversations,
+Provides FastMCPApps that render interactive UIs directly in conversations,
 using the aare.guru visual design system.
 
 Apps:
-- conditions_app: Dashboard for current water + weather conditions
-- history_app:    Area chart for historical temperature and flow trends
-- compare_app:    Sortable data table comparing conditions across cities
-- forecast_app:   24-hour forecast with air-temperature chart
-- intraday_app:   Today's intraday water temperature sparkline
-- city_finder_app: All cities ranked by temperature or safety
-- safety_app:     BAFU 1-5 danger level briefing
-- map_app:        Interactive Leaflet.js map of all monitoring stations
+- conditions_app:   Dashboard for current water + weather conditions
+- history_app:      Area chart for historical temperature and flow trends
+- compare_app:      Sortable data table comparing conditions across cities
+- forecast_app:     24-hour forecast with air-temperature chart
+- intraday_app:     Today's intraday water temperature sparkline
+- city_finder_app:  All cities ranked by temperature or safety
+- safety_app:       BAFU 1-5 danger level briefing
+- map_app:          Interactive Leaflet.js map of all monitoring stations
+- shop_app:         Cart contents and UCP checkout status for a session
+- shop_catalog_app: Full merchandise catalog as a browsable grid
+- shop_product_app: Detail view for a single merchandise product
 """
 
 from ..service import AareguruService
@@ -34,6 +37,7 @@ from .intraday import intraday_app, intraday_view, refresh_intraday
 from .map import aare_map, map_app, refresh_map
 from .safety import refresh_safety, safety_app, safety_briefing
 from .shop import refresh_shop_cart, shop_app, shop_cart_view
+from .shop_catalog import refresh_shop_catalog, shop_catalog_app, shop_catalog_view
 from .shop_product import product_view, refresh_product, shop_product_app
 
 __all__ = [
@@ -51,6 +55,7 @@ __all__ = [
     "safety_app",
     "map_app",
     "shop_app",
+    "shop_catalog_app",
     "shop_product_app",
     # UI functions (used by tests)
     "conditions_dashboard",
@@ -66,6 +71,7 @@ __all__ = [
     "safety_briefing",
     "aare_map",
     "shop_cart_view",
+    "shop_catalog_view",
     "product_view",
     # Render functions (used by conditions_dashboard and tests)
     "render_temperature_section",
@@ -82,6 +88,7 @@ __all__ = [
     "refresh_safety",
     "refresh_map",
     "refresh_shop_cart",
+    "refresh_shop_catalog",
     "refresh_product",
     # Helper (used by tests)
     "_safety_badge",
