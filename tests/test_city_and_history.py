@@ -68,12 +68,15 @@ _CITY_DATA = {
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("city,expected_temp", [
-    ("Bern", 18.5),
-    ("Thun", 20.1),
-    ("Olten", 16.3),
-    ("Basel", 17.8),
-])
+@pytest.mark.parametrize(
+    "city,expected_temp",
+    [
+        ("Bern", 18.5),
+        ("Thun", 20.1),
+        ("Olten", 16.3),
+        ("Basel", 17.8),
+    ],
+)
 async def test_different_cities_return_different_temperatures(
     city: str, expected_temp: float
 ) -> None:
@@ -81,25 +84,28 @@ async def test_different_cities_return_different_temperatures(
     with patch("aareguru_mcp.service.AareguruClient") as MockClient:
         MockClient.return_value = _make_mock_client(_CITY_DATA)
         result = await tools.get_current_temperature(city)
-    assert result.get("temperature") == expected_temp, (
-        f"Expected {expected_temp}°C for {city}, got {result.get('temperature')}"
-    )
+    assert (
+        result.get("temperature") == expected_temp
+    ), f"Expected {expected_temp}°C for {city}, got {result.get('temperature')}"
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("city_a,city_b", [
-    ("Bern", "Thun"),
-    ("Olten", "Basel"),
-])
+@pytest.mark.parametrize(
+    "city_a,city_b",
+    [
+        ("Bern", "Thun"),
+        ("Olten", "Basel"),
+    ],
+)
 async def test_two_cities_differ(city_a: str, city_b: str) -> None:
     """Two distinct cities must not return identical temperatures."""
     with patch("aareguru_mcp.service.AareguruClient") as MockClient:
         MockClient.return_value = _make_mock_client(_CITY_DATA)
         result_a = await tools.get_current_temperature(city_a)
         result_b = await tools.get_current_temperature(city_b)
-    assert result_a.get("temperature") != result_b.get("temperature"), (
-        f"{city_a} and {city_b} should return different temperatures"
-    )
+    assert result_a.get("temperature") != result_b.get(
+        "temperature"
+    ), f"{city_a} and {city_b} should return different temperatures"
 
 
 @pytest.mark.asyncio
@@ -131,15 +137,18 @@ def _history_mock():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("start,end", [
-    ("-7 days", "now"),
-    ("-1 week", "now"),
-    ("-30 days", "now"),
-    ("-1 month", "now"),
-    ("2025-01-01", "2025-01-07"),
-    ("2025-01-01T00:00:00Z", "2025-01-07T23:59:59Z"),
-    ("1700000000", "1700090000"),
-])
+@pytest.mark.parametrize(
+    "start,end",
+    [
+        ("-7 days", "now"),
+        ("-1 week", "now"),
+        ("-30 days", "now"),
+        ("-1 month", "now"),
+        ("2025-01-01", "2025-01-07"),
+        ("2025-01-01T00:00:00Z", "2025-01-07T23:59:59Z"),
+        ("1700000000", "1700090000"),
+    ],
+)
 async def test_historical_data_date_formats(start: str, end: str) -> None:
     """get_historical_data accepts all documented date formats."""
     with patch("aareguru_mcp.service.AareguruClient") as MockClient:
@@ -177,22 +186,25 @@ async def test_historical_data_different_cities(city: str) -> None:
         await tools.get_historical_data(city, "-7 days", "now")
 
     assert captured, "get_history was never called"
-    assert captured[0] == city.strip().lower(), (
-        f"Expected city '{city.strip().lower()}', client received '{captured[0]}'"
-    )
+    assert (
+        captured[0] == city.strip().lower()
+    ), f"Expected city '{city.strip().lower()}', client received '{captured[0]}'"
 
 
 # ---------------------------------------------------------------------------
 # _estimate_days in server (uses _resolve_timestamp internally)
 # ---------------------------------------------------------------------------
 
+
 def test_estimate_days_relative() -> None:
     from aareguru_mcp.server import _estimate_days
+
     assert abs(_estimate_days("-7 days") - 7) < 1
 
 
 def test_estimate_days_weeks() -> None:
     from aareguru_mcp.server import _estimate_days
+
     assert abs(_estimate_days("-2 weeks") - 14) < 1
 
 

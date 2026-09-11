@@ -216,7 +216,9 @@ class TestResolveTimestamp:
 
     def test_iso_datetime(self) -> None:
         result = AareguruClient._resolve_timestamp("2025-06-15T12:00:00Z")
-        assert result == str(int(datetime(2025, 6, 15, 12, 0, 0, tzinfo=UTC).timestamp()))
+        assert result == str(
+            int(datetime(2025, 6, 15, 12, 0, 0, tzinfo=UTC).timestamp())
+        )
 
     def test_unknown_passthrough(self) -> None:
         assert AareguruClient._resolve_timestamp("something-weird") == "something-weird"

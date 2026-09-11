@@ -96,7 +96,9 @@ async def historical_chart(
     has_flow = any(p.get("flow") is not None for p in chart_data)
     series = [
         ChartSeries(
-            dataKey="temperature", label=t("chart_water_temp", lang), color=_AG_WASSER_TEMP
+            dataKey="temperature",
+            label=t("chart_water_temp", lang),
+            color=_AG_WASSER_TEMP,
         ),
     ]
     if has_flow:
@@ -106,25 +108,25 @@ async def historical_chart(
             )
         )
 
-    with Column(gap=0, cssClass="p-2 max-w-3xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-3xl mx-auto") as view:
 
         # Header — matches aare.guru section title style
-        with Row(cssClass="justify-between items-end mb-0"):
+        with Row(css_class="justify-between items-end mb-0"):
             Text(
                 f"Aare — {city}",
-                cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] uppercase",
+                css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] uppercase",
             )
             Muted(
                 f"{start} → {end}",
-                cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                css_class=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
             )
 
         if chart_data:
             # Chart card with subtle Aare cyan border-top
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="pt-3 pb-2 px-3"):
+                with CardContent(css_class="pt-3 pb-2 px-3"):
                     AreaChart(
                         data=chart_data,
                         series=series,
@@ -135,10 +137,10 @@ async def historical_chart(
                     )
             Muted(
                 f"{len(chart_data)} {t('label_data_points', lang)}",
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
+                css_class=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
-            with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):
+            with Alert(variant="warning", css_class=f"{_AG_RADIUS}"):
                 AlertTitle(t("alert_no_data", lang))
                 AlertDescription(t("alert_no_history", lang))
 

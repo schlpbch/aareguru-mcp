@@ -367,72 +367,72 @@ async def aare_map(city: str | None = None, lang: str = "de") -> PrefabApp:
 
     map_html = _build_map_html(cities_geo, city, lang=lang)
 
-    with Column(gap=0, cssClass="p-2 max-w-4xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-4xl mx-auto") as view:
         Text(
             t("page_aare_map", lang),
-            cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
+            css_class=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}]"
             f" dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
 
         # Summary strip — same pattern as city_finder / compare
-        with Grid(columns=3, gap=0, cssClass="mb-1"):
+        with Grid(columns=3, gap=0, css_class="mb-1"):
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
                 f" dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     Text(
                         warmest.get("location") or warmest.get("city") or "—",
-                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}]"
+                        css_class=f"text-sm font-black text-[{_AG_WASSER_TEMP}]"
                         f" dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     if warmest.get("temperature") is not None:
                         Text(
                             f"{warmest['temperature']:.1f}°",
-                            cssClass=f"text-xl font-black tabular-nums"
+                            css_class=f"text-xl font-black tabular-nums"
                             f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
                         t("badge_warmest_city", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"
                 f" dark:border-t-[{_DK.BFU}]"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
-                        cssClass=f"text-xl font-black tabular-nums"
+                        css_class=f"text-xl font-black tabular-nums"
                         f" text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
                         t("badge_safe_cities", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_TXT_PRIMARY}]/30"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_TXT_PRIMARY}]/30"
                 f" dark:border-t-[{_DK.TXT_PRIMARY}]/30"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     Text(
                         str(len(cities_geo)),
-                        cssClass=f"text-xl font-black tabular-nums"
+                        css_class=f"text-xl font-black tabular-nums"
                         f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                     )
                     Muted(
                         t("badge_stations", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         # Map embed
-        with Card(cssClass=f"{_AG_RADIUS} overflow-hidden"):
-            Embed(html=map_html, height="440px", cssClass="w-full block")
+        with Card(css_class=f"{_AG_RADIUS} overflow-hidden"):
+            Embed(html=map_html, height="440px", css_class="w-full block")
 
     return PrefabApp(
         view=view,

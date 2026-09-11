@@ -33,7 +33,9 @@ async def refresh_temperature(city: str) -> dict[str, Any]:
     return await service.get_current_conditions(city)
 
 
-def render_temperature_section(aare: dict[str, Any] | None = None, lang: str = "de") -> None:
+def render_temperature_section(
+    aare: dict[str, Any] | None = None, lang: str = "de"
+) -> None:
     """Render water temperature card section.
 
     Must be called inside an active Column/Row context.
@@ -61,31 +63,31 @@ def render_temperature_section(aare: dict[str, Any] | None = None, lang: str = "
             trend_text = f"→ {forecast_2h:.1f}° in 2h"
 
     with Card(
-        cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS} overflow-hidden"
+        css_class=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS} overflow-hidden"
     ):
-        with CardContent(cssClass="p-4 text-center"):
+        with CardContent(css_class="p-4 text-center"):
             Text(
                 _fmt_temp(temp),
-                cssClass=f"text-6xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                css_class=f"text-6xl font-black leading-none tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
             )
             Text(
                 t("card_water_temp", lang),
-                cssClass=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-1 mb-0.5",
+                css_class=f"text-[10px] uppercase tracking-[0.2em] text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-1 mb-0.5",
             )
             if trend_text:
                 Muted(
                     trend_text,
-                    cssClass=f"text-xs text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5 font-semibold",
+                    css_class=f"text-xs text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5 font-semibold",
                 )
             if temp_text:
                 Text(
                     f"{temp_text}",
-                    cssClass=f"text-md text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] font-semibold",
+                    css_class=f"text-md text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] font-semibold",
                 )
                 if explanation:
                     Muted(
                         explanation,
-                        cssClass=f"text-xs text-[{_AG_WASSER_TEMP}]/70 dark:text-[{_DK.WASSER_TEMP}]/70 mt-0.5",
+                        css_class=f"text-xs text-[{_AG_WASSER_TEMP}]/70 dark:text-[{_DK.WASSER_TEMP}]/70 mt-0.5",
                     )
 
 
@@ -107,10 +109,10 @@ async def temperature_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     aare = data.get("aare") or {}
     location: str = aare.get("location_long") or aare.get("location") or city
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
         Text(
             f"Aare — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] text-center uppercase",
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] text-center uppercase",
         )
         render_temperature_section(aare, lang=lang)
 

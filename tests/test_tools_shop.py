@@ -34,7 +34,11 @@ def _make_mock_client(product: dict[str, Any] | None = None) -> MagicMock:
     client.clear_cart = AsyncMock()
     client.add_to_cart = AsyncMock(return_value={"key": "abc123", "id": p["id"]})
     client.submit_checkout = AsyncMock(
-        return_value={"id": 999, "status": "pending", "payment_url": "https://pay.example.com/999"}
+        return_value={
+            "id": 999,
+            "status": "pending",
+            "payment_url": "https://pay.example.com/999",
+        }
     )
     client.close = AsyncMock()
     return client
@@ -141,7 +145,9 @@ class TestCompleteCheckout:
         mock_client = _make_mock_client()
         with patch("aareguru_mcp.shop_service.ShopClient") as MockClient:
             MockClient.get_instance.return_value = mock_client
-            create = await tools.create_checkout_session([{"product_id": 1, "quantity": 1}])
+            create = await tools.create_checkout_session(
+                [{"product_id": 1, "quantity": 1}]
+            )
             session_id = create["session_id"]
             billing = {
                 "first_name": "Hans",
@@ -165,7 +171,9 @@ class TestCancelCheckoutSession:
         mock_client = _make_mock_client()
         with patch("aareguru_mcp.shop_service.ShopClient") as MockClient:
             MockClient.get_instance.return_value = mock_client
-            create = await tools.create_checkout_session([{"product_id": 1, "quantity": 1}])
+            create = await tools.create_checkout_session(
+                [{"product_id": 1, "quantity": 1}]
+            )
             session_id = create["session_id"]
             result = await tools.cancel_checkout_session(session_id)
         assert result["status"] == "canceled"

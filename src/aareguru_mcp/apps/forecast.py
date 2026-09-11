@@ -123,85 +123,85 @@ async def forecast_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
         if e["tt"] is not None
     ]
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
 
         # ── Header ──────────────────────────────────────────────────────────
         Text(
             f"{t('page_forecast', lang)} — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # ── Safety warning ───────────────────────────────────────────────────
         if warning:
-            with Alert(variant="destructive", cssClass=f"{_AG_RADIUS}"):
+            with Alert(variant="destructive", css_class=f"{_AG_RADIUS}"):
                 AlertTitle(t("alert_safety_title", lang))
                 AlertDescription(warning)
 
         # ── Current → 2h water temperature cards ────────────────────────────
         with Grid(columns=2, gap=0):
             with Card(
-                cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
+                css_class=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
             ):
-                with CardContent(cssClass="p-3 text-center"):
+                with CardContent(css_class="p-3 text-center"):
                     Text(
                         _fmt_temp(temp),
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                        css_class=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         t("label_now", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"bg-[{_AG_BG_WASSER}]/50 dark:bg-[{_DK.BG_WASSER}]/50 {_AG_RADIUS}"
+                css_class=f"bg-[{_AG_BG_WASSER}]/50 dark:bg-[{_DK.BG_WASSER}]/50 {_AG_RADIUS}"
             ):
-                with CardContent(cssClass="p-3 text-center"):
+                with CardContent(css_class="p-3 text-center"):
                     Text(
                         f"{trend_arrow} {_fmt_temp(forecast_2h)}",
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                        css_class=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         t("label_in_2h", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
                     if trend_diff:
                         Muted(
                             trend_diff,
-                            cssClass=f"text-xs font-semibold text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5",
+                            css_class=f"text-xs font-semibold text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}] mt-0.5",
                         )
                     if forecast_2h_text:
                         Muted(
                             forecast_2h_text,
-                            cssClass=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
+                            css_class=f"text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                         )
 
         # Safety + flow row
-        with Row(cssClass="justify-center gap-2 items-center"):
+        with Row(css_class="justify-center gap-2 items-center"):
             Badge(
                 label=safety_label,
                 variant=safety_variant,
-                cssClass="text-xs px-2 py-0.5",
+                css_class="text-xs px-2 py-0.5",
             )
             Muted(
                 f"{_fmt_flow(flow)} m³/s",
-                cssClass=f"text-xs text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] font-semibold",
+                css_class=f"text-xs text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] font-semibold",
             )
 
         # ── Air temperature chart ────────────────────────────────────────────
         if chart_data:
-            Separator(cssClass="my-0")
+            Separator(css_class="my-0")
             Text(
                 t("section_weather_forecast", lang),
-                cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                css_class=f"text-[10px] uppercase tracking-[0.2em]"
                 f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WETTER}] dark:border-t-[{_DK.BG_WETTER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WETTER}] dark:border-t-[{_DK.BG_WETTER}]"
             ):
-                with CardContent(cssClass="pt-3 pb-2 px-3"):
+                with CardContent(css_class="pt-3 pb-2 px-3"):
                     AreaChart(
                         data=chart_data,
                         series=[
@@ -224,33 +224,33 @@ async def forecast_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
 
         # ── Hourly card strip ────────────────────────────────────────────────
         if normalised:
-            Separator(cssClass="my-0")
+            Separator(css_class="my-0")
             Text(
                 t("section_hourly_forecast", lang),
-                cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                css_class=f"text-[10px] uppercase tracking-[0.2em]"
                 f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
             )
-            with Row(cssClass="gap-1.5 overflow-x-auto pb-1 flex-nowrap"):
+            with Row(css_class="gap-1.5 overflow-x-auto pb-1 flex-nowrap"):
                 for entry in normalised[:24]:
                     with Card(
-                        cssClass=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/50 dark:bg-[{_DK.BG_WETTER}]/50"
+                        css_class=f"{_AG_RADIUS} bg-[{_AG_BG_WETTER}]/50 dark:bg-[{_DK.BG_WETTER}]/50"
                         " min-w-[52px] flex-shrink-0"
                     ):
-                        with CardContent(cssClass="p-1.5 text-center"):
+                        with CardContent(css_class="p-1.5 text-center"):
                             Muted(
                                 entry["time"],
-                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                                css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
-                            _sy_to_icon(entry["sy"], cssClass="w-5 h-5 my-0.5")
+                            _sy_to_icon(entry["sy"], css_class="w-5 h-5 my-0.5")
                             Text(
                                 _fmt_temp(entry["tt"]),
-                                cssClass=f"text-xs font-bold tabular-nums"
+                                css_class=f"text-xs font-bold tabular-nums"
                                 f" text-[{_AG_AIR_TEMP}] dark:text-[{_DK.AIR_TEMP}]",
                             )
                             if entry["rr"]:
                                 Muted(
                                     f"{entry['rr']:.1f}mm",
-                                    cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                                    css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                                 )
 
     return PrefabApp(

@@ -236,9 +236,7 @@ class AareguruService:
         ts_end = _resolve_timestamp(end)
         if re.fullmatch(r"\d+", ts_start) and re.fullmatch(r"\d+", ts_end):
             if int(ts_start) >= int(ts_end):
-                raise ValueError(
-                    f"start ({start!r}) must be before end ({end!r})"
-                )
+                raise ValueError(f"start ({start!r}) must be before end ({end!r})")
 
         logger.info("service.get_historical_data", city=city, start=start, end=end)
 

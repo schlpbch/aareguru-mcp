@@ -65,19 +65,19 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
         service = ShopService()
         product = await service.get_product(product_id)
 
-    with Column(gap=0, cssClass="p-2 max-w-xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-xl mx-auto") as view:
 
         # ── Header ───────────────────────────────────────────────────────────
         Text(
             t("page_product", lang),
-            cssClass=(
+            css_class=(
                 f"text-base font-black tracking-tight uppercase text-center"
                 f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             ),
         )
 
         if not product or "error" in product:
-            with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):
+            with Alert(variant="warning", css_class=f"{_AG_RADIUS}"):
                 AlertTitle(t("alert_product_not_found", lang))
                 AlertDescription(t("alert_product_not_found_desc", lang))
         else:
@@ -93,7 +93,7 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
             # ── Product name ─────────────────────────────────────────────────
             Text(
                 name,
-                cssClass=(
+                css_class=(
                     f"text-xl font-black tracking-tight uppercase text-center mt-1"
                     f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                 ),
@@ -101,39 +101,39 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
 
             # ── Product image(s) ──────────────────────────────────────────────
             if len(images) == 1:
-                with Card(cssClass=f"{_AG_RADIUS} overflow-hidden"):
-                    with CardContent(cssClass="p-0"):
+                with Card(css_class=f"{_AG_RADIUS} overflow-hidden"):
+                    with CardContent(css_class="p-0"):
                         Image(
                             src=images[0],
                             alt=name,
-                            cssClass="w-full object-cover max-h-72",
+                            css_class="w-full object-cover max-h-72",
                         )
             elif len(images) > 1:
-                with Card(cssClass=f"{_AG_RADIUS} overflow-hidden"):
-                    with CardContent(cssClass="p-0"):
+                with Card(css_class=f"{_AG_RADIUS} overflow-hidden"):
+                    with CardContent(css_class="p-0"):
                         with Carousel(loop=True, show_dots=True, height=288):
                             for src in images:
                                 Image(
                                     src=src,
                                     alt=name,
-                                    cssClass="w-full object-cover h-72",
+                                    css_class="w-full object-cover h-72",
                                 )
 
             # ── Price + badges ────────────────────────────────────────────────
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
                 f" dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="px-4 py-3"):
-                    with Row(cssClass="items-center justify-between flex-wrap gap-2"):
+                with CardContent(css_class="px-4 py-3"):
+                    with Row(css_class="items-center justify-between flex-wrap gap-2"):
                         Text(
                             f"CHF {price_chf:.2f}",
-                            cssClass=(
+                            css_class=(
                                 f"text-3xl font-black tabular-nums"
                                 f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                             ),
                         )
-                        with Row(cssClass="gap-1 flex-wrap"):
+                        with Row(css_class="gap-1 flex-wrap"):
                             if on_sale:
                                 Badge(
                                     label=t("label_on_sale", lang),
@@ -150,34 +150,34 @@ async def product_view(product_id: int = 0, lang: str = "de") -> PrefabApp:
 
             # ── Description ───────────────────────────────────────────────────
             if short_desc:
-                with Card(cssClass=f"{_AG_RADIUS}"):
-                    with CardContent(cssClass="px-4 py-3"):
+                with Card(css_class=f"{_AG_RADIUS}"):
+                    with CardContent(css_class="px-4 py-3"):
                         Muted(
                             short_desc,
-                            cssClass="text-sm leading-relaxed",
+                            css_class="text-sm leading-relaxed",
                         )
 
             # ── Add to cart hint ──────────────────────────────────────────────
             with Card(
-                cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_BFU}]"
+                css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_BFU}]"
                 f" dark:border-l-[{_DK.BFU}]"
             ):
-                with CardContent(cssClass="p-3"):
+                with CardContent(css_class="p-3"):
                     Muted(
                         t("label_add_to_cart_hint", lang),
-                        cssClass="text-xs uppercase tracking-[0.15em]",
+                        css_class="text-xs uppercase tracking-[0.15em]",
                     )
                     Muted(
                         f'create_checkout_session(items=[{{"product_id": {product_id}, "quantity": 1}}])',
-                        cssClass="text-xs font-mono mt-1",
+                        css_class="text-xs font-mono mt-1",
                     )
 
             # ── Online link ───────────────────────────────────────────────────
             if permalink:
-                Separator(cssClass="my-1")
+                Separator(css_class="my-1")
                 Muted(
                     f"{t('label_view_online', lang)}: {permalink}",
-                    cssClass="text-[10px] text-center break-all",
+                    css_class="text-[10px] text-center break-all",
                 )
 
     return PrefabApp(

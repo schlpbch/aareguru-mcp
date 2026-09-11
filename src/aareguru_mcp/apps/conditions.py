@@ -59,16 +59,16 @@ async def conditions_dashboard(city: str = "Bern", lang: str = "de") -> PrefabAp
 
     safety_label, safety_variant, safety_color = _safety_badge(flow, lang=lang)
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
         # Page header
         Text(
             f"Aare — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
 
         # Safety warning (only if dangerous)
         if warning:
-            with Alert(variant="destructive", cssClass="rounded-lg"):
+            with Alert(variant="destructive", css_class="rounded-lg"):
                 AlertTitle(t("alert_safety_title", lang))
                 AlertDescription(warning)
 
@@ -83,7 +83,7 @@ async def conditions_dashboard(city: str = "Bern", lang: str = "de") -> PrefabAp
         if seasonal:
             Muted(
                 seasonal,
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
+                css_class=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
             )
 
     return PrefabApp(

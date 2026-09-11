@@ -318,7 +318,9 @@ class AareguruClient:
             httpx.HTTPError: On HTTP errors
             ValidationError: On invalid response data
         """
-        data = await self._request("/v2018/current", {"city": self._normalize_city(city)})
+        data = await self._request(
+            "/v2018/current", {"city": self._normalize_city(city)}
+        )
         try:
             return CurrentResponse(**data)
         except ValidationError as e:
@@ -353,9 +355,7 @@ class AareguruClient:
         ts_end = self._resolve_timestamp(end)
         if re.fullmatch(r"\d+", ts_start) and re.fullmatch(r"\d+", ts_end):
             if int(ts_start) >= int(ts_end):
-                raise ValueError(
-                    f"start ({start!r}) must be before end ({end!r})"
-                )
+                raise ValueError(f"start ({start!r}) must be before end ({end!r})")
         params = {
             "city": self._normalize_city(city),
             "start": ts_start,

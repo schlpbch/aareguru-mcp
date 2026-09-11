@@ -59,14 +59,14 @@ def _sy_to_emoji(sy: int | None) -> str:
     return _SY_EMOJI.get(sy, "🌡")
 
 
-def _sy_to_icon(sy: int | None, cssClass: str = "leading-none") -> None:  # noqa: N803
+def _sy_to_icon(sy: int | None, css_class: str = "leading-none") -> None:
     """Render a MeteoSwiss weather icon (SVG Image) or emoji fallback (Text)."""
     from prefab_ui.components import Image, Text
 
     if sy is not None and sy in _WEATHER_ICONS:
-        Image(src=_WEATHER_ICONS[sy], alt=str(sy), cssClass=cssClass)
+        Image(src=_WEATHER_ICONS[sy], alt=str(sy), css_class=css_class)
     else:
-        Text(_sy_to_emoji(sy), cssClass=cssClass)
+        Text(_sy_to_emoji(sy), css_class=css_class)
 
 
 def _bafu_level(flow: float | None, gefahrenstufe: int | None) -> int:

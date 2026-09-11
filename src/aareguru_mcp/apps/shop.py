@@ -64,12 +64,12 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
     status = session.get("status", "")
     has_session = bool(session_id) and "error" not in session
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
 
         # ── Header ───────────────────────────────────────────────────────────
         Text(
             t("page_shop", lang),
-            cssClass=(
+            css_class=(
                 f"text-base font-black tracking-tight uppercase text-center"
                 f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             ),
@@ -78,24 +78,24 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
         # ── Empty state ───────────────────────────────────────────────────────
         if not has_session:
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
                 f" dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="p-4 text-center"):
+                with CardContent(css_class="p-4 text-center"):
                     Text(
                         t("label_cart_empty", lang),
-                        cssClass=(
+                        css_class=(
                             f"text-lg font-black text-[{_AG_TXT_PRIMARY}]"
                             f" dark:text-[{_DK.TXT_PRIMARY}]"
                         ),
                     )
                     Muted(
                         t("label_cart_empty_hint1", lang),
-                        cssClass="text-xs mt-1",
+                        css_class="text-xs mt-1",
                     )
                     Muted(
                         t("label_cart_empty_hint2", lang),
-                        cssClass="text-xs",
+                        css_class="text-xs",
                     )
 
         # ── Session states (2 / 3 / 4) ───────────────────────────────────────
@@ -116,8 +116,8 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
                 }
                 for item in line_items
             ]
-            with Card(cssClass=f"{_AG_RADIUS}"):
-                with CardContent(cssClass="p-0"):
+            with Card(css_class=f"{_AG_RADIUS}"):
+                with CardContent(css_class="p-0"):
                     DataTable(
                         columns=[
                             DataTableColumn(key="Artikel", header=t("col_item", lang)),
@@ -139,14 +139,14 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
 
             # Total card
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}]"
                 f" dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="px-4 py-2"):
-                    with Row(cssClass="items-center justify-between"):
+                with CardContent(css_class="px-4 py-2"):
+                    with Row(css_class="items-center justify-between"):
                         Muted(
                             t("label_total", lang),
-                            cssClass=(
+                            css_class=(
                                 f"text-[10px] uppercase tracking-[0.2em]"
                                 f" text-[{_AG_TXT_PRIMARY}]/60"
                                 f" dark:text-[{_DK.TXT_PRIMARY}]/60"
@@ -154,7 +154,7 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
                         )
                         Text(
                             f"CHF {total_chf:.2f}",
-                            cssClass=(
+                            css_class=(
                                 f"text-2xl font-black tabular-nums"
                                 f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                             ),
@@ -163,24 +163,24 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
             # State 2 — next steps
             if status == "incomplete":
                 with Card(
-                    cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_WASSER_FLOW}]"
+                    css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{_AG_WASSER_FLOW}]"
                     f" dark:border-l-[{_DK.WASSER_FLOW}]"
                 ):
-                    with CardContent(cssClass="p-3"):
+                    with CardContent(css_class="p-3"):
                         Text(
                             t("section_next_steps", lang),
-                            cssClass=(
+                            css_class=(
                                 f"text-xs font-black uppercase tracking-[0.15em]"
                                 f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                             ),
                         )
                         Muted(
                             f'1.  update_checkout_session("{session_id}", billing={{...}})',
-                            cssClass="text-xs font-mono mt-1",
+                            css_class="text-xs font-mono mt-1",
                         )
                         Muted(
                             f'2.  complete_checkout("{session_id}")',
-                            cssClass="text-xs font-mono",
+                            css_class="text-xs font-mono",
                         )
 
             # State 3 — billing attached, ready to complete
@@ -191,13 +191,13 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
             elif status == "completed":
                 _render_billing_card(billing, session_id, confirmed=True, lang=lang)
                 with Card(
-                    cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"
+                    css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}]"
                     f" dark:border-t-[{_DK.BFU}]"
                 ):
-                    with CardContent(cssClass="p-3"):
+                    with CardContent(css_class="p-3"):
                         Text(
                             t("label_ordered", lang),
-                            cssClass=(
+                            css_class=(
                                 f"text-lg font-black text-[{_AG_BFU}]"
                                 f" dark:text-[{_DK.BFU}]"
                             ),
@@ -205,24 +205,24 @@ async def shop_cart_view(session_id: str = "", lang: str = "de") -> PrefabApp:
                         if order_id:
                             Muted(
                                 f"{t('label_order_number', lang)} #{order_id}",
-                                cssClass="text-xs",
+                                css_class="text-xs",
                             )
                         if continue_url:
-                            Separator(cssClass="my-2")
+                            Separator(css_class="my-2")
                             Text(
                                 t("label_payment_link", lang),
-                                cssClass=(
+                                css_class=(
                                     f"text-xs font-bold text-[{_AG_TXT_PRIMARY}]"
                                     f" dark:text-[{_DK.TXT_PRIMARY}]"
                                 ),
                             )
                             Text(
                                 continue_url,
-                                cssClass="text-xs font-mono break-all text-blue-600 dark:text-blue-400",
+                                css_class="text-xs font-mono break-all text-blue-600 dark:text-blue-400",
                             )
                             Muted(
                                 t("label_payment_desc", lang),
-                                cssClass="text-[10px] mt-1",
+                                css_class="text-[10px] mt-1",
                             )
 
     return PrefabApp(
@@ -246,13 +246,13 @@ def _render_billing_card(
     border_color_dk = _DK.BFU if confirmed else _DK.WASSER_FLOW
 
     with Card(
-        cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{border_color}]"
+        css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{border_color}]"
         f" dark:border-l-[{border_color_dk}]"
     ):
-        with CardContent(cssClass="p-3"):
+        with CardContent(css_class="p-3"):
             Text(
                 t("section_delivery_address", lang),
-                cssClass=(
+                css_class=(
                     f"text-xs font-black uppercase tracking-[0.15em]"
                     f" text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
                 ),
@@ -262,13 +262,13 @@ def _render_billing_card(
             if first or last:
                 Text(
                     f"{first} {last}".strip(),
-                    cssClass=(
+                    css_class=(
                         f"text-sm font-semibold text-[{_AG_TXT_PRIMARY}]"
                         f" dark:text-[{_DK.TXT_PRIMARY}] mt-1"
                     ),
                 )
             if billing.get("email"):
-                Muted(billing["email"], cssClass="text-xs")
+                Muted(billing["email"], css_class="text-xs")
             addr = billing.get("address_1", "")
             postcode = billing.get("postcode", "")
             city = billing.get("city", "")
@@ -276,11 +276,11 @@ def _render_billing_card(
             if addr:
                 Muted(
                     f"{addr}, {postcode} {city}, {country}".strip(", "),
-                    cssClass="text-xs",
+                    css_class="text-xs",
                 )
             if not confirmed:
-                Separator(cssClass="my-2")
+                Separator(css_class="my-2")
                 Muted(
                     f'complete_checkout("{session_id}")',
-                    cssClass="text-xs font-mono",
+                    css_class="text-xs font-mono",
                 )

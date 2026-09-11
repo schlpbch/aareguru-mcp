@@ -51,35 +51,35 @@ def render_flow_section(aare: dict[str, Any] | None = None, lang: str = "de") ->
 
     with Grid(columns=2, gap=0):
         # Flow card
-        with Card(cssClass=f"{_AG_RADIUS}"):
-            with CardContent(cssClass="p-3 text-center"):
+        with Card(css_class=f"{_AG_RADIUS}"):
+            with CardContent(css_class="p-3 text-center"):
                 Text(
                     _fmt_flow(flow),
-                    cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
+                    css_class=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                 )
                 Text(
                     t("card_flow", lang),
-                    cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] mt-0.5",
+                    css_class=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}] mt-0.5",
                 )
 
         # BAFU safety card — thick teal border matches aare.guru BFU panel
         with Card(
-            cssClass=f"{_AG_RADIUS} border-[4px] border-[{_AG_BFU}] dark:border-[{_DK.BFU}]"
+            css_class=f"{_AG_RADIUS} border-[4px] border-[{_AG_BFU}] dark:border-[{_DK.BFU}]"
         ):
-            with CardContent(cssClass="p-3"):
-                with Column(cssClass="items-center mb-2"):
+            with CardContent(css_class="p-3"):
+                with Column(css_class="items-center mb-2"):
                     Badge(
                         label=safety_label,
                         variant=safety_variant,
-                        cssClass="text-sm px-3 py-0.5",
+                        css_class="text-sm px-3 py-0.5",
                     )
                     Text(
                         t("card_bafu_safety", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_BFU}] dark:text-[{_DK.BFU}] mt-1",
+                        css_class=f"text-[10px] uppercase tracking-[0.15em] text-[{_AG_BFU}] dark:text-[{_DK.BFU}] mt-1",
                     )
 
                 # Flow scale bar
-                with Row(cssClass="overflow-hidden rounded-full gap-0 h-1.5"):
+                with Row(css_class="overflow-hidden rounded-full gap-0 h-1.5"):
                     for lo, hi, _lbl, color, width in _FLOW_ZONES:
                         is_active = (
                             flow is not None
@@ -88,14 +88,14 @@ def render_flow_section(aare: dict[str, Any] | None = None, lang: str = "de") ->
                         )
                         Text(
                             " ",
-                            cssClass=(
+                            css_class=(
                                 f"block h-2 -mt-0.5 {width} bg-[{color}]"
                                 if is_active
                                 else f"block h-1.5 {width} bg-[{color}]/35"
                             ),
                         )
 
-                with Row(cssClass="gap-0 mt-0.5"):
+                with Row(css_class="gap-0 mt-0.5"):
                     for lo, hi, lbl, color, width in _FLOW_ZONES:
                         is_active = (
                             flow is not None
@@ -105,7 +105,7 @@ def render_flow_section(aare: dict[str, Any] | None = None, lang: str = "de") ->
                         lbl_i18n = t(FLOW_LABEL_KEY.get(lbl, "safety_safe"), lang)
                         Text(
                             f"▲ {lbl_i18n}" if is_active else lbl_i18n,
-                            cssClass=(
+                            css_class=(
                                 f"{width} text-center text-[8px] font-bold text-[{color}]"
                                 if is_active
                                 else f"{width} text-center text-[8px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40"
@@ -131,10 +131,10 @@ async def flow_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
     aare = data.get("aare") or {}
     location: str = aare.get("location_long") or aare.get("location") or city
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
         Text(
             f"Aare — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
         render_flow_section(aare, lang=lang)
 

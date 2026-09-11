@@ -18,6 +18,7 @@ from typing import Any
 
 import structlog
 from fastmcp import Context, FastMCP
+from fastmcp.exceptions import ToolError
 from fastmcp.server.elicitation import AcceptedElicitation
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
@@ -161,6 +162,29 @@ async def shop_checkout_prompt(items: str = "") -> str:
 # ============================================================================
 
 
+# Sentinel returned by _elicit_safe when the client's negotiated MCP protocol
+# doesn't support server-initiated elicitation at all (rather than the user
+# declining/cancelling a supported prompt) — callers use this to distinguish
+# "can't ask" from "asked and got a no" and degrade accordingly.
+_ELICIT_UNAVAILABLE = object()
+
+
+async def _elicit_safe(ctx: Context, message: str, response_type: Any) -> Any:
+    """Call ctx.elicit(), converting protocol-unsupported failures into a sentinel.
+
+    Clients that negotiate the modern (2026-07-28+) MCP protocol don't support
+    server-initiated elicitation at all; fastmcp raises ToolError in that case.
+    Without this, every elicit() call site would hard-fail the tool call for
+    such clients. Returns _ELICIT_UNAVAILABLE instead so callers can fall back
+    to a sensible default rather than erroring out.
+    """
+    try:
+        return await ctx.elicit(message, response_type)
+    except ToolError:
+        logger.warning("elicitation_unavailable", message=message)
+        return _ELICIT_UNAVAILABLE
+
+
 async def _elicit_city(ctx: Context, bad_city: str) -> str | None:
     """Ask the user to pick a valid city when bad_city is not recognised."""
     try:
@@ -169,9 +193,10 @@ async def _elicit_city(ctx: Context, bad_city: str) -> str | None:
         names: list[str] = sorted(str(c["city"]) for c in cities)
     except Exception:
         return None
-    result = await ctx.elicit(
+    result = await _elicit_safe(
+        ctx,
         f"Stadt '{bad_city}' nicht gefunden. Bitte eine Stadt wählen:",
-        names,  # type: ignore[arg-type]
+        names,
     )
     if isinstance(result, AcceptedElicitation):
         return str(result.data)
@@ -271,12 +296,18 @@ async def get_historical_data_tool(
     """
     days = _estimate_days(start)
     if days > 90:
-        result = await ctx.elicit(
+        result = await _elicit_safe(
+            ctx,
             f"Der Zeitraum umfasst ca. {int(days)} Tage (~{int(days) * 24} Datenpunkte). "
             "Das kann einen Moment dauern. Fortfahren?",
-            {"ja": {"title": "Ja, fortfahren"}, "nein": {"title": "Nein, abbrechen"}},  # type: ignore[arg-type]
+            {"ja": {"title": "Ja, fortfahren"}, "nein": {"title": "Nein, abbrechen"}},
         )
-        if not isinstance(result, AcceptedElicitation) or str(result.data) == "nein":
+        # Only an explicit "nein" (or a supported-but-non-accepted response)
+        # aborts; when elicitation itself isn't supported we can't ask, so we
+        # proceed rather than permanently blocking large-range queries.
+        if result is not _ELICIT_UNAVAILABLE and (
+            not isinstance(result, AcceptedElicitation) or str(result.data) == "nein"
+        ):
             return {
                 "error": "Abgebrochen",
                 "tip": "Wähle '-7 days' bis '-90 days' für schnellere Ergebnisse.",
@@ -315,12 +346,16 @@ async def get_flow_danger_level_tool(
     if level >= 4:
         flow = result.get("flow", "?")
         label: str = result.get("safety_assessment", "Gefährlich")
-        elicit_result = await ctx.elicit(
+        elicit_result = await _elicit_safe(
+            ctx,
             f"⚠️ Durchfluss {flow} m³/s — Stufe {level} ({label}). "
             "Schwimmen ist gefährlich. Details trotzdem anzeigen?",
-            {"show": {"title": "Ja, anzeigen"}, "cancel": {"title": "Nein, abbrechen"}},  # type: ignore[arg-type]
+            {"show": {"title": "Ja, anzeigen"}, "cancel": {"title": "Nein, abbrechen"}},
         )
-        if (
+        # If elicitation isn't supported we can't gate on confirmation, so
+        # default to showing the safety data the caller explicitly asked
+        # for rather than withholding it.
+        if elicit_result is not _ELICIT_UNAVAILABLE and (
             not isinstance(elicit_result, AcceptedElicitation)
             or str(elicit_result.data) == "cancel"
         ):
@@ -414,9 +449,10 @@ async def complete_checkout_tool(
     service = ShopService()
     result = await service.complete_checkout(session_id)
     if "error" in result and "Billing address" in str(result["error"]):
-        elicit_result = await ctx.elicit(
+        elicit_result = await _elicit_safe(
+            ctx,
             "Bitte Lieferadresse angeben (Vorname Nachname, E-Mail, Strasse, PLZ Ort):",
-            str,  # type: ignore[arg-type]
+            str,
         )
         if isinstance(elicit_result, AcceptedElicitation):
             return {

@@ -128,9 +128,7 @@ async def shop_browse(search: str | None = None) -> str:
         Prompt template instructing the LLM to list products, present them
         clearly, and offer to show detail or start a purchase.
     """
-    search_clause = (
-        f' matching "{search}"' if search else ""
-    )
+    search_clause = f' matching "{search}"' if search else ""
     search_arg = f', search="{search}"' if search else ""
 
     return f"""Please browse the Aareguru merchandise catalog{search_clause}.
@@ -162,9 +160,7 @@ async def shop_checkout(items: str = "") -> str:
         Prompt template instructing the LLM to walk the user through the
         complete purchase flow: browse → product detail → cart → billing → confirm.
     """
-    items_clause = (
-        f" The user wants to buy: {items}." if items else ""
-    )
+    items_clause = f" The user wants to buy: {items}." if items else ""
 
     return f"""Please help the user complete a purchase from the Aareguru shop.{items_clause}
 

@@ -87,30 +87,30 @@ async def intraday_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
     if points and current_temp is not None:
         delta = current_temp - points[0]["Temperatur"]
 
-    with Column(gap=0, cssClass="p-0 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-0 max-w-2xl mx-auto") as view:
         Text(
             f"{t('page_intraday', lang)} — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Current + delta summary
         with Grid(columns=2, gap=0):
             with Card(
-                cssClass=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
+                css_class=f"bg-[{_AG_BG_WASSER}] dark:bg-[{_DK.BG_WASSER}] {_AG_RADIUS}"
             ):
-                with CardContent(cssClass="p-3 text-center"):
+                with CardContent(css_class="p-3 text-center"):
                     Text(
                         _fmt_temp(current_temp),
-                        cssClass=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                        css_class=f"text-3xl font-black tabular-nums text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         t("label_current", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
-            with Card(cssClass=f"{_AG_RADIUS}"):
-                with CardContent(cssClass="p-3 text-center"):
+            with Card(css_class=f"{_AG_RADIUS}"):
+                with CardContent(css_class="p-3 text-center"):
                     delta_str = (
                         f"+{delta:.1f}°"
                         if delta is not None and delta > 0
@@ -118,20 +118,20 @@ async def intraday_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
                     )
                     Text(
                         delta_str,
-                        cssClass=f"text-3xl font-black tabular-nums"
+                        css_class=f"text-3xl font-black tabular-nums"
                         f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     Muted(
                         t("label_change_today", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
         if points:
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="pt-3 pb-2 px-3"):
+                with CardContent(css_class="pt-3 pb-2 px-3"):
                     AreaChart(
                         data=points,
                         series=[
@@ -148,10 +148,10 @@ async def intraday_view(city: str = "Bern", lang: str = "de") -> PrefabApp:
                     )
             Muted(
                 f"{len(points)} {t('label_measurements', lang)}",
-                cssClass=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
+                css_class=f"text-center text-xs text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
             )
         else:
-            with Alert(variant="warning", cssClass=f"{_AG_RADIUS}"):
+            with Alert(variant="warning", css_class=f"{_AG_RADIUS}"):
                 AlertTitle(t("alert_no_daily", lang))
                 AlertDescription(t("alert_no_daily_desc", lang))
 

@@ -98,72 +98,76 @@ async def city_finder_view(sort_by: str = "temperature", lang: str = "de") -> Pr
 
     warmest = data.get("warmest") or {}
 
-    with Column(gap=0, cssClass="p-2 max-w-3xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-3xl mx-auto") as view:
         Text(
             t("page_city_finder", lang),
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Summary strip
-        with Grid(columns=3, gap=0, cssClass="mb-1"):
+        with Grid(columns=3, gap=0, css_class="mb-1"):
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BG_WASSER}] dark:border-t-[{_DK.BG_WASSER}]"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     Text(
                         warmest.get("location") or warmest.get("city") or "—",
-                        cssClass=f"text-sm font-black text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
+                        css_class=f"text-sm font-black text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                     )
                     if warmest.get("temperature") is not None:
                         Text(
                             f"{warmest['temperature']:.1f}°",
-                            cssClass=f"text-xl font-black tabular-nums"
+                            css_class=f"text-xl font-black tabular-nums"
                             f" text-[{_AG_WASSER_TEMP}] dark:text-[{_DK.WASSER_TEMP}]",
                         )
                     Muted(
                         t("badge_warmest_city", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_BFU}] dark:border-t-[{_DK.BFU}]"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     Text(
                         f"{safe_count} / {total}",
-                        cssClass=f"text-xl font-black tabular-nums text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
+                        css_class=f"text-xl font-black tabular-nums text-[{_AG_BFU}] dark:text-[{_DK.BFU}]",
                     )
                     Muted(
                         t("badge_safe_cities", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
             with Card(
-                cssClass=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}] dark:border-t-[{_DK.WASSER_FLOW}]"
+                css_class=f"{_AG_RADIUS} border-t-[4px] border-t-[{_AG_WASSER_FLOW}] dark:border-t-[{_DK.WASSER_FLOW}]"
             ):
-                with CardContent(cssClass="p-2 text-center"):
+                with CardContent(css_class="p-2 text-center"):
                     sort_label = (
-                        t("sort_by_safety", lang) if sort_by == "safety" else t("sort_by_temp", lang)
+                        t("sort_by_safety", lang)
+                        if sort_by == "safety"
+                        else t("sort_by_temp", lang)
                     )
                     Text(
                         sort_label,
-                        cssClass=f"text-xs font-semibold text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
+                        css_class=f"text-xs font-semibold text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                     )
                     Muted(
                         t("badge_sorting", lang),
-                        cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+                        css_class=f"text-[10px] uppercase tracking-[0.2em]"
                         f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 mt-0.5",
                     )
 
-        with Card(cssClass=f"{_AG_RADIUS}"):
-            with CardContent(cssClass="p-0"):
+        with Card(css_class=f"{_AG_RADIUS}"):
+            with CardContent(css_class="p-0"):
                 DataTable(
                     columns=[
                         DataTableColumn(key="#", header="#", align="right"),
-                        DataTableColumn(key="Stadt", header=t("col_city", lang), sortable=True),
+                        DataTableColumn(
+                            key="Stadt", header=t("col_city", lang), sortable=True
+                        ),
                         DataTableColumn(
                             key="Temp °C",
                             header=t("col_temp", lang),
@@ -171,10 +175,15 @@ async def city_finder_view(sort_by: str = "temperature", lang: str = "de") -> Pr
                             align="right",
                         ),
                         DataTableColumn(
-                            key="m³/s", header=t("col_flow_ms", lang), sortable=True, align="right"
+                            key="m³/s",
+                            header=t("col_flow_ms", lang),
+                            sortable=True,
+                            align="right",
                         ),
                         DataTableColumn(
-                            key="Sicherheit", header=t("col_safety", lang), sortable=True
+                            key="Sicherheit",
+                            header=t("col_safety", lang),
+                            sortable=True,
                         ),
                     ],
                     rows=rows,  # type: ignore[arg-type]

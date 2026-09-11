@@ -60,42 +60,42 @@ def render_sun_section(sun: dict[str, Any] | None = None, lang: str = "de") -> N
     sun_rel = sun_today.get("sunrelative")
 
     with Card(
-        cssClass=f"{_AG_RADIUS} border-t-[3px] border-t-[{_AG_SUNNY}] dark:border-t-[{_DK.SUNNY}] bg-[{_AG_BG_SUNNY}] dark:bg-[{_DK.BG_SUNNY}] overflow-hidden"
+        css_class=f"{_AG_RADIUS} border-t-[3px] border-t-[{_AG_SUNNY}] dark:border-t-[{_DK.SUNNY}] bg-[{_AG_BG_SUNNY}] dark:bg-[{_DK.BG_SUNNY}] overflow-hidden"
     ):
-        with CardContent(cssClass="p-3"):
-            with Grid(columns=2, gap=0, cssClass="mb-2"):
+        with CardContent(css_class="p-3"):
+            with Grid(columns=2, gap=0, css_class="mb-2"):
                 with Card(
-                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
+                    css_class=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
                 ):
-                    with CardContent(cssClass="p-2 text-center"):
+                    with CardContent(css_class="p-2 text-center"):
                         Text(
                             suntotal_str or "—",
-                            cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
+                            css_class=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
                             t("card_sunshine", lang),
-                            cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                            css_class=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         if sun_rel is not None:
                             Muted(
                                 f"{sun_rel:.0f}{t('label_pct_day', lang)}",
-                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                                css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                             )
                 with Card(
-                    cssClass=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
+                    css_class=f"{_AG_RADIUS} bg-[{_AG_SUNNY}]/20 dark:bg-[{_DK.BG_SUNNY}]/10"
                 ):
-                    with CardContent(cssClass="p-2 text-center"):
+                    with CardContent(css_class="p-2 text-center"):
                         Text(
                             sunset_str or "—",
-                            cssClass=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
+                            css_class=f"text-lg font-black tabular-nums text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
                             t("card_sunset", lang),
-                            cssClass=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
+                            css_class=f"text-[10px] uppercase tracking-[0.1em] text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
 
             if sun_locs:
-                with Row(cssClass="gap-1.5 flex-wrap"):
+                with Row(css_class="gap-1.5 flex-wrap"):
                     for loc in sun_locs[:5]:
                         loc_name: str = loc.get("name") or "—"
                         timeleft: int | None = loc.get("timeleft")
@@ -112,7 +112,7 @@ def render_sun_section(sun: dict[str, Any] | None = None, lang: str = "de") -> N
                         Badge(
                             label=label,
                             variant="secondary",
-                            cssClass=f"bg-[{_AG_SUNNY}]/30 dark:bg-[{_DK.BG_SUNNY}]/15 text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] {_AG_RADIUS} text-xs",
+                            css_class=f"bg-[{_AG_SUNNY}]/30 dark:bg-[{_DK.BG_SUNNY}]/15 text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] {_AG_RADIUS} text-xs",
                         )
 
 
@@ -137,10 +137,10 @@ async def sun_card(city: str = "Bern", lang: str = "de") -> PrefabApp:
         or city
     )
 
-    with Column(gap=0, cssClass="p-2 max-w-2xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-2xl mx-auto") as view:
         Text(
             f"Aare — {location}",
-            cssClass=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
+            css_class=f"text-lg font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center uppercase",
         )
         render_sun_section(data.get("sun") or {}, lang=lang)
 

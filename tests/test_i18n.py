@@ -69,7 +69,9 @@ def test_bafu_levels_complete() -> None:
     for lang in LOCALES:
         for lvl in range(1, 6):
             assert t(f"bafu_{lvl}_label", lang), f"Missing bafu_{lvl}_label in {lang}"
-            assert t(f"bafu_{lvl}_guidance", lang), f"Missing bafu_{lvl}_guidance in {lang}"
+            assert t(
+                f"bafu_{lvl}_guidance", lang
+            ), f"Missing bafu_{lvl}_guidance in {lang}"
             assert t(f"bafu_{lvl}_desc", lang), f"Missing bafu_{lvl}_desc in {lang}"
 
 
@@ -201,9 +203,11 @@ async def test_historical_chart_accepts_lang(lang: str) -> None:
     from aareguru_mcp.apps.history import historical_chart
 
     with patch(_SERVICE_PATH) as MockService:
-        MockService.return_value.get_historical_data = AsyncMock(return_value=[
-            {"time": "2025-01-01T12:00:00", "aare": 15.0, "flow": 80.0},
-        ])
+        MockService.return_value.get_historical_data = AsyncMock(
+            return_value=[
+                {"time": "2025-01-01T12:00:00", "aare": 15.0, "flow": 80.0},
+            ]
+        )
         result = await historical_chart(city="Bern", lang=lang)
     assert result is not None
 
@@ -215,8 +219,13 @@ async def test_compare_cities_table_accepts_lang(lang: str) -> None:
 
     compare_data = {
         "cities": [
-            {"city": "bern", "location": "Bern", "temperature": 18.5,
-             "flow": 95.0, "temperature_text": "geil"},
+            {
+                "city": "bern",
+                "location": "Bern",
+                "temperature": 18.5,
+                "flow": 95.0,
+                "temperature_text": "geil",
+            },
         ],
         "warmest": {"city": "bern", "location": "Bern", "temperature": 18.5},
         "safe_count": 1,

@@ -63,78 +63,78 @@ async def safety_briefing(city: str = "Bern", lang: str = "de") -> PrefabApp:
     location: str = aare.get("location_long") or aare.get("location") or city
 
     level = _bafu_level(flow, gefahrenstufe)
-    _, _de_label, level_color, level_color_dk, _de_guidance, _de_description = _BAFU_LEVELS[
-        level - 1
-    ]
+    _, _de_label, level_color, level_color_dk, _de_guidance, _de_description = (
+        _BAFU_LEVELS[level - 1]
+    )
     level_label = t(f"bafu_{level}_label", lang)
     guidance = t(f"bafu_{level}_guidance", lang)
     description = t(f"bafu_{level}_desc", lang)
 
-    with Column(gap=0, cssClass="p-2 max-w-xl mx-auto") as view:
+    with Column(gap=0, css_class="p-2 max-w-xl mx-auto") as view:
         Text(
             f"{t('page_safety', lang)} — {location}",
-            cssClass=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
+            css_class=f"text-base font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]"
             " text-center uppercase",
         )
 
         # Current level hero card
         with Card(
-            cssClass=f"{_AG_RADIUS} border-l-[4px] border-l-[{level_color}] dark:border-l-[{level_color_dk}]"
+            css_class=f"{_AG_RADIUS} border-l-[4px] border-l-[{level_color}] dark:border-l-[{level_color_dk}]"
         ):
-            with CardContent(cssClass="p-2"):
-                with Row(cssClass="items-center gap-1"):
+            with CardContent(css_class="p-2"):
+                with Row(css_class="items-center gap-1"):
                     Text(
                         str(level),
-                        cssClass=f"text-3xl font-black w-8 text-center flex-shrink-0 pink"
+                        css_class=f"text-3xl font-black w-8 text-center flex-shrink-0 pink"
                         f" text-[{level_color}] dark:text-[{level_color_dk}]",
                     )
-                    with Column(cssClass="flex-1"):
+                    with Column(css_class="flex-1"):
                         Text(
                             level_label,
-                            cssClass=f"text-sm font-black text-[{level_color}] dark:text-[{level_color_dk}]",
+                            css_class=f"text-sm font-black text-[{level_color}] dark:text-[{level_color_dk}]",
                         )
                         Text(
                             guidance,
-                            cssClass=f"text-xs font-semibold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
+                            css_class=f"text-xs font-semibold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}]",
                         )
                         Muted(
                             description,
-                            cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
+                            css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60",
                         )
         """ FIXME
-                     with Column(cssClass="items-end flex-shrink-0 gap-0.5 pink"):
+                     with Column(css_class="items-end flex-shrink-0 gap-0.5 pink"):
                         Text(
                             f"{_fmt_flow(flow)} m³/s",
-                            cssClass=f"text-base font-black tabular-nums"
+                            css_class=f"text-base font-black tabular-nums"
                             f" text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                         )
                         Muted(
                             "Abfluss",
-                            cssClass=f"text-[10px] uppercase tracking-[0.15em]"
+                            css_class=f"text-[10px] uppercase tracking-[0.15em]"
                             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         Text(
                             f"{height:.2f} m" if height is not None else "—",
-                            cssClass=f"text-base font-black tabular-nums"
+                            css_class=f"text-base font-black tabular-nums"
                             f" text-[{_AG_WASSER_FLOW}] dark:text-[{_DK.WASSER_FLOW}]",
                         )
                         Muted(
                             "Pegelstand",
-                            cssClass=f"text-[10px] uppercase tracking-[0.15em]"
+                            css_class=f"text-[10px] uppercase tracking-[0.15em]"
                             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50",
                         )
                         if threshold is not None:
                             Muted(
                                 f"Schwelle {threshold:.0f} m³/s",
-                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
+                                css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/40 dark:text-[{_DK.TXT_PRIMARY}]/40",
                             )
         """
 
         # Full 5-level scale
-        Separator(cssClass="my-0.5")
+        Separator(css_class="my-0.5")
         Text(
             t("section_bafu_levels", lang),
-            cssClass=f"text-[10px] uppercase tracking-[0.2em]"
+            css_class=f"text-[10px] uppercase tracking-[0.2em]"
             f" text-[{_AG_TXT_PRIMARY}]/50 dark:text-[{_DK.TXT_PRIMARY}]/50 text-center",
         )
         with Column(gap=0):
@@ -143,21 +143,26 @@ async def safety_briefing(city: str = "Bern", lang: str = "de") -> PrefabApp:
                 lvl_label = t(f"bafu_{lvl}_label", lang)
                 lvl_guidance = t(f"bafu_{lvl}_guidance", lang)
                 with Card(
-                    cssClass=(
+                    css_class=(
                         f"{_AG_RADIUS} border-l-[3px] border-l-[{color}] dark:border-l-[{color_dk}]"
                         + (" shadow-sm" if is_current else " opacity-40")
                     )
                 ):
-                    with CardContent(cssClass="py-1.5 px-2"):
-                        with Row(cssClass="items-center gap-2"):
+                    with CardContent(css_class="py-1.5 px-2"):
+                        with Row(css_class="items-center gap-2"):
                             Text(
                                 str(lvl),
-                                cssClass=f"text-sm font-black text-[{color}] dark:text-[{color_dk}]"
+                                css_class=f"text-sm font-black text-[{color}] dark:text-[{color_dk}]"
                                 " w-4 text-center flex-shrink-0",
                             )
                             Text(
-                                lvl_label + (f" {t('label_current_marker', lang)}" if is_current else ""),
-                                cssClass=(
+                                lvl_label
+                                + (
+                                    f" {t('label_current_marker', lang)}"
+                                    if is_current
+                                    else ""
+                                ),
+                                css_class=(
                                     f"text-xs font-bold text-[{color}] dark:text-[{color_dk}]"
                                     if is_current
                                     else f"text-xs font-semibold"
@@ -166,7 +171,7 @@ async def safety_briefing(city: str = "Bern", lang: str = "de") -> PrefabApp:
                             )
                             Muted(
                                 lvl_guidance,
-                                cssClass=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60 ml-auto text-right",
+                                css_class=f"text-[10px] text-[{_AG_TXT_PRIMARY}]/60 dark:text-[{_DK.TXT_PRIMARY}]/60 ml-auto text-right",
                             )
 
     return PrefabApp(

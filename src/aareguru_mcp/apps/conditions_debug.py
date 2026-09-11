@@ -35,52 +35,52 @@ async def conditions_debug_all(city: str = "Bern") -> PrefabApp:
     aare = data.get("aare") or {}
     location = aare.get("location_long") or aare.get("location") or city
 
-    with Column(gap=0, cssClass="p-4 max-w-7xl mx-auto") as view:
+    with Column(gap=0, css_class="p-4 max-w-7xl mx-auto") as view:
         # Header
         Text(
             f"🔍 Debug: All Condition Apps — {location}",
-            cssClass=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center mb-4",
+            css_class=f"text-2xl font-black tracking-tight text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] text-center mb-4",
         )
 
         # Row 1: Temperature + Flow side-by-side
         with Grid(columns=2, gap=2):
             # Temperature section
             with Column(
-                cssClass="border border-gray-300 dark:border-gray-700 p-3 rounded"
+                css_class="border border-gray-300 dark:border-gray-700 p-3 rounded"
             ):
                 Text(
                     "📊 Temperature App",
-                    cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
+                    css_class=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
                 )
                 render_temperature_section(aare)
 
             # Flow section
             with Column(
-                cssClass="border border-gray-300 dark:border-gray-700 p-3 rounded"
+                css_class="border border-gray-300 dark:border-gray-700 p-3 rounded"
             ):
                 Text(
                     "💧 Flow & Safety App",
-                    cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
+                    css_class=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
                 )
                 render_flow_section(aare)
 
         # Row 2: Weather (full width)
         with Column(
-            cssClass="border border-gray-300 dark:border-gray-700 p-3 rounded mt-4"
+            css_class="border border-gray-300 dark:border-gray-700 p-3 rounded mt-4"
         ):
             Text(
                 "🌤️ Weather App",
-                cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
+                css_class=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
             )
             render_weather_section(data.get("weather") or {})
 
         # Row 3: Sun (full width)
         with Column(
-            cssClass="border border-gray-300 dark:border-gray-700 p-3 rounded mt-4"
+            css_class="border border-gray-300 dark:border-gray-700 p-3 rounded mt-4"
         ):
             Text(
                 "☀️ Sun App",
-                cssClass=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
+                css_class=f"text-sm font-bold text-[{_AG_TXT_PRIMARY}] dark:text-[{_DK.TXT_PRIMARY}] mb-2",
             )
             render_sun_section(data.get("sun") or {})
 
